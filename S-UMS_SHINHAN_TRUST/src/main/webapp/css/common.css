@@ -613,7 +613,7 @@ tbody.sortable td {background-color:transparent;}
 /* login */
 /* #login {position:relative;width:100%;min-width:1180px;height:100%;background:url('../img/common/login_bg.png') no-repeat 0 0; background-size:cover;} */
 #login {position:relative;width:100%;min-width:1180px;height:100%;background-color: #f3f5f9; background-size:cover;}
-#login .login-inner {position:absolute;top:40%;left:50%;width:580px;margin-top:-300px;margin-left:-290px;text-align:center;}
+#login .login-inner {position:absolute;top:50%;left:50%;width:580px;margin-top:-300px;margin-left:-290px;text-align:center;}
 /* #login .login-inner .logo {width:230px;height:186px;margin-bottom:30px;} */
 #login .login-inner .logo {width:230px;height:56px;margin-bottom:30px;}
 #login .login-inner .form-box {padding:60px 80px 50px;background:#fff;box-sizing:border-box;border-radius:5px;}
