@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.sict.ums.ems.tmp.dao.TemplateMapper">
+
+	<select id="getTemplateList" parameterType="templateVO" resultType="templateVO">
+		SELECT *
+		  FROM (
+				SELECT A.TEMP_NO
+					 , A.TEMP_NM
+					 , A.USER_ID
+					 , A.CHANNEL
+					 , A.STATUS
+					 , A.DEPT_NO
+					 , A.TEMP_DESC
+					 , A.TEMP_FL_PATH
+					 , A.REG_DT
+					 , A.REG_ID
+					 , A.UP_ID
+					 , A.UP_DT
+					 , B.USER_NM
+					 , C.USER_NM REG_NM
+					 , D.DEPT_NM
+					 , E.CD_NM CHANNEL_NM
+					 , F.CD_NM STATUS_NM
+					 , ROW_NUMBER() OVER (ORDER BY TEMP_NO DESC) SEQ
+					 , COUNT(1) OVER() TOTAL_COUNT
+				  FROM NEO_TEMPLATE A
+					 , NEO_USER B
+					 , NEO_USER C
+					 , NEO_DEPT D
+					 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C002' AND UILANG = #{uilang}) E
+					 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C016' AND UILANG = #{uilang}) F
+				 WHERE A.USER_ID = B.USER_ID
+				   AND A.REG_ID = C.USER_ID
+				   AND A.DEPT_NO = D.DEPT_NO
+				   AND A.CHANNEL = E.CD
+				   AND A.STATUS = F.CD
+				   <if test="searchTempNm != null and searchTempNm != ''">
+				   AND A.TEMP_NM LIKE '%' || #{searchTempNm} || '%'
+				   </if>
+				   <if test="searchChannel != null and searchChannel != ''">
+				   AND A.CHANNEL = #{searchChannel}
+				   </if>
+				   <if test='searchStatus != null and searchStatus != "ALL"'>
+				   AND A.STATUS = #{searchStatus}
+				   </if>
+				   <if test='adminYn == "N"'>
+				   AND A.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND A.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND A.USER_ID = #{searchUserId}
+				   </if>
+				   <if test="searchStartDt != null and searchStartDt != ''">
+				   AND A.REG_DT &gt;= #{searchStartDt} || '000000'
+				   </if>
+				   <if test="searchEndDt != null and searchEndDt != ''">
+				   AND A.REG_DT &lt; #{searchEndDt} || '240000'
+				   </if>
+				)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	
+	<select id="getTemplateInfo" parameterType="templateVO" resultType="templateVO">
+		SELECT A.TEMP_NO
+			 , A.TEMP_NM
+			 , A.USER_ID
+			 , A.CHANNEL
+			 , A.STATUS
+			 , A.DEPT_NO
+			 , A.TEMP_DESC
+			 , A.TEMP_FL_PATH
+			 , A.REG_ID
+			 , C.USER_NM REG_NM
+			 , A.REG_DT
+			 , A.UP_ID
+			 , (SELECT USER_NM FROM NEO_USER WHERE USER_ID = A.UP_ID) UP_NM
+			 , A.UP_DT
+			 , B.USER_NM
+			 , D.DEPT_NM
+			 , E.CD_NM CHANNEL_NM
+			 , F.CD_NM STATUS_NM
+		  FROM NEO_TEMPLATE A
+			 , NEO_USER B
+			 , NEO_USER C
+			 , NEO_DEPT D
+			 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C002' AND UILANG = #{uilang}) E
+			 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C016' AND UILANG = #{uilang}) F
+		 WHERE A.USER_ID = B.USER_ID
+		   AND A.REG_ID = C.USER_ID
+		   AND A.DEPT_NO = D.DEPT_NO
+		   AND A.CHANNEL = E.CD
+		   AND A.STATUS = F.CD
+		   AND A.TEMP_NO = #{tempNo}
+	</select>
+	
+	<insert id="insertTemplateInfo" parameterType="templateVO">
+		INSERT INTO NEO_TEMPLATE
+		(
+			  TEMP_NO
+			, TEMP_NM
+			, TEMP_DESC
+			, USER_ID
+			, CHANNEL
+			, TEMP_FL_PATH
+			, STATUS
+			, DEPT_NO
+			, REG_DT
+			, REG_ID
+		)
+		VALUES
+		(
+			  NEXTVAL('NEO_TEMPLATE_SEQ')
+			, #{tempNm}
+			, #{tempDesc}
+			, #{userId}
+			, #{channel}
+			, #{tempFlPath}
+			, #{status}
+			, #{deptNo}
+			, #{regDt}
+			, #{regId}
+		)
+	</insert>
+	
+	<update id="updateTemplateInfo" parameterType="templateVO">
+		UPDATE NEO_TEMPLATE
+		   SET TEMP_NM      = #{tempNm}
+			 , TEMP_DESC    = #{tempDesc}
+			 , USER_ID      = #{userId}
+			 , CHANNEL      = #{channel}
+			 , TEMP_FL_PATH = #{tempFlPath}
+			 , STATUS       = #{status}
+			 , DEPT_NO      = #{deptNo}
+			 , UP_ID        = #{upId}
+			 , UP_DT        = #{upDt}
+		 WHERE TEMP_NO      = #{tempNo}
+	</update>
+
+</mapper>

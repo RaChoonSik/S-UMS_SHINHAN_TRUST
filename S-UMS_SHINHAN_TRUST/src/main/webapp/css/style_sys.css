@@ -1,0 +1,280 @@
+@charset "utf-8";
+
+/**
+ * --------------------------------
+ * SYS CSS
+ * creator : leejeha
+ * --------------------------------
+*/
+
+/* layout */
+.sys .cont-head .util .user .info em{color:#D4373C;}
+.sys .cont-head .util .btn-util {margin-top:7px;margin-left:16px;padding-top:30px;background:url("../img/common/conthead_util.png") no-repeat;color:#888;}
+.sys .cont-head .util .btn-util.item01 {background-position:22px -3px;}
+.sys .cont-head .util .btn-util.item02 {position:relative;background-position:-104px -4px;}
+.sys .cont-head .util .btn-util.item01:hover {background-position:22px -80px;}
+.sys .cont-head .util .btn-util.item02:hover {background-position:-104px -81px;}
+.sys .cont-head .util .btn-util.item02.active {background-position:-175px 1px;}
+.sys .cont-head .util .btn-util.item02.active:hover {background-position:-175px -77px;}
+.sys .cont-head .util .btn-util.item02 .alertnum {display:none;position:absolute;top:2px;right:7px;width:18px;height:18px;color:#fff;font-size:10px;text-align: center;border-radius: 50%;}
+.sys .cont-head .util .btn-util.item02.active .alertnum {display:block;}
+
+.sys .toggle-unfold li.active > button{color:#D4373C;}
+/* 0906 추가 */
+.sys .hidden {display:none !important;}
+
+/* lnb */
+.sys #lnb nav{margin-top:30px;}
+.sys #lnb nav > ul > li > a > span{padding-left:36px;background:url("../img/sys/lnb_navicon.png") no-repeat;}
+.sys #lnb nav > ul > li > a > span.item01{background-position:0 2px;}
+.sys #lnb nav > ul > li > a > span.item02 {background-position:0 -28px;}
+.sys #lnb nav > ul > li > a > span.item03 {background-position:0 -58px;}
+.sys #lnb nav > ul > li > a > span.item04 {background-position:0 -88px;}
+.sys #lnb nav > ul > li > a > span.item05 {background-position:0 -118px;}
+.sys #lnb nav > ul > li > a > span.item06 {background-position:0 -148px;}
+/* .sys #lnb nav > ul > li:nth-child(n+4):nth-child(-n+6) > a:after{content:'';background:none;} */
+
+.sys #lnb .inner-menu li.active{background:#D4373C;}
+
+/* input checkbox, radio */
+.sys input[type="checkbox"] + span{margin-right:8px;}
+.sys input[type="checkbox"] + span:before{background-image:url("../img/sys/form_chk.png");}
+.sys+.poplayer input[type="checkbox"] + span:before{background-image:url("../img/sys/form_chk.png");}
+.sys input[type="radio"] + span:before{background-image:url("../img/sys/form_rdo.png");}
+
+/* grid */
+.grid a{color:#D4373C;}
+.grid a:not(.btn):hover{color:#8d2225;}
+
+/* sys col-full 목록 레이아웃 공통 */
+.sys .graybox .list-area > ul > li.col-full ~ li:nth-of-type(2){margin-top:15px;margin-right:6%;}
+.sys .graybox .list-area > ul > li.col-full ~ li:nth-of-type(3){margin-right:0;}
+
+/* 사용자검색, 권한매핑사용자 사용자명 클릭시 체크박스 체크 */
+.sys .user {margin-top:20px;}
+.sys .user li {margin-top:10px;}
+.sys .user li:first-child{margin-top:0;}
+.sys .user strong {margin-right:10px;padding-left:17px;background:url("../img/sys/btn_user.png") no-repeat 0 -19px;color:#666;font-weight:600;}
+.sys .user span {color:#666;}
+.sys .user li.active strong {color:#D4373C;background-position:0 -42px;}
+.sys .user li.disabled label > span {pointer-events: none;}
+.sys .user label {width:100%;padding-left:6px;}
+.sys .user label > span {display:block; cursor: pointer;}
+.sys .user label > span.last::before{content:'';display:inline-block;margin-right:4px;width:6px;height:2px;vertical-align:middle;background:#666;}
+.sys .user li.disabled button {pointer-events: none;}
+.sys .user li.disabled strong{color:#bcbcbc;background:url("../img/sys/btn_user.png") no-repeat 0 3px;}
+.sys .user li.disabled span{color:#bcbcbc;}
+.sys .toggle li.active > button, .sys+.poplayer .toggle li.active > button{color:#111;}
+
+
+.sys .sortable > * {background:url("../img/common/bg_sortable.png") no-repeat 1.5% 50%;}
+.sys .grid .selected {background-color:#f2f2f2;}
+.sys .out-title {position:relative;margin-top:50px;padding-left:10px;color:#111;font-size:18px;font-weight:500;}
+.sys .out-title:before {content:"";position:absolute;top:4px;left:0;width:2px;height:20px;background:#111;}
+
+/* 조직도 목록 */
+.groupchart-box .gridtoggle-area .col.departmentcode {width:30%;text-align: left !important;}
+.groupchart-box .gridtoggle-area .col.departmentname {width:auto;min-width:220px;}
+.groupchart-box .gridtoggle-area .col.registrant {width:15%;min-width:150px;}
+.groupchart-box .gridtoggle-area .col.enrolldate {width:10%;min-width:110px;}
+/* 0908 추가 */
+.groupchart-box .adminauthority .graybox{float:left;width:30%;min-width:240px;height:280px;}
+.groupchart-box .adminauthority .graybox:nth-of-type(4){width:32%;min-width:260px;}
+.groupchart-box .adminauthority .btn-area{position:absolute;top:120px;right:34.8%;}
+.groupchart-box table .btn-toggle {padding-left:20px;background:url("../img/common/btn_toggle.png") no-repeat 0 3px;}
+.groupchart-box table .btn-toggle.open {background-position:0 -22px;color:#111;font-weight:600;}
+
+/* 조직도 및 사용자, 권한관리 레이아웃 공통 */
+.adminauthority{position:relative;padding:20px;background:#fff;border-bottom-left-radius:10px;border-bottom-right-radius:10px;}
+.adminauthority h4{padding-bottom:7px;font-size:16px;font-weight:600;border-bottom:1px solid #111;}
+.adminauthority .graybox ~ .graybox{margin-top:0;margin-left:1%;}
+.adminauthority .content-area{padding:20px;overflow-y:auto;}
+.adminauthority .item input{width:calc(100% - 45px);}
+.adminauthority .item{margin-bottom:20px;}
+.adminauthority .item .btn{margin-left:3px;padding:0 8px;}
+.adminauthority .user li:not(:first-child) {margin-top:10px;}
+.adminauthority .user strong{margin-right:10px;padding-left:17px;background: url("../img/sys/btn_user.png") no-repeat 0 -19px;color:#666;font-weight:600;}
+.adminauthority .user button span{color:#666;}
+.adminauthority .user button span:last-child:before{content:"|";display:inline-block;margin:0 5px 0 3px;}
+.adminauthority .user label span {margin-right:0;}
+.adminauthority .user li.active strong{color:#D4373C;background-position:0 -42px;}
+.adminauthority .btn-area{position:absolute;top:186px;right:33.6%;}
+.adminauthority .btn-area button{display:block;width:30px;height:30px;margin-bottom:15px;}
+.adminauthority .btn-area .btn-remove{background:url("../img/sys/menu_arrow.png") no-repeat 0 0;} 
+.adminauthority .btn-area .btn-remove.active{background-position:-43px 0;}
+.adminauthority .btn-area .btn-remove-all{background:url("../img/sys/menu_arrow.png") no-repeat -86px 0;}
+.adminauthority .btn-area .btn-remove-all.active{background-position:-129px 0;}
+.adminauthority .btn-area .btn-add{background:url("../img/sys/menu_arrow.png") no-repeat 0 -45px;}
+.adminauthority .btn-area .btn-add.active{background-position:-43px -45px;}
+.adminauthority .btn-area .btn-add-all{background:url("../img/sys/menu_arrow.png") no-repeat -86px -45px;}
+.adminauthority .btn-area .btn-add-all.active{background-position:-129px -45px;}
+.adminauthority .requester{display:flex;justify-content:space-between;margin-bottom:20px;padding:15px 13px 15px 23px;border-bottom:1px solid #E1E1E1;}
+.adminauthority .requester span{color:#666;}
+.adminauthority .grid-area{padding:0;}
+.adminauthority .grid thead th{font-weight:400;}
+.adminauthority .grid .btn-minus{display:inline-block;width:15px;height:15px;background: red url("../img/common/form_minus.png") no-repeat 0 0;}
+.adminauthority .grid .btn-minus:hover{background-position:0 -25px;}
+.adminauthority .toggle > li .btn-toggle{padding-left:20px;background:url("../img/common/btn_toggle.png") no-repeat 0 3px;}
+.adminauthority .toggle li.open > .btn-toggle, .toggle li.open > .clear > .btn-toggle{background-position:0 -22px;}
+.adminauthority .toggle li{position:relative;}
+.adminauthority .toggle li label{position: absolute; top:0; right:0;}
+.adminauthority .toggle input[type="checkbox"] + span{margin-right:0;}
+.adminauthority .btn-wrap{margin-top:30px;}
+
+/* 메뉴권한 목록 */
+.menuauthority-wrap{position:relative;}
+.menuauthority-wrap .graybox{float:left;height:490px;}
+.menuauthority-wrap .graybox:not(:nth-of-type(2)) {margin-right:1%;}
+.menuauthority-wrap .graybox ~ .graybox {margin-top:0;}
+.menuauthority-wrap .adminauthority .graybox{float:left;width:30%;min-width:180px;height:390px;margin-right:1%;}
+.menuauthority-wrap .adminauthority .graybox:nth-of-type(4){width:30%;min-width:166px;margin-right:0;}
+.menuauthority-wrap .content-area{padding:20px 10px;}
+.menuauthority-wrap .adminauthority .btn-area{position:absolute;top:120px;right:33%;}
+.menuauthority-wrap table .btn-toggle {padding-left:20px;background:url("../img/common/btn_toggle.png") no-repeat 0 3px;}
+.menuauthority-wrap table .btn-toggle.open {background-position:0 -22px;color:#111;font-weight:600;}
+.menuauthority-wrap .depth1,
+.menuauthority-wrap .depth2,
+.menuauthority-wrap .depth2 li,
+.menuauthority-wrap .depth3,
+.menuauthority-wrap .depth3 li{margin-top:10px;}
+.menuauthority-wrap fieldset > .graybox:nth-of-type(1) > .content-area{height:88%;padding:15px;overflow-y:auto !important;}
+.menuauthority-wrap .toggle-check li{position:relative;}
+.menuauthority-wrap .toggle-check .col.checkbox {position:absolute;top:0; right:-10px;vertical-align:top;}
+.menuauthority-wrap .toggle-check .col.checkbox input[type="checkbox"] + span {margin-right:0;}
+.menuauthority-wrap .databox {position: absolute; bottom:-35px;}
+.menuauthority-wrap .databox p {color:#666; font-size:14px;}
+.menuauthority-wrap .databox p span:not(:last-child):after {content:',';}
+.menuauthority-wrap .btn-area{position:absolute;top:186px;right:33.6%;}
+.menuauthority-wrap .btn-area button{display:block;width:30px;height:30px;margin-bottom:15px;}
+.menuauthority-wrap .btn-area .btn-remove{background:url("../img/sys/menu_arrow.png") no-repeat 0 0;} 
+.menuauthority-wrap .btn-area .btn-remove.active{background-position:-43px 0;}
+.menuauthority-wrap .btn-area .btn-remove-all{background:url("../img/sys/menu_arrow.png") no-repeat -86px 0;}
+.menuauthority-wrap .btn-area .btn-remove-all.active{background-position:-129px 0;}
+.menuauthority-wrap .btn-area .btn-add{background:url("../img/sys/menu_arrow.png") no-repeat 0 -45px;}
+.menuauthority-wrap .btn-area .btn-add.active{background-position:-43px -45px;}
+.menuauthority-wrap .btn-area .btn-add-all{background:url("../img/sys/menu_arrow.png") no-repeat -86px -45px;}
+.menuauthority-wrap .btn-area .btn-add-all.active{background-position:-129px -45px;}
+@media screen and (max-width:1346px) {
+    .adminauthority .content-area {padding:15px;}
+    /* 2줄 */
+    .menuauthority-wrap .adminauthority .user > li > button{text-align:left;}
+    .menuauthority-wrap .adminauthority .user label > span:first-child{width:80%;}
+    .menuauthority-wrap .adminauthority .user label > span:last-child{width:12%; margin-right:0;}
+    .menuauthority-wrap .adminauthority .user strong {margin-right:30%;line-height:1.6;}
+
+    /* 말줄임 */
+    .menuauthority-wrap .col.menu {display: block;width:105px;overflow: hidden;}
+    .menuauthority-wrap .col.menu button{width:72px;text-align:left;overflow: hidden;white-space: nowrap; text-overflow: ellipsis !important;}
+}
+
+/* 사용자권한 정보수정 */
+.userauthority-wrap .adminauthority .graybox{height:430px;}
+.userauthority-wrap .adminauthority .graybox:nth-of-type(1){width:50%; min-width:400px;}
+.userauthority-wrap .adminauthority .graybox:nth-of-type(3){width:43%; min-width:300px;}
+.userauthority-wrap .adminauthority .btn-area{position:absolute;top:186px;right:46%;margin-right:-6px;}
+.userauthority-wrap .user{margin-top:0;}
+.userauthority-wrap .user li strong{margin-right:10px;padding-left:0px;background:none;color:#666;font-weight:600;}
+
+/* 공통코드 관리 */
+.commoncode .graybox + .graybox-wrap{margin-top:30px;}
+
+/* 데이터베이스 권한관리 */
+.connectdb-wrap .adminauthority .graybox{width:30%; min-width:240px; height:400px;}
+.connectdb-wrap .adminauthority .graybox:nth-of-type(3){width:30%;min-width:260px;}
+
+/* 데이터베이스 메타정보관리 */
+.connectdb-wrap .table-wrap {padding:15px 30px;background:#fff;}
+.connectdb-wrap .table-wrap .graybox {float:left;width:49%;min-width:380px;height:295px;margin-top:0;margin-left:2%;background:#fff;}
+.connectdb-wrap .table-wrap .graybox:first-child {margin-left:0;}
+.connectdb-wrap .table-area table {border-radius:5px;box-shadow:0px 3px 10px rgb(141 141 141 / 16%);overflow:hidden;}
+.connectdb-wrap .table-area th {padding:10px;background:#f2f2f2;text-align:center;}
+.connectdb-wrap .table-area td {padding:10px;}
+.connectdb-wrap .table-area button {width:64px;height:32px;margin-top:6px;margin-left:8px;line-height:30px;border-radius:4px;vertical-align:top;}
+.connectdb-wrap .table-wrap .graybox .grid-area {height:235px;padding:0;overflow-y:auto;}
+.connectdb-wrap .table-wrap .graybox .grid tr {cursor: pointer;}
+.connectdb-wrap .table-wrap .graybox .grid td.active {color:#D4373C;font-weight:600;}
+.connectdb-wrap .grid-area .grid td > label {width:100%;}
+.connectdb-wrap .grid-area .grid td > button {margin-bottom:5px;}
+
+/* 데이터베이스 조인정보관리 */
+.connectdb-wrap .enroll-info {padding:20px;background:#fff;}
+.connectdb-wrap .enroll-info .graybox {float:left;width:33.3%;margin-top:0;margin-left:2%;}
+.connectdb-wrap .enroll-info .graybox:nth-of-type(2) {width:29.3%;margin-top:70px;border-radius: 0;box-shadow: none;}
+.connectdb-wrap .enroll-info .graybox:first-child {margin-left:0;}
+.connectdb-wrap .enroll-info .graybox .list-area label {display:block;}
+.connectdb-wrap .enroll-info .graybox .list-area .list-item,
+.connectdb-wrap .enroll-info .graybox:nth-of-type(2) > ul > li .list-item {display:block;width:100%;margin-top:6px;}
+.connectdb-wrap .enroll-info .graybox:nth-of-type(2) {width:29.3%;margin-top:60px;box-shadow:none;}
+.connectdb-wrap .enroll-info .graybox:nth-of-type(2) label {margin-bottom:6px;}
+.connectdb-wrap .enroll-info .graybox .list-area > ul > li > label {width:45px;}
+.connectdb-wrap .enroll-info .graybox:nth-of-type(2) label {color:#444;font-weight:600;}
+.connectdb-wrap .enroll-info .graybox:nth-of-type(2) > ul > li:not(:first-child) {margin-top:10px;}
+.connectdb-wrap .grid-area .grid label {display:inline-block;width:45px;margin-bottom:6px;margin-right:6px;color:#444;font-weight:600;}
+.connectdb-wrap .grid-area .grid label span {margin-right:15px;}
+.connectdb-wrap .grid-area .list-item {display: inline-block;width:calc(100% - 55px);}
+.connectdb-wrap .grid-area .list-item .select {width:100%;min-width:150px;}
+.connectdb-wrap .admin-resending .list-area .grid td > label:first-child {margin-right:15px;}
+
+/* 수신자그룹관리 */
+.sys .tab .tab-menu > a.active{background:#D4373C;}
+
+/* popup :: 메타정보관리 추출조건 */
+.popextractcondition .graybox .list-area > ul > li,
+.popextractcondition .graybox .list-area > ul > li.col-full + .col-full {margin-top:0 !important;}
+.popextractcondition label{width:19%;margin-right:105px;}
+.popextractcondition label:nth-child(3n+3){margin-right:0;}
+.popextractcondition input[type="checkbox"] + span{margin-right:0;}
+.popextractcondition .grid .btn-wrap {margin-top:0;}
+
+/* popup :: 조직도, 접근메뉴 공통 */
+.layertoggle{max-height:500px !important;padding:0 !important;}
+.layertoggle .adminauthority{padding:0;}
+.layertoggle .adminauthority .graybox{height:500px;}
+.layertoggle .adminauthority .content-area{height:300px;padding:20px 30px; }
+.layertoggle .adminauthority .content-area li {margin-bottom:10px;}
+.layertoggle .adminauthority .btn-area{display:block;position:static;}
+.layertoggle .adminauthority .graybox{float:none;width:100%;max-height:300px;box-shadow:none;border-radius:0;text-align:left !important;}
+
+/* popup : 템플릿 미리보기 */
+.poppreviewtemplate .graybox .table-area th {padding:15px 20px;background:#f2f2f2;font-size:14px;text-align:center;}
+.poppreviewtemplate .graybox .table-area td {padding:15px 20px;color:#444;font-size:14px;font-weight:600;}
+.poppreviewtemplate .previewbox {width:340px;height:490px;margin:20px auto 0;padding:10px;background:#B2C7DA;border:none;border-radius:5px;overflow-y:auto;}
+.poppreviewtemplate .previewbox::-webkit-scrollbar {width:5px;}
+.poppreviewtemplate .previewbox::-webkit-scrollbar-thumb {background-color:#ccc;}
+.poppreviewtemplate .previewbox::-webkit-scrollbar-track {background-color:#fff;}
+.poppreviewtemplate .previewbox .name {color:#111;font-size:12px;}
+.poppreviewtemplate .previewbox .messagebox {width:250px;margin-top:5px;}
+.poppreviewtemplate .previewbox .messagebox .tit {display:block;position:relative;height:25px;padding:4px 7px;background:#FFEB34;color:#111;font-size:10px;border-top-right-radius:6px;border-top-left-radius:6px;}
+.poppreviewtemplate .previewbox .messagebox .tit:after {content:"";display:block;position:absolute;top:-9px;right:-9px;width:20px;height:19px;line-height:19px;background:url("../img/common/icon_kakao.png") no-repeat 0 0;}
+.poppreviewtemplate .previewbox .messagebox .message {height:416px;padding:5px 12px 5px 8px;background:#fff;color:#111;font-size:12px;border-bottom-right-radius:6px;border-bottom-left-radius:6px;border-top-left-radius:0px;border-top-right-radius:0px;border:none;}
+.poppreviewtemplate .previewbox .messageboxT {width:330px;margin-top:5px;}
+.poppreviewtemplate .previewbox .messageboxT .tit {display:block;position:relative;height:25px;padding:4px 7px;background:#FFEB34;color:#111;font-size:10px;border-top-right-radius:6px;border-top-left-radius:6px;}
+.poppreviewtemplate .previewbox .messageboxT .tit:after {content:"";display:block;position:absolute;top:-9px;right:-9px;width:20px;height:19px;line-height:19px;background:url("../img/common/icon_kakao.png") no-repeat 0 0;}
+.poppreviewtemplate .previewbox .messageboxT .message {height:416px;padding:5px 12px 5px 8px;background:#fff;color:#111;font-size:12px;border-bottom-right-radius:6px;border-bottom-left-radius:6px;border-top-left-radius:0px;border-top-right-radius:0px;border:none;}
+
+.poppreviewtemplate .infotxt {width:340px;margin:10px auto 0;color:#888;font-size:12px;}
+
+/* smsinfobox */
+.templateInfobox {position:relative;margin-top:30px;}
+.templateInfobox:after {content:"";display:block;clear:both;}
+.templateInfobox > .box {float:right;position:relative;width:37%;min-height:510px;background:#fff;border-radius:10px;box-shadow:0px 3px 6px rgba(0,0,0,0.16);}
+.templateInfobox > .box:first-child {float:left;width:60.3%;}
+.templateInfobox .title-area {height:50px;padding:10px 20px;background:#F2F2F2;border-top-left-radius:10px;border-top-right-radius:10px;}
+.templateInfobox .title-area .h3-title {display:inline-block;margin-top:3px;vertical-align:middle;}
+.templateInfobox .title-area .btn {display:inline-block;position:relative;height:32px;line-height:30px;padding:0 10px;background:#fff;color:#888;font-size:11px;font-weight:500;text-align:center;vertical-align:middle;border:1px solid #D8D8D8;border-radius:4px;}
+.templateInfobox .list-area {padding:20px 20px 15px;}
+.templateInfobox .list-area > ul > li {margin-top:15px;padding-top:10px;border-top:1px solid #E1E1E1;}
+.templateInfobox .list-area > ul > li:first-child {margin-top:0;padding-top:0;border-top:none;}
+.templateInfobox .list-area > ul > li > label {margin-bottom:5px;color:#444;font-size:14px;font-weight:600;}
+.templateInfobox .list-area .txt {margin-top:5px;color:#888;font-size:12px;}
+
+.templateInfobox .mapp-area:after {content:"";display:block;clear:both;}
+/* 템플릿 선택영역 */
+.templateInfobox .mapp-area > .function-form {margin-top:20px;margin-left:1%;margin-right:2%;padding-bottom:20px;}
+.templateInfobox .mapp-area > .function-form::after {content:'';display:block;clear:both;}
+.templateInfobox .mapp-area > .function-form .select {margin-left:0;}
+.templateInfobox .mapp-area > .function-form .grid-area {width:100%;height:400px;overflow-y:auto;}
+.templateInfobox .mapp-area > .function-form .grid thead th {z-index:9;}
+.templateInfobox .mapp-area > .function-form .grid tbody td {padding:5px;}
+.templateInfobox .mapp-area > .function-form .grid tbody tr:last-child td {border-bottom: 1px solid #dadada;}
+.templateInfobox .mapp-area > .function-form .grid tbody tr td.no_data {padding:80px 0;}

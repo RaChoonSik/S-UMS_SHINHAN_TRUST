@@ -1,0 +1,1005 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.sict.ums.sms.ana.dao.SmsAnalysisMapper">
+	<select id="getSmsList" parameterType="smsSendLogVO" resultType="smsSendLogVO">
+		SELECT *
+		  FROM (
+				SELECT MSGID
+					 , KEYGEN
+					 , USER_ID
+					 , DEPT_NO
+					 , DEPT_NM
+					 , CAMPUS_NO AS CAMP_NO
+					 , CAMP_NM 
+					 , SEND_DATE
+					 , TASK_NM
+					 , TEMP_CD 
+					 , TEMP_NM 
+					 , VALID_YN
+					 , SMS_NAME 
+					 , SMS_MESSAGE
+					 , GUBUN
+					 , GUBUN_NM
+					 , SEND_TOT_CNT
+					 , SUCC_CNT
+					 , FAIL_CNT
+					 , SUCC_SMS
+					 , FAIL_SMS
+					 , TOTAL_COUNT
+				  FROM (
+						SELECT 'X' JOIN_COL 
+							 , A.MSGID
+							 , A.KEYGEN
+							 , A.USER_ID
+							 , A.DEPT_NO
+							 , B.DEPT_NM
+							 , A.CAMPUS_NO
+							 , (SELECT CAMP_NM FROM NEO_CAMPAIGN T1 WHERE T1.CAMP_NO = A.CAMPUS_NO ) AS CAMP_NM
+							 , A.SEND_DATE
+							 , A.TASK_NM
+							 , IF(A.TEMP_CD IS NULL OR A.TEMP_CD  ='' , '999999', A.TEMP_CD ) TEMP_CD
+							 , IFNULL(E.TEMP_NM ,'웹발송' ) TEMP_NM
+							 , A.VALID_YN
+							 , A.SMS_NAME 
+							 , A.SMS_MESSAGE
+							 , A.GUBUN
+							 , D.CD_NM AS GUBUN_NM
+							 , (SELECT COUNT(*) FROM NEO_SMSLOG T1 WHERE T1.MSGID = A.MSGID AND T1.KEYGEN = A.KEYGEN) SEND_TOT_CNT
+							 <if test="searchGubun == '004'">
+							 , (SELECT COUNT(*) FROM NEO_SMSLOG T1 WHERE T1.MSGID = A.MSGID AND T1.KEYGEN = A.KEYGEN AND T1.RSLT_CD = '1' AND T1.SMS_SEND_YN = 'N' ) AS SUCC_CNT
+							 , (SELECT COUNT(*) FROM NEO_SMSLOG T1 WHERE T1.MSGID = A.MSGID AND T1.KEYGEN = A.KEYGEN AND T1.RSLT_CD = '0' AND T1.SMS_SEND_YN = 'N' ) AS FAIL_CNT
+							 , (SELECT COUNT(*) FROM NEO_SMSLOG T1 WHERE T1.MSGID = A.MSGID AND T1.KEYGEN = A.KEYGEN AND T1.RSLT_CD = '1' AND T1.SMS_SEND_YN = 'Y' ) AS SUCC_SMS
+							 , (SELECT COUNT(*) FROM NEO_SMSLOG T1 WHERE T1.MSGID = A.MSGID AND T1.KEYGEN = A.KEYGEN AND T1.RSLT_CD = '0' AND T1.SMS_SEND_YN = 'Y' ) AS FAIL_SMS
+							 </if>
+							 <if test="searchGubun != '004'">
+							 , (SELECT COUNT(*) FROM NEO_SMSLOG T1 WHERE T1.MSGID = A.MSGID AND T1.KEYGEN = A.KEYGEN AND T1.RSLT_CD = '1' ) AS SUCC_CNT
+							 , (SELECT COUNT(*) FROM NEO_SMSLOG T1 WHERE T1.MSGID = A.MSGID AND T1.KEYGEN = A.KEYGEN AND T1.RSLT_CD = '0' ) AS FAIL_CNT
+							 , 0 AS SUCC_SMS
+							 , 0 AS FAIL_SMS
+							 </if>
+						  FROM NEO_SMS A
+							  INNER JOIN NEO_DEPT B ON A.DEPT_NO = B.DEPT_NO 
+							  INNER JOIN NEO_CD D ON D.CD_GRP = 'C115' AND A.GUBUN = D.CD
+							  <if test="searchGubun != '004'">
+							  LEFT OUTER JOIN NEO_SMS_TEMPLATE E ON IF(A.TEMP_CD IS NULL OR A.TEMP_CD  ='' , '999999', A.TEMP_CD ) = E.TEMP_CD
+							  </if>
+							  <if test="searchGubun == '004'">
+							  LEFT OUTER JOIN NEO_KAKAOTALK_TEMPLATE E ON IF(A.TEMP_CD IS NULL OR A.TEMP_CD  ='' , '999999', A.TEMP_CD ) = E.TEMP_CD
+							  </if>
+						 WHERE A.SMS_STATUS = '000'
+						   AND A.STATUS IN ('003','004')
+						   <if test="searchGubun == null or searchGubun == ''">
+						   AND A.GUBUN != '004'
+						   </if>
+						   <if test="searchGubun != null and searchGubun != ''">
+						   AND A.GUBUN = #{searchGubun}
+						   </if>
+						   <if test="searchStartDt != null and searchStartDt != ''">
+						   AND A.SEND_DATE &gt;= CONCAT(#{searchStartDt},'000000')
+						   </if>
+						   <if test="searchEndDt != null and searchEndDt != ''">
+						   AND A.SEND_DATE &lt; CONCAT(#{searchEndDt},'240000')
+						   </if>
+						   <if test="searchDeptNo != 0">
+						   AND A.DEPT_NO = #{searchDeptNo}
+						   </if>
+						   <if test='searchTaskNm != null and searchTaskNm != ""'>
+						   AND A.TASK_NM LIKE CONCAT('%', #{searchTaskNm},'%')
+						   </if> 
+						   <if test='searchTempCd != null and searchTempCd != ""'>
+							   AND IF(A.TEMP_CD IS NULL OR A.TEMP_CD  ='' , '999999', A.TEMP_CD )  = #{searchTempCd}
+						   </if>
+						   <if test='searchCampNo != null and searchCampNo != 0'>
+						   AND A.CAMPUS_NO = #{searchCampNo}
+						   </if>
+						   <if test="searchUserId != null and searchUserId != ''">
+						   AND A.USER_ID = #{searchUserId}
+						   </if> 
+					  ) TT1,
+					  (
+						SELECT 'X' JOIN_COL
+							 , COUNT(*) TOTAL_COUNT
+						  FROM NEO_SMS A
+							  INNER JOIN NEO_DEPT B ON A.DEPT_NO = B.DEPT_NO 
+							  INNER JOIN NEO_CD D ON D.CD_GRP = 'C115' AND A.GUBUN = D.CD
+							  <if test="searchGubun != '004'">
+							  LEFT OUTER JOIN NEO_SMS_TEMPLATE E ON IF(A.TEMP_CD IS NULL OR A.TEMP_CD  ='' , '999999', A.TEMP_CD ) = E.TEMP_CD
+							  </if>
+							  <if test="searchGubun == '004'">
+							  LEFT OUTER JOIN NEO_KAKAOTALK_TEMPLATE E ON A.TEMP_CD = E.TEMP_CD
+							  </if>
+						 WHERE A.SMS_STATUS = '000'
+						   AND A.STATUS IN ('003','004')
+						   <if test="searchGubun == null or searchGubun == ''">
+						   AND A.GUBUN != '004'
+						   </if>
+						   <if test="searchGubun != null and searchGubun != ''">
+						   AND A.GUBUN = #{searchGubun}
+						   </if>
+						   <if test="searchStartDt != null and searchStartDt != ''">
+						   AND A.SEND_DATE &gt;= CONCAT(#{searchStartDt},'000000')
+						   </if>
+						   <if test="searchEndDt != null and searchEndDt != ''">
+						   AND A.SEND_DATE &lt; CONCAT(#{searchEndDt},'240000')
+						   </if>
+						   <if test="searchDeptNo != 0">
+						   AND A.DEPT_NO = #{searchDeptNo}
+						   </if>
+						   <if test='searchTaskNm != null and searchTaskNm != ""'>
+						   AND A.TASK_NM LIKE CONCAT('%', #{searchTaskNm},'%')
+						   </if>
+						   <if test='searchTempCd != null and searchTempCd != ""'>
+							   AND IF(A.TEMP_CD IS NULL OR A.TEMP_CD  ='' , '999999', A.TEMP_CD )  = #{searchTempCd}
+						   </if>
+						   <if test='searchCampNo != null and searchCampNo != 0'>
+						   AND A.CAMPUS_NO = #{searchCampNo}
+						   </if>
+						   <if test="searchUserId != null and searchUserId != ''">
+						   AND A.USER_ID = #{searchUserId}
+						   </if> 
+						  ) TT2
+					 WHERE TT1.JOIN_COL = TT2.JOIN_COL
+					 ORDER BY TT1.SEND_DATE DESC 
+				) TTT
+		 LIMIT #{startRow}, #{rows}
+	</select>
+	<!-- 
+	<select id="getSmsList" parameterType="smsSendLogVO" resultType="smsSendLogVO">
+		SELECT *
+		  FROM (
+				SELECT MSGID
+					 , KEYGEN
+					 , USER_ID
+					 , DEPT_NO
+					 , DEPT_NM
+					 , CAMPUS_NO AS CAMP_NO
+					 , CAMP_NM 
+					 , SEND_DATE
+					 , TASK_NM
+					 , TEMP_CD 
+					 , TEMP_NM 
+					 , VALID_YN
+					 , SMS_NAME 
+					 , SMS_MESSAGE
+					 , GUBUN
+					 , GUBUN_NM
+					 , SEND_TOT_CNT
+					 , SUCC_CNT
+					 , FAIL_CNT
+					 , SUCC_SMS
+					 , FAIL_SMS
+					 , TOTAL_COUNT
+				  FROM (
+						SELECT 'X' JOIN_COL 
+							 , A.MSGID
+							 , A.KEYGEN
+							 , A.USER_ID
+							 , A.DEPT_NO
+							 , B.DEPT_NM
+							 , A.CAMPUS_NO
+							 , C.CAMP_NM 
+							 , A.SEND_DATE
+							 , A.TASK_NM
+							 <if test="searchGubun == '004'">
+							 , E.TEMP_CD 
+							 , E.TEMP_NM 
+							</if>
+							 <if test="searchGubun != '004'">
+							 , '' TEMP_CD
+							 , '' TEMP_NM
+							 </if>
+							 , A.VALID_YN
+							 , A.SMS_NAME 
+							 , A.SMS_MESSAGE
+							 , A.GUBUN
+							 , D.CD_NM AS GUBUN_NM
+							 , (SELECT COUNT(*) FROM NEO_SMSLOG T1 WHERE T1.MSGID = A.MSGID AND T1.KEYGEN = A.KEYGEN) SEND_TOT_CNT
+							 <if test="searchGubun == '004'">
+							 , (SELECT COUNT(*) FROM NEO_SMSLOG T1 WHERE T1.MSGID = A.MSGID AND T1.KEYGEN = A.KEYGEN AND T1.RSLT_CD = '1' AND T1.SMS_SEND_YN = 'N' ) AS SUCC_CNT
+							 , (SELECT COUNT(*) FROM NEO_SMSLOG T1 WHERE T1.MSGID = A.MSGID AND T1.KEYGEN = A.KEYGEN AND T1.RSLT_CD = '0' AND T1.SMS_SEND_YN = 'N' ) AS FAIL_CNT
+							 , (SELECT COUNT(*) FROM NEO_SMSLOG T1 WHERE T1.MSGID = A.MSGID AND T1.KEYGEN = A.KEYGEN AND T1.RSLT_CD = '1' AND T1.SMS_SEND_YN = 'Y' ) AS SUCC_SMS
+							 , (SELECT COUNT(*) FROM NEO_SMSLOG T1 WHERE T1.MSGID = A.MSGID AND T1.KEYGEN = A.KEYGEN AND T1.RSLT_CD = '0' AND T1.SMS_SEND_YN = 'Y' ) AS FAIL_SMS
+							 </if>
+							 <if test="searchGubun != '004'">
+							 , (SELECT COUNT(*) FROM NEO_SMSLOG T1 WHERE T1.MSGID = A.MSGID AND T1.KEYGEN = A.KEYGEN AND T1.RSLT_CD = '1' ) AS SUCC_CNT
+							 , (SELECT COUNT(*) FROM NEO_SMSLOG T1 WHERE T1.MSGID = A.MSGID AND T1.KEYGEN = A.KEYGEN AND T1.RSLT_CD = '0' ) AS FAIL_CNT
+							 , 0 AS SUCC_SMS
+							 , 0 AS FAIL_SMS
+							 </if>
+						  FROM NEO_SMS A
+							  INNER JOIN NEO_DEPT B ON A.DEPT_NO = B.DEPT_NO
+							  INNER JOIN NEO_CAMPAIGN C ON A.CAMPUS_NO = C.CAMP_NO
+							  INNER JOIN NEO_CD D ON D.CD_GRP = 'C115' AND A.GUBUN = D.CD
+							  <if test="searchGubun != '004'">
+							  INNER JOIN NEO_SMS_TEMPLATE E ON IF(A.TEMP_CD IS NULL OR A.TEMP_CD  ='' , '999999', A.TEMP_CD ) = E.TEMP_CD
+							  </if>
+							  <if test="searchGubun == '004'">
+							  INNER JOIN NEO_KAKAOTALK_TEMPLATE E ON A.TEMP_CD = E.TEMP_CD
+							  </if>
+						 WHERE A.SMS_STATUS = '000'
+						   AND A.STATUS IN ('003','004')
+						   <if test="searchGubun == null or searchGubun == ''">
+						   AND A.GUBUN != '004'
+						   </if>
+						   <if test="searchGubun != null and searchGubun != ''">
+						   AND A.GUBUN = #{searchGubun}
+						   </if>
+						   <if test="searchStartDt != null and searchStartDt != ''">
+						   AND A.SEND_DATE &gt;= CONCAT(#{searchStartDt},'000000')
+						   </if>
+						   <if test="searchEndDt != null and searchEndDt != ''">
+						   AND A.SEND_DATE &lt; CONCAT(#{searchEndDt},'240000')
+						   </if>
+						   <if test="searchDeptNo != 0">
+						   AND A.DEPT_NO = #{searchDeptNo}
+						   </if>
+						   <if test='searchTaskNm != null and searchTaskNm != ""'>
+						   AND A.TASK_NM LIKE CONCAT('%', #{searchTaskNm},'%')
+						   </if>
+						   <if test="searchGubun == '004'"> 
+							   <if test='searchTempCd != null and searchTempCd != ""'>
+							   AND E.TEMP_CD  = #{searchTempCd}
+							   </if>
+						   </if>
+						   <if test='searchCampNo != null and searchCampNo != 0'>
+						   AND A.CAMPUS_NO = #{searchCampNo}
+						   </if>
+						   <if test="searchUserId != null and searchUserId != ''">
+						   AND A.USER_ID = #{searchUserId}
+						   </if> 
+					  ) TT1,
+					  (
+						SELECT 'X' JOIN_COL
+							 , COUNT(*) TOTAL_COUNT
+						  FROM NEO_SMS A
+							  INNER JOIN NEO_DEPT B ON A.DEPT_NO = B.DEPT_NO
+							  INNER JOIN NEO_CAMPAIGN C ON A.CAMPUS_NO = C.CAMP_NO
+							  INNER JOIN NEO_CD D ON D.CD_GRP = 'C115' AND A.GUBUN = D.CD
+							  <if test="searchGubun == '004'">
+							  INNER JOIN NEO_KAKAOTALK_TEMPLATE E ON A.TEMP_CD = E.TEMP_CD
+							  </if>
+						 WHERE A.SMS_STATUS = '000'
+						   AND A.STATUS IN ('003','004')
+						   <if test="searchGubun == null or searchGubun == ''">
+						   AND A.GUBUN != '004'
+						   </if>
+						   <if test="searchGubun != null and searchGubun != ''">
+						   AND A.GUBUN = #{searchGubun}
+						   </if>
+						   <if test="searchStartDt != null and searchStartDt != ''">
+						   AND A.SEND_DATE &gt;= CONCAT(#{searchStartDt},'000000')
+						   </if>
+						   <if test="searchEndDt != null and searchEndDt != ''">
+						   AND A.SEND_DATE &lt; CONCAT(#{searchEndDt},'240000')
+						   </if>
+						   <if test="searchDeptNo != 0">
+						   AND A.DEPT_NO = #{searchDeptNo}
+						   </if>
+						   <if test='searchTaskNm != null and searchTaskNm != ""'>
+						   AND A.TASK_NM LIKE CONCAT('%', #{searchTaskNm},'%')
+						   </if>
+						   <if test="searchGubun == '004'"> 
+							   <if test='searchTempCd != null and searchTempCd != ""'>
+							   AND E.TEMP_CD  = #{searchTempCd}
+							   </if>
+						   </if>
+						   <if test='searchCampNo != null and searchCampNo != 0'>
+						   AND A.CAMPUS_NO = #{searchCampNo}
+						   </if>
+						   <if test="searchUserId != null and searchUserId != ''">
+						   AND A.USER_ID = #{searchUserId}
+						   </if> 
+						  ) TT2
+					 WHERE TT1.JOIN_COL = TT2.JOIN_COL
+					 ORDER BY TT1.SEND_DATE DESC 
+				) TTT
+		 LIMIT #{startRow}, #{rows}
+	</select>
+	-->
+	<select id="getSmsInfo" parameterType="smsSendLogVO" resultType="smsSendLogVO">
+		SELECT A.MSGID
+			 , A.KEYGEN
+			 <if test="searchGubun == '004'">
+			 , F.TEMP_CONTENT
+			 </if>
+			 <if test="searchGubun != '004'">
+			 , '' TEMP_CONTENT
+			 </if>
+			 , A.USER_ID
+			 , A.DEPT_NO
+			 , B.DEPT_NM
+			 , A.CAMPUS_NO
+			 , C.CAMP_NM
+			 , A.SEND_DATE
+			 , A.TASK_NM
+			 <if test="searchGubun == '004'">
+			 , F.TEMP_CD 
+			 , F.TEMP_NM 
+			 </if>
+			 <if test="searchGubun != '004'">
+			 , '' TEMP_CD 
+			 , '' TEMP_NM
+			 </if>
+			 , A.VALID_YN
+			 , A.SEND_DATE
+			 , A.SEND_START_DT
+			 , A.SEND_END_DT
+			 , A.SEND_TOT_CNT
+			 , O.SMS_SEND_YN
+			 , O.RSLT_CD
+			 , A.SMS_MESSAGE
+			 , D.CD_NM AS GUBUN_NM
+			 <if test="searchGubun == '004'">
+			 , SUM(CASE WHEN O.RSLT_CD = '1' AND O.SMS_SEND_YN = 'N' THEN 1 END ) AS SUCC_CNT
+			 , SUM(CASE WHEN O.RSLT_CD = '0' AND O.SMS_SEND_YN = 'N' THEN 1 END ) AS FAIL_CNT
+			 , SUM(CASE WHEN O.RSLT_CD = '1' AND O.SMS_SEND_YN = 'Y' THEN 1 END ) AS SUCC_SMS
+			 , SUM(CASE WHEN O.RSLT_CD = '0' AND O.SMS_SEND_YN = 'Y' THEN 1 END ) AS FAIL_SMS 
+			 , CONCAT(ROUND(COUNT(CASE WHEN O.RSLT_CD = '1' AND O.SMS_SEND_YN = 'N' THEN 1 END) / COUNT(*)*100),'%') AS SUCC_PER
+			 , CONCAT(ROUND(COUNT(CASE WHEN O.RSLT_CD = '0' AND O.SMS_SEND_YN = 'N' THEN 1 END) / COUNT(*)*100),'%') AS FAIL_PER
+			 , CONCAT(ROUND(COUNT(CASE WHEN O.RSLT_CD = '1' AND O.SMS_SEND_YN = 'Y' THEN 1 END) / COUNT(*)*100),'%') AS SUCC_SMS_PER
+			 , CONCAT(ROUND(COUNT(CASE WHEN O.RSLT_CD = '0' AND O.SMS_SEND_YN = 'Y' THEN 1 END) / COUNT(*)*100),'%') AS FAIL_SMS_PER
+			 </if>
+			 <if test="searchGubun != '004'">
+			 , SUM(CASE WHEN O.RSLT_CD = '1' THEN 1 END ) AS SUCC_CNT
+			 , SUM(CASE WHEN O.RSLT_CD = '0' THEN 1 END ) AS FAIL_CNT
+			 , 0 AS SUCC_SMS
+			 , 0 AS FAIL_SMS 
+			 , CONCAT(ROUND(COUNT(CASE WHEN O.RSLT_CD = '1' THEN 1 END) / COUNT(*)*100),'%') AS SUCC_PER
+			 , CONCAT(ROUND(COUNT(CASE WHEN O.RSLT_CD = '0' THEN 1 END) / COUNT(*)*100),'%') AS FAIL_PER
+			 , 0 AS SUCC_SMS_PER
+			 , 0 AS FAIL_SMS_PER
+			 </if>
+		  FROM NEO_SMS A 
+			   LEFT OUTER JOIN NEO_SMSLOG O ON O.MSGID = A.MSGID AND O.KEYGEN = A.KEYGEN
+			   INNER JOIN NEO_DEPT B ON A.DEPT_NO = B.DEPT_NO
+			   INNER JOIN NEO_CAMPAIGN C ON A.CAMPUS_NO = C.CAMP_NO
+			   <if test="searchGubun == '004'">
+			   INNER JOIN NEO_KAKAOTALK_TEMPLATE F ON A.TEMP_CD = F.TEMP_CD
+			   </if>
+			   INNER JOIN NEO_CD D ON D.CD_GRP = 'C115' AND A.GUBUN = D.CD   
+		 WHERE A.STATUS IN ('003','004')
+		   AND A.SMS_STATUS = '000'
+		   <if test="searchGubun == null or searchGubun == ''">
+		   AND A.GUBUN != '004'
+		   </if>
+		   <if test="searchGubun != null and searchGubun != ''">
+		   AND A.GUBUN = #{gubun}
+		   </if>
+		   AND A.MSGID = #{msgid}
+		   AND A.KEYGEN = #{keygen}
+		 GROUP BY A.MSGID, A.KEYGEN
+	</select>
+	
+	<select id="getPopSmsSendList" parameterType="smsSendLogVO" resultType="smsSendLogVO">
+		SELECT A.MSGID
+			 , A.KEYGEN
+			 , IFNULL(B.PHONE , '') PHONE
+			 , B.RSLT_CD
+			 , B.SMS_SEND_YN
+		  FROM NEO_SMS A
+			   LEFT OUTER JOIN NEO_SMSLOG B ON B.MSGID = A.MSGID AND B.KEYGEN = A.KEYGEN
+		 WHERE A.STATUS IN ('003','004')
+		   <if test="gubun == null or gubun == ''">
+		   AND A.GUBUN != '004'
+		   </if>
+		   <if test="gubun != null and gubun != ''">
+		   AND A.GUBUN = #{gubun}
+		   </if>
+		   AND A.SMS_STATUS = '000'
+		   <if test='phone != null and phone != ""'>
+		   AND B.PHONE = #{phone}
+		   </if>
+		   AND A.MSGID = #{msgid}
+		   AND A.KEYGEN = #{keygen}
+		   <if test='rsltCd != null and rsltCd != ""'>
+		   AND B.RSLT_CD = #{rsltCd}
+		   </if>
+		   <if test='smsSendYn != null and smsSendYn != ""'>
+		   AND B.SMS_SEND_YN = #{smsSendYn}
+		   </if>
+	</select>
+	<select id="getSmsSendLogList" parameterType="smsSendLogVO" resultType="smsSendLogVO">
+		SELECT *
+		  FROM (
+				SELECT MSGID
+					 , KEYGEN
+					 , EXE_USER_ID
+					 , EXE_USER_NM
+					 , DEPT_NO
+					 , CAMPUS_NO AS CAMP_NO
+					 , CAMP_NM 
+					 , SEND_DATE
+					 , TASK_NM
+					 , VALID_YN
+					 , SUBJECT 
+					 , MSG_BODY 
+					 , GUBUN
+					 , GUBUN_NM
+					 , ID
+					 , NAME	
+					 , PHONE
+					 , SEND_TELNO
+					 , RSLT_CD
+					 , RCODE
+					 , RNAME
+					 , CMID
+					 , SEND_GUBUN
+					 , SEND_GUBUN_NM
+					 , TOTAL_COUNT
+				  FROM (
+						SELECT 'X' JOIN_COL 
+							 , A.MSGID
+							 , A.KEYGEN
+							 , B.USER_ID AS EXE_USER_ID
+							 , B.USER_NM AS EXE_USER_NM
+							 , A.DEPT_NO
+							 , A.CAMPUS_NO
+							 , C.CAMP_NM 
+							 , A.SEND_DATE
+							 , A.TASK_NM
+							 , A.VALID_YN
+							 , E.SUBJECT 
+							 , E.MSG_BODY 
+							 , A.GUBUN
+							 , D.CD_NM AS GUBUN_NM
+							 , E.ID 
+							 , E.NAME 
+							 , E.PHONE 
+							 , E.SEND_TELNO 
+							 , E.RSLT_CD 
+							 , E.RCODE
+							 , (SELECT CD_DESC FROM NEO_SMS_RCODE WHERE RCODE = E.RCODE ) RNAME
+							 , E.CMID
+							 , E.MSG_TYP SEND_GUBUN
+					 		 , (SELECT CD_NM FROM NEO_CD WHERE CD_GRP = 'C132' AND E.MSG_TYP = CD ) SEND_GUBUN_NM
+						  FROM NEO_SMS A
+							  LEFT OUTER JOIN NEO_USER B ON A.EXE_USER_ID = B.USER_ID 
+							  INNER JOIN NEO_CAMPAIGN C ON A.CAMPUS_NO = C.CAMP_NO
+							  INNER JOIN NEO_CD D ON D.CD_GRP = 'C115' AND A.GUBUN = D.CD
+							  INNER JOIN NEO_SMSLOG E ON A.MSGID  = E.MSGID  AND A.KEYGEN  = E.KEYGEN 
+						 WHERE A.SMS_STATUS = '000'
+						   AND D.CD IN
+						   <foreach collection="arrGubunNms" item="item" index="index" open="(" close=")" separator=",">
+						   #{item}
+						   </foreach>
+						   <if test="searchStartDt != null and searchStartDt != ''">
+						   AND A.SEND_DATE &gt;= CONCAT(#{searchStartDt},'000000')
+						   </if> 
+						   <if test="searchEndDt != null and searchEndDt != ''">
+						   AND A.SEND_DATE &lt; CONCAT(#{searchEndDt},'240000')
+						   </if>
+						   <if test='searchCampNm != null and searchCampNm != ""'>
+						   AND C.CAMP_NM LIKE CONCAT('%', #{searchCampNm},'%')
+						   </if>
+						   <if test="searchCustId != null and searchCustId != ''">
+						   AND E.ID LIKE CONCAT('%', #{searchCustId},'%')
+						   </if> 
+						   <if test="searchCustNm != null and searchCustNm != ''">
+						   AND E.NAME LIKE CONCAT('%', #{searchCustNm},'%')
+						   </if> 
+						   <if test="searchCustPhone != null and searchCustPhone != ''">
+						   AND E.PHONE = #{searchCustPhone}
+						   </if> 
+						   <if test="searchStatus != null and searchStatus != ''">
+						   AND E.RSLT_CD = #{searchStatus}
+						   </if> 
+						   <if test="searchExeUserNm != null and searchExeUserNm != ''">
+						   AND E.NAME LIKE CONCAT('%', #{searchExeUserNm},'%')
+						   </if>
+					  ) TT1,
+					  (
+						SELECT 'X' JOIN_COL
+							 , COUNT(*) TOTAL_COUNT
+						  FROM NEO_SMS A
+							  LEFT OUTER JOIN NEO_USER B ON A.EXE_USER_ID = B.USER_ID 
+							  INNER JOIN NEO_CAMPAIGN C ON A.CAMPUS_NO = C.CAMP_NO
+							  INNER JOIN NEO_CD D ON D.CD_GRP = 'C115' AND A.GUBUN = D.CD
+							  INNER JOIN NEO_SMSLOG E ON A.MSGID  = E.MSGID  AND A.KEYGEN  = E.KEYGEN 
+						 WHERE A.SMS_STATUS = '000'
+						   AND D.CD IN
+						   <foreach collection="arrGubunNms" item="item" index="index" open="(" close=")" separator=",">
+						   #{item}
+						   </foreach>
+						   <if test="searchStartDt != null and searchStartDt != ''">
+						   AND A.SEND_DATE &gt;= CONCAT(#{searchStartDt},'000000')
+						   </if> 
+						   <if test="searchEndDt != null and searchEndDt != ''">
+						   AND A.SEND_DATE &lt; CONCAT(#{searchEndDt},'240000')
+						   </if>
+						   <if test='searchCampNm != null and searchCampNm != ""'>
+						   AND C.CAMP_NM LIKE CONCAT('%', #{searchCampNm},'%')
+						   </if>
+						   <if test="searchCustId != null and searchCustId != ''">
+						   AND E.ID LIKE CONCAT('%', #{searchCustId},'%')
+						   </if> 
+						   <if test="searchCustNm != null and searchCustNm != ''">
+						   AND E.NAME LIKE CONCAT('%', #{searchCustNm},'%')
+						   </if> 
+						   <if test="searchCustPhone != null and searchCustPhone != ''">
+						   AND E.PHONE = #{searchCustPhone}
+						   </if> 
+						   <if test="searchStatus != null and searchStatus != ''">
+						   AND E.RSLT_CD = #{searchStatus}
+						   </if> 
+						   <if test="searchExeUserNm != null and searchExeUserNm != ''">
+						   AND E.NAME LIKE CONCAT('%', #{searchExeUserNm},'%')
+						   </if> 
+						  ) TT2
+					 WHERE TT1.JOIN_COL = TT2.JOIN_COL
+					 ORDER BY TT1.SEND_DATE DESC 
+				) TTT
+		 LIMIT #{startRow}, #{rows}
+	</select>
+	<select id ="getSmsMessage" parameterType="smsSendLogVO" resultType="String" >
+		SELECT MSG_BODY 
+		  FROM NEO_SMSLOG A
+		  WHERE MSGID = #{msgid}
+		   AND KEYGEN  = #{keygen}
+		   AND CMID  = #{cmid}
+	</select>
+	
+	<select id="getCampSmsList" parameterType="smsSendLogVO" resultType="smsSendLogVO" >
+		SELECT *
+		  FROM (
+				SELECT TEMP_CD
+					 , TEMP_NM
+					 , USER_ID
+					 , USER_NM
+					 , SEND_DATE
+					 , SMS_NAME
+					 , SMS_MESSAGE
+					 , GUBUN
+					 , STATUS
+					 , SMS_REG_DT
+					 , TEMP_REG_DT
+					 , SMS_CNT
+					 , TASK_NM
+					 , STATUS_NM
+					 , TOTAL_COUNT
+				  FROM (
+						SELECT 'X' JOIN_COL
+							  , IF( A.TEMP_CD IS NULL OR  A.TEMP_CD  ='' , '999999',  A.TEMP_CD )  TEMP_CD
+							  , IFNULL(C.TEMP_NM, '웹발송') TEMP_NM
+							  , A.USER_ID
+							  , (SELECT USER_NM FROM NEO_USER WHERE USER_ID = A.USER_ID ) USER_NM
+							  , A.SEND_DATE
+							  , A.SMS_NAME 
+							  , A.SMS_MESSAGE
+							  , A.GUBUN
+							  , A.STATUS
+							  , A.REG_DT SMS_REG_DT
+							  , C.REG_DT TEMP_REG_DT
+							  , B.SMS_CNT
+							  , A.TASK_NM
+							  , (SELECT CD_NM FROM NEO_CD WHERE CD_GRP = 'C118' AND CD= A.STATUS AND UILANG ='000') STATUS_NM
+						  FROM NEO_SMS A
+							   INNER JOIN 
+							  (	
+								SELECT T2.TEMP_CD, MAX(T1.KEYGEN) KEYGEN , T2.SMS_CNT
+								  FROM NEO_SMS T1 
+								  INNER JOIN 
+										(	SELECT IF(TEMP_CD IS NULL OR TEMP_CD  ='' , '999999', TEMP_CD ) TEMP_CD, MAX(SEND_DATE) SEND_DATE , COUNT(1) SMS_CNT 
+											  FROM NEO_SMS 
+											 WHERE SMS_STATUS = '000'
+											   AND STATUS IN ('003' , '004')
+											   <if test="searchStartDt != null and searchStartDt != ''">
+											   AND SEND_DATE &gt;= CONCAT(#{searchStartDt},'000000')
+											   </if>
+											   <if test="searchEndDt != null and searchEndDt != ''">
+											   AND SEND_DATE &lt; CONCAT(#{searchEndDt},'240000')
+											   </if>
+											   <if test="searchDeptNo != 0">
+											   AND DEPT_NO = #{searchDeptNo}
+											   </if>
+											   <if test="searchTempCd != null and searchTempCd != 'ALL'">
+											   AND IF(TEMP_CD IS NULL OR TEMP_CD  ='' , '999999', TEMP_CD ) = #{searchTempCd}
+											   </if>
+											   <if test="searchUserId != null and searchUserId != ''">
+											   AND USER_ID = #{searchUserId}
+											   </if>
+											   <if test="gubun == '004'">
+											   AND GUBUN = '004'
+											   </if>
+											   <if test="gubun != '004'">
+											   AND GUBUN != '004'
+											   </if>
+											GROUP BY IF(TEMP_CD IS NULL OR TEMP_CD  ='' , '999999', TEMP_CD )
+										) T2 ON ( IF(T1.TEMP_CD IS NULL OR T1.TEMP_CD  ='' , '999999', T1.TEMP_CD )= T2.TEMP_CD AND T1.SEND_DATE = T2.SEND_DATE )
+								 WHERE SMS_STATUS = '000'
+								   AND STATUS IN ('003' , '004')
+								   <if test="searchStartDt != null and searchStartDt != ''">
+								   AND T1.SEND_DATE &gt;= CONCAT(#{searchStartDt},'000000')
+								   </if>
+								   <if test="searchEndDt != null and searchEndDt != ''">
+								   AND T1.SEND_DATE &lt; CONCAT(#{searchEndDt},'240000')
+								   </if>
+								   <if test="searchDeptNo != 0">
+								   AND T1.DEPT_NO = #{searchDeptNo}
+								   </if>
+								   <if test="searchTempCd != null and searchTempCd != 'ALL'">
+								   AND IF(T1.TEMP_CD IS NULL OR T1.TEMP_CD  ='' , '999999', T1.TEMP_CD ) = #{searchTempCd}
+								   </if>
+								   <if test="searchUserId != null and searchUserId != ''">
+								   AND T1.USER_ID = #{searchUserId}
+								   </if>
+								   <if test="gubun == '004'">
+								   AND T1.GUBUN = '004'
+								   </if>
+								   <if test="gubun != '004'">
+								   AND T1.GUBUN != '004'
+								   </if>
+								 GROUP BY T2.TEMP_CD ,T2.SMS_CNT
+							  ) B ON IF(A.TEMP_CD IS NULL OR A.TEMP_CD  ='' , '999999', A.TEMP_CD )  = B.TEMP_CD AND A.KEYGEN = B.KEYGEN
+					   <if test="gubun != '004'">
+					   LEFT OUTER JOIN NEO_SMS_TEMPLATE C ON A.TEMP_CD = C.TEMP_CD
+					   </if>
+					   <if test="gubun == '004'">
+					   LEFT OUTER JOIN NEO_KAKAOTALK_TEMPLATE C ON A.TEMP_CD = C.TEMP_CD
+					   </if>
+				  ) TT1 , 
+				  (
+					SELECT 'X' JOIN_COL
+						  , COUNT(*) TOTAL_COUNT
+					  FROM NEO_SMS A
+						   INNER JOIN 
+						  (	
+							SELECT T2.TEMP_CD, MAX(T1.KEYGEN) KEYGEN , T2.SMS_CNT
+							  FROM NEO_SMS T1 
+							  INNER JOIN 
+									(	SELECT IF(TEMP_CD IS NULL OR TEMP_CD  ='' , '999999', TEMP_CD ) TEMP_CD, MAX(SEND_DATE) SEND_DATE , COUNT(1) SMS_CNT 
+										  FROM NEO_SMS 
+										 WHERE SMS_STATUS = '000'
+										   AND STATUS IN ('003' , '004')
+										   <if test="searchStartDt != null and searchStartDt != ''">
+										   AND SEND_DATE &gt;= CONCAT(#{searchStartDt},'000000')
+										   </if>
+										   <if test="searchEndDt != null and searchEndDt != ''">
+										   AND SEND_DATE &lt; CONCAT(#{searchEndDt},'240000')
+										   </if>
+										   <if test="searchDeptNo != 0">
+										   AND DEPT_NO = #{searchDeptNo}
+										   </if>
+										   <if test="searchTempCd != null and searchTempCd != 'ALL'">
+										   AND IF(TEMP_CD IS NULL OR TEMP_CD  ='' , '999999', TEMP_CD ) = #{searchTempCd}
+										   </if>
+										   <if test="searchUserId != null and searchUserId != ''">
+										   AND USER_ID = #{searchUserId}
+										   </if>
+										   <if test="gubun == '004'">
+										   AND GUBUN = '004'
+										   </if>
+										   <if test="gubun != '004'">
+										   AND GUBUN != '004'
+										   </if>
+										GROUP BY IF(TEMP_CD IS NULL OR TEMP_CD  ='' , '999999', TEMP_CD )
+									) T2 ON ( IF(T1.TEMP_CD IS NULL OR T1.TEMP_CD  ='' , '999999', T1.TEMP_CD )= T2.TEMP_CD AND T1.SEND_DATE = T2.SEND_DATE )
+							 WHERE SMS_STATUS = '000'
+							   AND STATUS IN ('003' , '004')
+							   <if test="searchStartDt != null and searchStartDt != ''">
+							   AND T1.SEND_DATE &gt;= CONCAT(#{searchStartDt},'000000')
+							   </if>
+							   <if test="searchEndDt != null and searchEndDt != ''">
+							   AND T1.SEND_DATE &lt; CONCAT(#{searchEndDt},'240000')
+							   </if>
+							   <if test="searchDeptNo != 0">
+							   AND T1.DEPT_NO = #{searchDeptNo}
+							   </if>
+							   <if test="searchTempCd != null and searchTempCd != 'ALL'">
+							   AND IF(T1.TEMP_CD IS NULL OR T1.TEMP_CD  ='' , '999999', T1.TEMP_CD ) = #{searchTempCd}
+							   </if>
+							   <if test="searchUserId != null and searchUserId != ''">
+							   AND T1.USER_ID = #{searchUserId}
+							   </if>
+							   <if test="gubun == '004'">
+							   AND T1.GUBUN = '004'
+							   </if>
+							   <if test="gubun != '004'">
+							   AND T1.GUBUN != '004'
+							   </if>
+							 GROUP BY T2.TEMP_CD ,T2.SMS_CNT
+						  ) B ON IF(A.TEMP_CD IS NULL OR A.TEMP_CD  ='' , '999999', A.TEMP_CD )  = B.TEMP_CD AND A.KEYGEN = B.KEYGEN
+					   <if test="gubun != '004'">
+					   LEFT OUTER JOIN NEO_SMS_TEMPLATE C ON A.TEMP_CD = C.TEMP_CD
+					   </if>
+					   <if test="gubun == '004'">
+					   LEFT OUTER JOIN NEO_KAKAOTALK_TEMPLATE C ON A.TEMP_CD = C.TEMP_CD
+					   </if>
+				  ) TT2
+		  ) TTT
+		LIMIT #{startRow}, #{rows}
+	</select>
+	<!-- 
+	<select id="getCampSmsList" parameterType="smsSendLogVO" resultType="smsSendLogVO" >
+		SELECT *
+		  FROM (
+				SELECT CAMP_NO
+					 , CAMP_NM
+					 , USER_ID
+					 , USER_NM
+					 , SEND_DATE
+					 , SMS_NAME
+					 , SMS_MESSAGE
+					 , GUBUN
+					 , STATUS
+					 , SMS_REG_DT
+					 , CAMP_REG_DT
+					 , SMS_CNT
+					 , TASK_NM
+					 , STATUS_NM
+					 , TOTAL_COUNT
+				  FROM (
+						SELECT 'X' JOIN_COL
+							  , A.CAMPUS_NO CAMP_NO
+							  , C.CAMP_NM
+							  , A.USER_ID
+							  , (SELECT USER_NM FROM NEO_USER WHERE USER_ID = A.USER_ID ) USER_NM
+							  , A.SEND_DATE
+							  , A.SMS_NAME 
+							  , A.SMS_MESSAGE
+							  , A.GUBUN
+							  , A.STATUS
+							  , A.REG_DT SMS_REG_DT
+							  , C.REG_DT CAMP_REG_DT
+							  , B.SMS_CNT
+							  , A.TASK_NM
+							  , (SELECT CD_NM FROM NEO_CD WHERE CD_GRP = 'C118' AND CD= A.STATUS AND UILANG ='000') STATUS_NM
+						  FROM NEO_SMS A
+							   INNER JOIN 
+							  (	
+								SELECT T2.CAMPUS_NO, MAX(T1.KEYGEN) KEYGEN , T2.SMS_CNT
+								  FROM NEO_SMS T1 
+								  INNER JOIN 
+										(	SELECT CAMPUS_NO, MAX(SEND_DATE) SEND_DATE , COUNT(1) SMS_CNT 
+											  FROM NEO_SMS 
+											 WHERE SMS_STATUS = '000'
+											   AND STATUS IN ('003' , '004')
+											   <if test="searchStartDt != null and searchStartDt != ''">
+											   AND SEND_DATE &gt;= CONCAT(#{searchStartDt},'000000')
+											   </if>
+											   <if test="searchEndDt != null and searchEndDt != ''">
+											   AND SEND_DATE &lt; CONCAT(#{searchEndDt},'240000')
+											   </if>
+											   <if test="searchDeptNo != 0">
+											   AND DEPT_NO = #{searchDeptNo}
+											   </if>
+											   <if test='searchCampNo != null and searchCampNo != 0'>
+											   AND CAMPUS_NO = #{searchCampNo}
+											   </if>
+											   <if test="searchUserId != null and searchUserId != ''">
+											   AND USER_ID = #{searchUserId}
+											   </if>
+											   <if test="gubun == '004'">
+											   AND GUBUN = '004'
+											   </if>
+											   <if test="gubun != '004'">
+											   AND GUBUN != '004'
+											   </if>
+											GROUP BY CAMPUS_NO 
+										) T2 ON ( T1.CAMPUS_NO = T2.CAMPUS_NO AND T1.SEND_DATE = T2.SEND_DATE )
+								 WHERE SMS_STATUS = '000'
+								   AND STATUS IN ('003' , '004')
+								   <if test="searchStartDt != null and searchStartDt != ''">
+								   AND T1.SEND_DATE &gt;= CONCAT(#{searchStartDt},'000000')
+								   </if>
+								   <if test="searchEndDt != null and searchEndDt != ''">
+								   AND T1.SEND_DATE &lt; CONCAT(#{searchEndDt},'240000')
+								   </if>
+								   <if test="searchDeptNo != 0">
+								   AND T1.DEPT_NO = #{searchDeptNo}
+								   </if>
+								   <if test='searchCampNo != null and searchCampNo != 0'>
+								   AND T1.CAMPUS_NO = #{searchCampNo}
+								   </if>
+								   <if test="searchUserId != null and searchUserId != ''">
+								   AND T1.USER_ID = #{searchUserId}
+								   </if>
+								   <if test="gubun == '004'">
+								   AND T1.GUBUN = '004'
+								   </if>
+								   <if test="gubun != '004'">
+								   AND T1.GUBUN != '004'
+								   </if>
+								 GROUP BY T2.CAMPUS_NO ,T2.SMS_CNT
+							  ) B ON A.CAMPUS_NO  = B.CAMPUS_NO AND A.KEYGEN = B.KEYGEN
+						INNER JOIN NEO_CAMPAIGN C ON A.CAMPUS_NO = C.CAMP_NO 
+				  ) TT1 , 
+				  (
+					SELECT 'X' JOIN_COL
+						  , COUNT(*) TOTAL_COUNT
+					  FROM NEO_SMS A
+					   INNER JOIN 
+							  (	
+								SELECT T2.CAMPUS_NO, MAX(T1.KEYGEN) KEYGEN , T2.SMS_CNT
+								  FROM NEO_SMS T1 
+								  INNER JOIN 
+										(	SELECT CAMPUS_NO, MAX(SEND_DATE) SEND_DATE , COUNT(1) SMS_CNT 
+											  FROM NEO_SMS 
+											 WHERE SMS_STATUS = '000'
+											   AND STATUS IN ('003' , '004')
+											   <if test="searchStartDt != null and searchStartDt != ''">
+											   AND SEND_DATE &gt;= CONCAT(#{searchStartDt},'000000')
+											   </if>
+											   <if test="searchEndDt != null and searchEndDt != ''">
+											   AND SEND_DATE &lt; CONCAT(#{searchEndDt},'240000')
+											   </if>
+											   <if test="searchDeptNo != 0">
+											   AND DEPT_NO = #{searchDeptNo}
+											   </if>
+											   <if test='searchCampNo != null and searchCampNo != 0'>
+											   AND CAMPUS_NO = #{searchCampNo}
+											   </if>
+											   <if test="searchUserId != null and searchUserId != ''">
+											   AND USER_ID = #{searchUserId}
+											   </if>
+											   <if test="gubun == '004'">
+											   AND GUBUN = '004'
+											   </if>
+											   <if test="gubun != '004'">
+											   AND GUBUN != '004'
+											   </if>
+											GROUP BY CAMPUS_NO 
+										) T2 ON ( T1.CAMPUS_NO = T2.CAMPUS_NO AND T1.SEND_DATE = T2.SEND_DATE )
+								 WHERE SMS_STATUS = '000'
+								   AND STATUS IN ('003' , '004')
+								   <if test="searchStartDt != null and searchStartDt != ''">
+								   AND T1.SEND_DATE &gt;= CONCAT(#{searchStartDt},'000000')
+								   </if>
+								   <if test="searchEndDt != null and searchEndDt != ''">
+								   AND T1.SEND_DATE &lt; CONCAT(#{searchEndDt},'240000')
+								   </if>
+								   <if test="searchDeptNo != 0">
+								   AND T1.DEPT_NO = #{searchDeptNo}
+								   </if>
+								   <if test='searchCampNo != null and searchCampNo != 0'>
+								   AND T1.CAMPUS_NO = #{searchCampNo}
+								   </if>
+								   <if test="searchUserId != null and searchUserId != ''">
+								   AND T1.USER_ID = #{searchUserId}
+								   </if>
+								   <if test="gubun == '004'">
+								   AND T1.GUBUN = '004'
+								   </if>
+								   <if test="gubun != '004'">
+								   AND T1.GUBUN != '004'
+								   </if>
+								 GROUP BY T2.CAMPUS_NO ,T2.SMS_CNT
+							  ) B ON A.CAMPUS_NO  = B.CAMPUS_NO AND A.KEYGEN = B.KEYGEN
+						INNER JOIN NEO_CAMPAIGN C ON A.CAMPUS_NO = C.CAMP_NO 
+				  ) TT2
+		  ) TTT
+		LIMIT #{startRow}, #{rows}
+	</select>
+	 -->
+    <select id="getSmsCampList" parameterType="smsSendLogVO" resultType="smsSendLogVO">
+        SELECT *
+          FROM (
+                SELECT TT1.CAMP_NO
+                     , TT1.CAMP_NM        /* 캠페인명 */
+                     , TT1.SEND_DATE      /* 최종발송일자 */
+                     , TT1.SMS_CNT        /* 건수 */
+                     , TT1.TASK_NM        /* 발송메세지명 */
+                     , TT1.SEND_TYP       /* 메세지유형 */
+                     , TT1.SEND_TYP_NM    /* 메일유형 */
+                     , TT1.USER_ID        /* 사용자명 */
+                     , TT1.USER_NM        /* 사용자명 */
+                     , TT1.SMS_REG_DT     /* 메세지등록일자 */
+                     , TT1.CAMP_REG_DT    /* 캠페인등록일자 */
+                     , TT1.STATUS         /* 발송상태 */
+                     , TT1.STATUS_NM      /* 발송상태 */
+                     , TT2.TOTAL_COUNT
+                  FROM (
+                        SELECT 'X' JOIN_COL
+                             , T1.CAMP_NO
+                             , T1.CAMP_NM    /* 캠페인명 */
+                             , T2.SEND_DATE  /* 최종발송일자 */
+                             , T3.SMS_CNT    /* 건수 */
+                             , T2.TASK_NM    /* 발송메세지명 */
+                             , T2.SEND_TYP   /* 메세지유형 */
+                             , T5.CD_NM AS SEND_TYP_NM /* 메일유형 */
+                             , T2.USER_ID    /* 사용자명 */
+                             , T4.USER_NM    /* 사용자명 */   
+                             , T2.REG_DT AS SMS_REG_DT     /* 메세지등록일자 */
+                             , T1.REG_DT AS CAMP_REG_DT    /* 캠페인등록일자 */
+                             , T2.STATUS     /* 발송상태 */
+                             , T6.CD_NM AS STATUS_NM /* 발송상태 */
+                          FROM NEO_CAMPAIGN T1 
+                               INNER JOIN NEO_SMS T2
+                                  ON T1.CAMP_NO = T2.CAMPUS_NO
+                               INNER JOIN ( 
+                                        SELECT CAMPUS_NO      AS CAMP_NO 
+                                             , MAX(CONCAT(SEND_DATE,NUM_VAL)) AS LAST_SEND_DATE  
+                                             , COUNT(1)       AS SMS_CNT 
+                                          FROM NEO_SMS T01  
+                                               INNER JOIN NEO_DEPT T02 
+                                                  ON T01.DEPT_NO = T02.DEPT_NO  
+                                               INNER JOIN NEO_CD T03 /* 전송 유형 */
+                                                  ON T03.CD_GRP = 'C115' 
+                                                 AND T01.GUBUN = T03.CD
+                                         WHERE T01.SMS_STATUS = '000'
+                                           AND T01.STATUS IN ('003','004')
+        <if test="searchGubun == null or searchGubun == ''">
+                                           AND T01.GUBUN != '004'
+        </if>
+        <if test="searchGubun != null and searchGubun != ''">
+                                           AND T01.GUBUN = #{searchGubun}
+        </if>
+        <if test="searchStartDt != null and searchStartDt != ''">
+                                           AND T01.SEND_DATE &gt;= CONCAT(#{searchStartDt},'000000')
+        </if>
+        <if test="searchEndDt != null and searchEndDt != ''">
+                                           AND T01.SEND_DATE &lt; CONCAT(#{searchEndDt},'240000')
+        </if>
+        <if test="searchDeptNo != 0">
+                                           AND T01.DEPT_NO = #{searchDeptNo}
+        </if>                         
+        <if test="searchCampNo != null and searchCampNo != 0">
+                                           AND T01.CAMPUS_NO = #{searchCampNo}
+        </if>
+        <if test="searchUserId != null and searchUserId != ''">
+                                           AND T01.USER_ID = #{searchUserId}
+        </if>
+                                         GROUP BY CAMPUS_NO
+                                         ) T3 
+                                  ON T1.CAMP_NO   = T3.CAMP_NO 
+                                 AND CONCAT(T2.SEND_DATE, T2.NUM_VAL) = T3.LAST_SEND_DATE
+                             LEFT OUTER JOIN NEO_USER T4
+                                ON T2.USER_ID = T4.USER_ID 
+                             LEFT OUTER JOIN NEO_CD T5 /* 발송유형 */
+                               ON T5.CD_GRP   = 'C120' 
+                              AND T2.SEND_TYP = T5.CD   
+                             LEFT OUTER JOIN NEO_CD T6 /* 메세지상태 */
+                               ON T6.CD_GRP = 'C101' 
+                              AND T2.STATUS = T6.CD 
+                      ) TT1,
+                      (
+                        SELECT 'X' JOIN_COL
+                             , COUNT(*) TOTAL_COUNT
+                          FROM NEO_CAMPAIGN T1 
+                               INNER JOIN NEO_SMS T2
+                                  ON T1.CAMP_NO = T2.CAMPUS_NO
+                               INNER JOIN ( 
+                                        SELECT CAMPUS_NO      AS CAMP_NO
+                                             , MAX(CONCAT(SEND_DATE,NUM_VAL)) AS LAST_SEND_DATE  
+                                             , COUNT(1)       AS SMS_CNT 
+                                          FROM NEO_SMS T01  
+                                               INNER JOIN NEO_DEPT T02 
+                                                  ON T01.DEPT_NO = T02.DEPT_NO  
+                                               INNER JOIN NEO_CD T03 /* 전송 유형 */
+                                                  ON T03.CD_GRP = 'C115' 
+                                                 AND T01.GUBUN = T03.CD
+                                         WHERE T01.SMS_STATUS = '000'
+                                           AND T01.STATUS IN ('003','004')
+        <if test="searchGubun == null or searchGubun == ''">
+                                           AND T01.GUBUN != '004'
+        </if>
+        <if test="searchGubun != null and searchGubun != ''">
+                                           AND T01.GUBUN = #{searchGubun}
+        </if>
+        <if test="searchStartDt != null and searchStartDt != ''">
+                                           AND T01.SEND_DATE &gt;= CONCAT(#{searchStartDt},'000000')
+        </if>
+        <if test="searchEndDt != null and searchEndDt != ''">
+                                           AND T01.SEND_DATE &lt; CONCAT(#{searchEndDt},'240000')
+        </if>
+        <if test="searchDeptNo != 0">
+                                           AND T01.DEPT_NO = #{searchDeptNo}
+        </if>                         
+        <if test="searchCampNo != null and searchCampNo != 0">
+                                           AND T01.CAMPUS_NO = #{searchCampNo}
+        </if>
+        <if test="searchUserId != null and searchUserId != ''">
+                                           AND T01.USER_ID = #{searchUserId}
+        </if>
+                                         GROUP BY CAMPUS_NO
+                                         ) T3 
+                                  ON T1.CAMP_NO   = T3.CAMP_NO 
+                                 AND CONCAT(T2.SEND_DATE, T2.NUM_VAL) = T3.LAST_SEND_DATE
+                          ) TT2
+                     WHERE TT1.JOIN_COL = TT2.JOIN_COL
+                     ORDER BY TT1.SEND_DATE DESC 
+                ) TTT
+         LIMIT #{startRow}, #{rows}
+    </select>
+</mapper>

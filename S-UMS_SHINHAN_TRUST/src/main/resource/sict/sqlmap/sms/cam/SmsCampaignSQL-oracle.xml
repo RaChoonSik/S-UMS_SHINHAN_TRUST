@@ -1,0 +1,522 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.sict.ums.sms.cam.dao.SmsCampaignMapper">
+	
+	<select id="getCampaignList" parameterType="smsCampaignVO" resultType="smsCampaignVO">
+		SELECT *
+		  FROM (
+				SELECT A.CAMP_NO
+					 , A.CAMP_NM
+					 , A.USER_ID
+					 , A.CAMP_TY
+					 , A.STATUS
+					 , A.DEPT_NO
+					 , A.REG_DT
+					 , A.REG_ID
+					 , A.UP_ID
+					 , A.UP_DT
+					 , A.CAMP_DESC
+					 , B.USER_NM
+					 , C.USER_NM REG_NM
+					 , D.DEPT_NM
+					 , E.CD_NM CAMP_TY_NM
+					 , F.CD_NM STATUS_NM
+					 , (SELECT COUNT(*) FROM NEO_SMS T1 WHERE T1.SMS_STATUS = '000' AND T1.GUBUN != '004' AND T1.CAMPUS_NO = A.CAMP_NO ) CAMP_SMS_CNT
+					 , ROW_NUMBER() OVER (ORDER BY NEO_SMS.KEYGEN DESC) SEQ
+					 , COUNT(1) OVER() TOTAL_COUNT
+				  FROM NEO_CAMPAIGN A
+					 , NEO_USER B
+					 , NEO_USER C
+					 , NEO_DEPT D
+					 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C004' AND UILANG = #{uilang}) E
+					 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C014' AND UILANG = #{uilang}) F
+				 WHERE A.USER_ID = B.USER_ID
+				   AND A.REG_ID = C.USER_ID
+				   AND A.DEPT_NO = D.DEPT_NO
+				   AND A.CAMP_TY = E.CD
+				   AND A.STATUS = F.CD
+				   <if test="searchCampNm != null and searchCampNm != ''">
+				   AND A.CAMP_NM LIKE '%' || #{searchCampNm} || '%'
+				   </if>
+				   <if test="searchCampTy != null and searchCampTy != ''">
+				   AND A.CAMP_TY = #{searchCampTy}
+				   </if>
+				   <if test="searchStatus != null and searchStatus != ''">
+				   AND A.STATUS = #{searchStatus}
+				   </if>
+				   <if test='adminYn == "N"'>
+				   AND A.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND A.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND A.USER_ID = #{searchUserId}
+				   </if>
+				   <if test="searchStartDt != null and searchStartDt != ''">
+				   AND A.REG_DT &gt;= #{searchStartDt} || '000000'
+				   </if>
+				   <if test="searchEndDt != null and searchEndDt != ''">
+				   AND A.REG_DT &lt; #{searchEndDt} || '240000'
+				   </if>
+				 ORDER BY NEO_SMS.KEYGEN
+				)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	
+	<select id="getCampaignInfo" parameterType="smsCampaignVO" resultType="smsCampaignVO">
+		SELECT A.CAMP_NO
+			 , A.CAMP_NM
+			 , A.USER_ID
+			 , A.CAMP_TY
+			 , A.STATUS
+			 , A.DEPT_NO
+			 , A.REG_DT
+			 , A.REG_ID
+			 , A.UP_ID
+			 , A.UP_DT
+			 , A.CAMP_DESC
+			 , B.USER_NM
+			 , C.USER_NM REG_NM
+			 , (SELECT USER_NM FROM NEO_USER WHERE USER_ID = A.UP_ID) UP_NM
+			 , D.DEPT_NM
+			 , E.CD_NM CAMP_TY_NM
+			 , F.CD_NM STATUS_NM
+			 , A.EAI_CAMP_NO
+		  FROM NEO_CAMPAIGN A
+			 , NEO_USER B
+			 , NEO_USER C
+			 , NEO_DEPT D
+			 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C004' AND UILANG = #{uilang}) E	<!-- 캠페인목적 -->
+			 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C014' AND UILANG = #{uilang}) F	<!-- 상태 -->
+		 WHERE A.USER_ID = B.USER_ID
+		   AND A.REG_ID = C.USER_ID
+		   AND A.DEPT_NO = D.DEPT_NO
+		   AND A.CAMP_TY = E.CD
+		   AND A.STATUS = F.CD
+		   AND A.CAMP_NO = #{campNo}
+	</select>
+	
+	<insert id="insertCampaignInfo" parameterType="smsCampaignVO">
+		INSERT INTO NEO_CAMPAIGN
+		(
+			  CAMP_NO
+			, CAMP_NM
+			, CAMP_DESC
+			, USER_ID
+			, CAMP_TY
+			, STATUS
+			, DEPT_NO
+			, REG_DT
+			, REG_ID
+			, UP_ID
+			, UP_DT
+			, EAI_CAMP_NO
+		)
+		VALUES
+		(
+			  NEO_CAMPAIGN.NEXTVAL
+			, #{campNm}
+			, #{campDesc}
+			, #{userId}
+			, #{campTy}
+			, #{status}
+			, #{deptNo}
+			, #{regDt}
+			, #{regId}
+			, NULL
+			, NULL
+			, #{eaiCampNo}
+		)
+	</insert>
+	
+	<update id="updateCampaignInfo" parameterType="smsCampaignVO">
+		UPDATE NEO_CAMPAIGN
+		   SET CAMP_NM   = #{campNm}
+			 , CAMP_DESC = #{campDesc}
+			 , USER_ID   = #{userId}
+			 , CAMP_TY   = #{campTy}
+			 , STATUS    = #{status}
+			 , DEPT_NO   = #{deptNo}
+			 , UP_ID     = #{upId}
+			 , UP_DT     = #{upDt}
+			 , EAI_CAMP_NO = #{eaiCampNo}
+		 WHERE CAMP_NO   = #{campNo}
+	</update>
+	
+	<insert id="insertSmsInfo" parameterType="smsVO">
+		INSERT INTO NEO_SMS
+		(
+			MSGID
+		   , KEYGEN
+		   , PLAIN_USER_ID
+		   , USER_ID
+		   , DEPT_NO
+		   , REG_ID
+		   , REG_DT
+		   , SEG_NO
+		   , SEND_TELNO
+		   , CAMPUS_NO
+		   , SEND_YM
+		   , SEND_DATE
+		   , SMS_NAME
+		   , SMS_MESSAGE
+		   , STATUS
+		   , GUBUN
+		   , FILE_PATH
+		   , FILE_PATH2
+		   , NUM_VAL
+		   , LEGAL_YN
+		   , TASK_NM
+		   , SMS_STATUS
+		)
+		VALUES
+		(
+			#{msgid}
+		   , #{keygen}
+		   , #{userId}
+		   , #{userId}
+		   , #{deptNo}
+		   , #{regId}
+		   , #{regDt}
+		   , #{segNo}
+		   , #{sendTelno}
+		   , #{campusNo}
+		   , #{sendYm}
+		   , #{sendDate}
+		   , #{smsName}
+		   , #{smsMessage}
+		   , #{status}
+		   , #{gubun}
+		   , #{filePath}
+		   , #{filePath2}
+		   , NEO_SMS_SEQ.NEXTVAL
+		   , #{legalYn}
+		   , #{taskNm}
+		   , #{smsStatus}
+		)
+	</insert> 
+
+	<update id="updateSmsStatus" parameterType="smsVO">
+		UPDATE NEO_SMS
+		   SET STATUS  = #{status} 
+		 WHERE MSGID   = #{msgid} 
+		   AND KEYGEN  = #{keygen}
+	</update> 
+
+	<update id="updateSmsStatusAdmit" parameterType="smsVO">
+		UPDATE NEO_SMS
+		   SET STATUS = #{smsStatus} 
+		 WHERE MSGID  = #{msgid} 
+		   AND KEYGEN = #{keygen}
+	</update>
+
+	<select id="getSmsList" parameterType="smsVO" resultType="smsVO">
+		SELECT *
+		  FROM (
+				SELECT NEO_SMS.MSGID
+					 , NEO_SMS.KEYGEN
+					 , NEO_SMS.USER_ID
+					 , (SELECT USER_NM FROM NEO_USER WHERE USER_ID = NEO_SMS.USER_ID) USER_NM
+					 , NEO_SMS.DEPT_NO
+					 , NEO_DEPT.DEPT_NM
+					 , NEO_SMS.SEG_NO
+					 , NEO_SEGMENT.SEG_NM
+					 , NEO_SMS.SEND_NM
+					 , NEO_SMS.SEND_TELNO
+					 , NEO_SMS.CAMPUS_NO
+					 , NEO_CAMPAIGN.CAMP_NM 
+					 , NEO_SMS.SEND_DATE
+					 , NEO_SMS.SMS_NAME 
+					 , NEO_SMS.SMS_MESSAGE
+					 , NEO_SMS.STATUS
+					 , STATUS_CD.CD_NM STATUS_NM
+					 , NEO_SMS.GUBUN
+					 , GUBUN_CD.CD_NM GUBUN_NM
+					 , NEO_SMS.TASK_NM
+					 , NEO_SMS.SMS_STATUS
+					 , SMS_STATUS_CD.CD_NM SMS_STATUS_NM
+					 , (SELECT CD_DTL FROM NEO_CD WHERE CD_GRP = 'C117' AND CD='000' AND UILANG =#{uilang}) LEGAL_CF
+					 , ROW_NUMBER() OVER (ORDER BY NEO_SMS.KEYGEN DESC) SEQ
+					 , COUNT(1) OVER() TOTAL_COUNT
+				  FROM NEO_SMS
+					 , NEO_DEPT
+					 , NEO_SEGMENT
+					 , NEO_CAMPAIGN
+					 , NEO_CD STATUS_CD
+					 , NEO_CD GUBUN_CD
+					 , NEO_CD SMS_STATUS_CD
+				 WHERE STATUS_CD.CD_GRP = 'C101'
+				   AND STATUS_CD.UILANG = #{uilang}
+				   AND GUBUN_CD.CD_GRP = 'C115'
+				   AND GUBUN_CD.UILANG = #{uilang}
+				   AND SMS_STATUS_CD.CD_GRP = 'C116'
+				   AND SMS_STATUS_CD.UILANG = #{uilang}	
+				   AND NEO_SMS.SEG_NO = NEO_SEGMENT.SEG_NO
+				   AND NEO_SMS.STATUS = STATUS_CD.CD
+				   AND NEO_SMS.GUBUN = GUBUN_CD.CD
+				   AND NEO_SMS.SMS_STATUS = SMS_STATUS_CD.CD
+				   AND NEO_SMS.DEPT_NO = NEO_DEPT.DEPT_NO
+				   AND NEO_SMS.CAMPUS_NO = NEO_CAMPAIGN.CAMP_NO
+				   <if test="searchStartDt != null and searchStartDt != ''">
+				   AND NEO_SMS.SEND_DATE &gt;= #{searchStartDt} || '000000'
+				   </if>
+				   <if test="searchEndDt != null and searchEndDt != ''">
+				   AND NEO_SMS.SEND_DATE &lt; #{searchEndDt} || '240000'
+				   </if>
+				   <if test="searchTaskNm != null and searchTaskNm != ''">
+				   AND NEO_SMS.TASK_NM LIKE '%'|| #{searchTaskNm} || '%'
+				   </if>
+				   <choose>
+					   <when test="searchGubun == null or searchGubun == ''">
+					   		AND NEO_SMS.GUBUN != '004'
+					   </when>
+					   <otherwise>
+					   		AND NEO_SMS.GUBUN = #{searchGubun}
+					   </otherwise>
+				   </choose>
+				   <if test='adminYn == "N"'>
+				   AND NEO_SMS.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND NEO_SMS.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND NEO_SMS.USER_ID = #{searchUserId}
+				   </if>
+				   <if test="searchStatus != null and searchStatus != ''">
+				   AND NEO_SMS.STATUS = #{searchStatus}
+				   </if>
+				   <if test="searchSmsStatus != null and searchSmsStatus != ''">
+				   AND NEO_SMS.SMS_STATUS = #{searchSmsStatus}
+				   </if>
+				    <if test="searchCampNo != null and searchCampNo != 0">
+				   AND NEO_SMS.CAMPUS_NO = #{searchCampNo}
+				   </if>
+				   <if test="searchTempCd != null and searchTempCd != ''">
+				   AND NEO_SMS.TEMP_CD = #{searchTempCd}
+				   </if>
+				 ORDER BY NEO_SMS.SEND_DATE DESC
+				)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	
+	<insert id="insertSmsInfo" parameterType="smsVO">
+		INSERT INTO NEO_SMS
+		(
+			MSGID
+		   , KEYGEN
+		   , PLAN_USER_ID
+		   , USER_ID
+		   , DEPT_NO
+		   , REG_ID
+		   , REG_DT
+		   , SEG_NO
+		   , SEND_TELNO
+		   , CAMPUS_NO
+		   , SEND_YM
+		   , SEND_DATE
+		   , SMS_NAME
+		   , SMS_MESSAGE
+		   , STATUS
+		   , GUBUN 
+		   , NUM_VAL
+		   , LEGAL_YN
+		   , TASK_NM
+		   , SMS_STATUS
+		   , SEND_NM
+		   , SEND_TYP
+		   , TEMP_CD
+		)
+		VALUES
+		(
+			#{msgid}
+		   , #{keygen}
+		   , #{userId}
+		   , #{userId}
+		   , #{deptNo}
+		   , #{regId}
+		   , #{regDt}
+		   , #{segNo}
+		   , #{sendTelno}
+		   , #{campNo}
+		   , #{sendYm}
+		   , #{sendDate}
+		   , #{smsName}
+		   , #{smsMessage}
+		   , #{status}
+		   , #{gubun} 
+		   , NEO_SMS_SEQ.NEXTVAL
+		   , #{legalYn}
+		   , #{taskNm}
+		   , #{smsStatus}
+		   , #{sendNm}
+		   , #{sendTyp}
+		   , #{tempCd}
+		)
+	</insert> 
+ 
+	<update id="updateSmsStatus" parameterType="smsVO">
+		UPDATE NEO_SMS
+		   SET SMS_STATUS = #{smsStatus}
+		 WHERE MSGID      = #{msgid}
+		   AND KEYGEN     = #{keygen}
+	</update> 
+ 
+	<update id="updateSmsStatusAdmit" parameterType="smsVO">
+		UPDATE NEO_SMS
+		   SET STATUS = #{status}
+		 WHERE MSGID  = #{msgid}
+		   AND KEYGEN = #{keygen}
+	</update>
+
+	<insert id="insertSmsAttachInfo" parameterType="smsAttachVO"> 
+		INSERT INTO NEO_ATTACH_SMS
+		(
+			  ATT_NO
+			, ATT_NM
+			, ATT_FL_PATH
+			, MSGID
+			, KEYGEN
+			, ATT_FL_SIZE
+			, ATT_PRIVIEW_PATH
+		)
+		VALUES
+		(
+			  NEO_ATTACH_SMS_SEQ.NEXTVAL
+			, #{attNm}
+			, #{attFlPath}
+			, #{msgid}
+			, #{keygen}
+			, #{attFlSize}
+			, #{attPriviewPath}
+		)
+	</insert>
+	
+	<select id="getSmsAttachList" parameterType="smsAttachVO" resultType="smsAttachVO">
+		SELECT ATT_NM
+			 , ATT_FL_PATH
+			 , MSGID
+			 , KEYGEN
+			 , ATT_FL_SIZE
+			 , ATT_FL_TY
+			 , ENCRYPT_YN
+			 , ENCRYPT_KEY
+			 , ENCRYPT_TY
+			 , ATT_PRIVIEW_PATH
+		  FROM NEO_ATTACH_SMS
+		 WHERE MSGID = #{msgid}
+		   AND KEYGEN = #{keygen}
+	</select>
+
+	<delete id="deleteSmsAttachInfo" parameterType="smsVO">
+		DELETE FROM NEO_ATTACH_SMS
+		 WHERE MSGID = #{msgid}
+		   AND KEYGEN = #{keygen}
+	</delete>
+	
+	<select id="getSmsInfo" parameterType="smsVO" resultType="smsVO">
+		SELECT NEO_SMS.MSGID
+			 , NEO_SMS.KEYGEN 
+			 , NEO_SMS.USER_ID
+			 , (SELECT USER_NM FROM NEO_USER WHERE USER_ID = NEO_SMS.USER_ID) USER_NM
+			 , DEPT_NO
+			 , (SELECT DEPT_NM FROM NEO_DEPT WHERE DEPT_NO = NEO_SMS.DEPT_NO) DEPT_NM
+			 , REG_ID
+			 , (SELECT USER_NM FROM NEO_USER WHERE USER_ID = NEO_SMS.REG_ID) REG_NM
+			 , REG_DT
+			 , SEG_NO
+			 , SEND_TELNO
+			 , CAMPUS_NO CAMP_NO
+			 , (SELECT CAMP_NM FROM NEO_CAMPAIGN WHERE CAMP_NO = NEO_SMS.CAMPUS_NO) CAMP_NM
+			 , SEND_YM
+			 , SEND_DATE
+			 , SMS_NAME
+			 , SMS_MESSAGE
+			 , STATUS
+			 , (SELECT CD_NM FROM NEO_CD WHERE CD_GRP = 'C101' AND CD = NEO_SMS.STATUS AND UILANG = #{uilang}) STATUS_NM
+			 , GUBUN 
+			 , (SELECT CD_NM FROM NEO_CD WHERE CD_GRP = 'C115' AND CD = NEO_SMS.GUBUN AND UILANG = #{uilang}) GUBUN_NM
+			 , NUM_VAL
+			 , LEGAL_YN
+			 , TASK_NM
+			 , SMS_STATUS
+			 , (SELECT CD_NM FROM NEO_CD WHERE CD_GRP = 'C116' AND CD = NEO_SMS.SMS_STATUS AND UILANG = #{uilang}) SMS_STATUS_NM
+			 , SEND_NM
+			 , (SELECT CD_NM FROM NEO_CD WHERE CD_GRP = 'C117' AND CD='000' AND UILANG =#{uilang} ) LEGAL_CF
+			 , SEND_TYP
+			 , (SELECT SEG_NM FROM NEO_SEGMENT WHERE NEO_SEGMENT.SEG_NO = NEO_SMS.SEG_NO ) SEG_NM
+			 , (SELECT (NEO_SEGMENT.SEG_NO || '|' || NEO_SEGMENT.MERGE_KEY) SEG_NOC FROM NEO_SEGMENT WHERE NEO_SEGMENT.SEG_NO = NEO_SMS.SEG_NO ) SEG_NOC
+			 , TEMP_CD
+		  FROM NEO_SMS 
+		 WHERE MSGID   = #{msgid}
+		   AND KEYGEN  = #{keygen}
+	</select>
+	
+	<update id="updateSmsInfo" parameterType="smsVO">
+		UPDATE NEO_SMS
+		   SET USER_ID        = #{userId}
+			 , DEPT_NO        = #{deptNo}
+			 , SEND_TELNO     = #{sendTelno}
+			 , CAMPUS_NO      = #{campNo}
+			 , SEND_YM        = #{sendYm}
+			 , SEND_DATE      = #{sendDate}
+			 , SMS_NAME       = #{smsName}
+			 , SMS_MESSAGE    = #{smsMessage}
+			 , GUBUN          = #{gubun}
+			 , SEG_NO         = #{segNo}
+			 , LEGAL_YN       = #{legalYn} 
+			 , TASK_NM        = #{taskNm}
+			 , SEND_NM        = #{sendNm}
+			 , SEND_TYP       = #{sendTyp}
+			  <if test="tempCd != null and tempCd != ''">
+			 , TEMP_CD        = #{tempCd}
+			 </if>
+		 WHERE MSGID  = #{msgid}
+		   AND KEYGEN = #{keygen}
+	</update>
+
+	<select id="getSmsPhoneList" parameterType="smsVO" resultType="smsPhoneVO">
+		SELECT PHONE
+		  FROM NEO_SMS_PHONE
+		 WHERE MSGID   = #{msgid}
+		   AND KEYGEN  = #{keygen}
+		 ORDER BY PHONE
+	</select>
+
+	<insert id="insertSmsPhone" parameterType="smsPhoneVO">
+		INSERT INTO NEO_SMS_PHONE
+		(
+			MSGID
+		  , KEYGEN
+		  , PHONE
+		)
+		VALUES
+		( 
+			#{msgid}
+		  , #{keygen}
+		  , #{phone}
+		)
+	</insert>
+	
+	<update id="copySmsPhone" parameterType="smsVO">
+		INSERT INTO NEO_SMS_PHONE
+		(
+			MSGID
+		  , KEYGEN
+		  , PHONE 
+		)
+		SELECT MSGID, KEYGEN, PHONE
+		  FROM NEO_SMS_PHONE 
+		 WHERE MSGID   = #{msgid} 
+		   AND KEYGEN  = #{keygen}
+	</update>
+ 
+	<delete id="deleteSmsPhone" parameterType="smsVO">
+		DELETE FROM NEO_SMS_PHONE
+		 WHERE MSGID    = #{msgid} 
+		   AND KEYGEN   = #{keygen} 
+	</delete>
+</mapper>

@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.sict.ums.lgn.dao.LoginMapper">
+
+    <select id="isValidUser" parameterType="loginVO" resultType="userVO">
+        SELECT A.USER_ID
+             , A.DEPT_NO
+             , (SELECT DEPT_NM FROM NEO_DEPT WHERE DEPT_NO = A.DEPT_NO) DEPT_NM
+             , A.USER_NM
+             , A.TZ_CD
+             , A.UILANG
+             , A.STATUS
+             , B.TZ_TERM
+             , C.CD_NM CHARSET_NM
+             , (SELECT FONT FROM NEO_FONT WHERE CHARSET = A.CHARSET) FONT
+             , D.ORG_CD
+             , E.ORG_KOR_NM
+             , D.JOB_GB
+             , A.MAIL_FROM_NM
+             , A.MAIL_FROM_EM
+             , A.USER_TEL
+             , A.USER_EM
+             , A.REPLY_TO_EM
+             , A.RETURN_EM
+             , C.CD CHARSET
+             , A.PW_INIT_YN
+             , ( SELECT CD_NM FROM NEO_CD WHERE UILANG = A.UILANG AND CD_GRP = 'C105' AND CD = D.JOB_GB) JOB_NM
+             , ( SELECT COUNT(1) FROM NEO_USER_PROG WHERE PROG_ID ='99' AND USER_ID = A.USER_ID ) USE_SYS
+             , IFNULL(( SELECT  PROG_ID FROM NEO_USER_PROG WHERE LINK_YN ='Y' AND USER_ID =A.USER_ID ),0 )  LINK_SERVICE
+          FROM    NEO_USER A
+         INNER JOIN NEO_TIMEZONE B  ON A.TZ_CD = B.TZ_CD
+         INNER JOIN NEO_CD C ON A.CHARSET  = C.CD AND A.UILANG = C.UILANG AND C.CD_GRP = 'C022'
+          LEFT OUTER JOIN NEO_USERORG_MAPP D ON A.USER_ID = D.USER_ID
+          LEFT OUTER JOIN V_NEO_ORGANIZATION E ON D.ORG_CD = E.ORG_CD
+         WHERE A.USER_ID  = #{pUserId}
+           AND A.USER_PWD = #{pUserPwd} 
+    </select>
+    
+    <select id="isSSOUser" parameterType="loginVO" resultType="userVO">
+        SELECT A.USER_ID
+                   , A.DEPT_NO
+                   , (SELECT DEPT_NM FROM NEO_DEPT WHERE DEPT_NO = A.DEPT_NO) DEPT_NM
+                   , A.USER_NM
+                   , A.TZ_CD
+                   , A.UILANG
+                   , A.STATUS
+                   , B.TZ_TERM
+                   , C.CD_NM CHARSET_NM
+                   , (SELECT FONT FROM NEO_FONT WHERE CHARSET = A.CHARSET) FONT
+                   , D.ORG_CD
+                   , E.ORG_KOR_NM
+                   , D.JOB_GB
+                   , A.MAIL_FROM_NM
+                   , A.MAIL_FROM_EM    
+                   , A.USER_TEL
+                   , A.USER_EM
+                   , A.REPLY_TO_EM
+                   , A.RETURN_EM
+                   , C.CD CHARSET
+                   , ( SELECT CD_NM FROM NEO_CD WHERE UILANG = A.UILANG AND CD_GRP = 'C105' AND CD = D.JOB_GB) JOB_NM
+                   , ( SELECT COUNT(1) FROM NEO_USER_PROG WHERE PROG_ID ='99' AND USER_ID = A.USER_ID ) USE_SYS
+                   , IFNULL(( SELECT PROG_ID FROM NEO_USER_PROG WHERE LINK_YN ='Y' AND USER_ID =A.USER_ID ),0 ) LINK_SERVICE
+          FROM    NEO_USER A
+         INNER JOIN NEO_TIMEZONE B ON A.TZ_CD = B.TZ_CD
+         INNER JOIN NEO_CD C ON A.CHARSET = C.CD
+            AND A.UILANG = C.UILANG
+            AND C.CD_GRP = 'C022'
+          LEFT OUTER JOIN NEO_USERORG_MAPP D ON A.USER_ID = D.USER_ID
+          LEFT OUTER JOIN V_NEO_ORGANIZATION E ON D.ORG_CD = E.ORG_CD
+         WHERE A.USER_ID  = #{pUserId}
+    </select>
+    
+    <select id="getUserProgList" parameterType="string" resultType="userProgVO">
+        SELECT A.PROG_ID
+                   , A.PROG_NM
+                   , A.PROG_TARGET
+                   , A.PROG_DOMAIN
+                   , A.PROG_SCRIPT
+          FROM NEO_PROG A
+                  , NEO_USER_PROG B
+         WHERE A.PROG_ID = B.PROG_ID
+           AND B.USER_ID = #{userId}
+           AND A.USE_YN = 'Y'
+        UNION
+        SELECT A.PROG_ID
+                   , A.PROG_NM
+                   , A.PROG_TARGET
+                   , A.PROG_DOMAIN
+                   , A.PROG_SCRIPT
+          FROM NEO_PROG A
+                  , NEO_USER_AUTH_GRP B
+                  , NEO_AUTH_GRP_PROG C
+                  , NEO_AUTH_GRP D
+         WHERE A.PROG_ID = C.PROG_ID
+           AND B.AUTH_GRP_ID = C.AUTH_GRP_ID
+           AND B.AUTH_GRP_ID = D.AUTH_GRP_ID
+           AND A.USE_YN = 'Y'
+           AND D.USE_YN = 'Y'
+           AND B.USER_ID = #{userId}
+         ORDER BY PROG_NM ASC
+    </select>
+    
+    <select id="getUserMenuList" parameterType="string" resultType="sysMenuVO">
+        SELECT MENU_ID
+                  , MENU_NM
+                  , PARENTMENU_ID
+                  , SOURCE_PATH
+                  , SORT_SNO
+                  , MENULVL_VAL
+                  , SERVICE_GB
+          FROM NEO_SYSMENU
+         WHERE MENULVL_VAL = 1
+           AND MENU_ID IN (
+                            SELECT A.PARENTMENU_ID
+                              FROM NEO_SYSMENU A, NEO_MENUUSER_MAPP B
+                             WHERE A.MENU_ID = B.MENU_ID
+                                  AND B.USER_ID = #{userId}
+                                  AND A.USE_YN = 'Y'
+                            )
+           AND USE_YN = 'Y'
+         UNION ALL
+        SELECT A.MENU_ID
+                  , A.MENU_NM
+                  , A.PARENTMENU_ID
+                  , A.SOURCE_PATH
+                  , A.SORT_SNO
+                  , A.MENULVL_VAL
+                  , A.SERVICE_GB
+          FROM NEO_SYSMENU A, NEO_MENUUSER_MAPP B
+         WHERE A.MENU_ID = B.MENU_ID
+           AND A.MENULVL_VAL = 2
+           AND B.USER_ID = #{userId}
+           AND A.USE_YN = 'Y'
+         ORDER BY PARENTMENU_ID, SORT_SNO
+    </select>
+    
+    <select id="getInitPwdInfo" parameterType="loginVO" resultType="userVO">
+        SELECT IFNULL(A.PW_INIT_YN, 'N') PW_INIT_YN
+          FROM    NEO_USER A    
+         WHERE A.USER_ID  = #{pUserId} 
+    </select>
+
+
+    <select id="procRimanUserInsert" parameterType="userVO" statementType="CALLABLE">
+        {
+        call PROC_RIMAN_USER_INSERT(
+                 #{userId,mode=IN ,jdbcType=VARCHAR, javaType=String}
+               , #{userNm,mode=IN ,jdbcType=VARCHAR, javaType=String}
+               , #{prslt ,mode=OUT,jdbcType=INTEGER, javaType=Integer}
+               , #{rtnMsg,mode=OUT,jdbcType=VARCHAR, javaType=String}
+             )
+        }
+    </select>
+
+</mapper>

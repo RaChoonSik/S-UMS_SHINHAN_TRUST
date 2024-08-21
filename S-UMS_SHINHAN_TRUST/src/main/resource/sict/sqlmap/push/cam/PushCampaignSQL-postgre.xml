@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.sict.ums.push.cam.dao.PushCampaignMapper">
+   
+	<select id="getCampaignList" parameterType="pushCampaignVO" resultType="pushCampaignVO">
+		SELECT *
+		  FROM (
+				SELECT A.CAMP_NO
+					 , A.CAMP_NM
+					 , A.USER_ID
+					 , A.CAMP_TY
+					 , A.STATUS
+					 , A.DEPT_NO
+					 , A.REG_DT
+					 , A.REG_ID
+					 , A.UP_ID
+					 , A.UP_DT
+					 , A.CAMP_DESC
+					 , B.USER_NM
+					 , C.USER_NM REG_NM
+					 , D.DEPT_NM
+					 , E.CD_NM CAMP_TY_NM
+					 , F.CD_NM STATUS_NM
+					 , (SELECT COUNT(1) FROM NEO_PUSHMESSAGE T1 WHERE T1.STATUS = '000' AND T1.CAMP_NO = A.CAMP_NO) CAMP_PUSH_CNT
+					 , ROW_NUMBER() OVER (ORDER BY A.CAMP_NO DESC) SEQ
+					 , COUNT(1) OVER() TOTAL_COUNT
+				  FROM NEO_CAMPAIGN A
+					 , NEO_USER B
+					 , NEO_USER C
+					 , NEO_DEPT D
+					 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C004' AND UILANG = #{uilang}) E
+					 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C014' AND UILANG = #{uilang}) F
+				 WHERE A.USER_ID = B.USER_ID
+				   AND A.REG_ID = C.USER_ID
+				   AND A.DEPT_NO = D.DEPT_NO
+				   AND A.CAMP_TY = E.CD
+				   AND A.STATUS = F.CD
+				   <if test="searchCampNm != null and searchCampNm != ''">
+				   AND A.CAMP_NM LIKE '%' || #{searchCampNm} || '%'
+				   </if>
+				   <if test="searchCampTy != null and searchCampTy != ''">
+				   AND A.CAMP_TY = #{searchCampTy}
+				   </if>
+				   <if test='searchStatus != null and searchStatus != ""'>
+				   AND A.STATUS = #{searchStatus}
+				   </if>
+				   <if test='adminYn == "N"'>
+				   AND A.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND A.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND A.USER_ID = #{searchUserId}
+				   </if>
+				   <if test="searchStartDt != null and searchStartDt != ''">
+				   AND A.REG_DT &gt;= #{searchStartDt} || '000000'
+				   </if>
+				   <if test="searchEndDt != null and searchEndDt != ''">
+				   AND A.REG_DT &lt; #{searchEndDt} || '240000'
+				   </if> 
+				)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>	
+	
+	<select id="getCampaignInfo" parameterType="pushCampaignVO" resultType="pushCampaignVO">
+		SELECT A.CAMP_NO
+			 , A.CAMP_NM
+			 , A.USER_ID
+			 , A.CAMP_TY
+			 , A.STATUS
+			 , A.DEPT_NO
+			 , A.REG_DT
+			 , A.REG_ID
+			 , A.UP_ID
+			 , A.UP_DT
+			 , A.CAMP_DESC
+			 , B.USER_NM
+			 , C.USER_NM REG_NM
+			 , (SELECT USER_NM FROM NEO_USER WHERE USER_ID = A.UP_ID) UP_NM
+			 , D.DEPT_NM
+			 , E.CD_NM CAMP_TY_NM
+			 , F.CD_NM STATUS_NM
+			 , A.EAI_CAMP_NO
+		  FROM NEO_CAMPAIGN A
+			 , NEO_USER B
+			 , NEO_USER C
+			 , NEO_DEPT D
+			 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C004' AND UILANG = #{uilang}) E	<!-- 캠페인목적 -->
+			 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C014' AND UILANG = #{uilang}) F	<!-- 상태 -->
+		 WHERE A.USER_ID = B.USER_ID
+		   AND A.REG_ID = C.USER_ID
+		   AND A.DEPT_NO = D.DEPT_NO
+		   AND A.CAMP_TY = E.CD
+		   AND A.STATUS = F.CD
+		   AND A.CAMP_NO = #{campNo}
+	</select>
+	
+	<insert id="insertCampaignInfo" parameterType="pushCampaignVO">
+		INSERT INTO NEO_CAMPAIGN
+		(
+			  CAMP_NO
+			, CAMP_NM
+			, CAMP_DESC
+			, USER_ID
+			, CAMP_TY
+			, STATUS
+			, DEPT_NO
+			, REG_DT
+			, REG_ID
+			, UP_ID
+			, UP_DT
+			, EAI_CAMP_NO
+		)
+		VALUES
+		(
+			  NEXTVAL('NEO_CAMPAIGN_SEQ')
+			, #{campNm}
+			, #{campDesc}
+			, #{userId}
+			, #{campTy}
+			, #{status}
+			, #{deptNo}
+			, #{regDt}
+			, #{regId}
+			, NULL
+			, NULL
+			, #{eaiCampNo}
+		)
+	</insert>
+	
+	<update id="updateCampaignInfo" parameterType="pushCampaignVO">
+		UPDATE NEO_CAMPAIGN
+		   SET CAMP_NM   = #{campNm}
+			 , CAMP_DESC = #{campDesc}
+			 , USER_ID   = #{userId}
+			 , CAMP_TY   = #{campTy}
+			 , STATUS    = #{status}
+			 , DEPT_NO   = #{deptNo}
+			 , UP_ID     = #{upId}
+			 , UP_DT     = #{upDt}
+			 , EAI_CAMP_NO = #{eaiCampNo}
+		 WHERE CAMP_NO   = #{campNo}
+	</update>
+	
+	<select id="getPushList" parameterType="pushVO" resultType="pushVO">
+		SELECT *
+		  FROM (
+				SELECT A.PUSHMESSAGE_ID
+					 , A.USER_ID
+					 , (SELECT USER_NM FROM NEO_USER WHERE USER_ID = A.USER_ID) USER_NM
+					 , A.DEPT_NO
+					 , B.DEPT_NM
+					 , A.SEG_NO
+					 , C.SEG_NM
+					 , A.SEND_TELNO
+					 , A.CAMP_NO CAMP_NO
+					 , E.CAMP_NM 
+					 , A.SEND_DT
+					 , A.PUSH_NAME 
+					 , A.PUSH_MESSAGE
+					 , A.STATUS
+					 , E.CD_NM STATUS_NM
+					 , A.PUSH_GUBUN PUSH_GUBUN
+					 , F.CD_NM PUSH_GUBUN_NM
+					 , A.WORK_STATUS WORK_STATUS
+					 , G.CD_NM WORK_STATUS_NM
+					 , ROW_NUMBER() OVER (ORDER BY A.SEND_DT DESC) SEQ
+					 , COUNT(1) OVER() TOTAL_COUNT
+				FROM NEO_PUSHMESSAGE A
+					 , NEO_DEPT B 
+					 , NEO_SEGMENT C
+					 , NEO_CAMPAIGN E
+					 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C009' AND UILANG = #{uilang}) E
+					 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C124' AND UILANG = #{uilang}) F
+					 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C118' AND UILANG = #{uilang}) G
+				 WHERE A.SEG_NO = C.SEG_NO
+				   AND A.DEPT_NO = B.DEPT_NO
+				   AND A.CAMP_NO = E.CAMP_NO
+				   AND A.STATUS = E.CD
+				   AND A.PUSH_GUBUN = F.CD
+				   AND A.WORK_STATUS = G.CD
+				   <if test="searchStartDt != null and searchStartDt != ''">
+				   AND A.SEND_DT &gt;= #{searchStartDt} || '000000'
+				   </if>
+				   <if test="searchEndDt != null and searchEndDt != ''">
+				   AND A.SEND_DT &lt; #{searchEndDt} || '240000'
+				   </if>
+				   <if test="searchPushName != null and searchPushName != ''">
+				   AND A.PUSH_NAME LIKE '%' || #{searchPushName} || '%'
+				   </if>
+				   <if test='searchPushGubun != null and searchPushGubun != ""'>
+				   AND A.PUSH_GUBUN = #{searchPushGubun}
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND A.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test='adminYn == "N"'>
+				   AND A.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND A.USER_ID = #{searchUserId}
+				   </if>
+				   <if test='searchStatus != null and searchStatus != ""'>
+				   AND A.STATUS = #{searchStatus}
+				   </if>
+				   <if test='searchWorkStatus != null and searchWorkStatus != ""'>
+				   AND A.WORK_STATUS = #{searchWorkStatus}
+				   </if>
+				   <if test='searchCampNo != null and searchCampNo != "0"'>
+				   AND A.CAMP_NO = #{searchCampNo}
+				   </if>				
+				) 
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	  
+	<insert id="insertPushInfo" parameterType="pushVO">
+		<selectKey resultType="_int" keyProperty="pushmessageId" order="AFTER">
+			SELECT CURRVAL('NEO_PUSHMESSAGE_ID_SEQ') SEQ
+		</selectKey>
+					
+		INSERT INTO NEO_PUSHMESSAGE
+		(
+			PUSHMESSAGE_ID
+		   , USER_ID
+		   , DEPT_NO
+		   , REG_ID
+		   , REG_DT
+		   , SEG_NO
+		   , SEND_TELNO
+		   , CAMP_NO
+		   , PUSH_NAME
+		   , PUSH_MESSAGE
+		   , PUSH_GUBUN
+		   , FILE_NM
+		   , FILE_PATH
+		   , FILE_SIZE
+		   , CALL_URI 
+		   , CALL_URI_IOS
+		   , OS_GUBUN
+		   , PUSH_TITLE
+		   , PUSH_ALARMDAY
+		   , SMS_YN
+		   , LEGAL_YN
+		   , LEGAL_CF
+		   , SEND_REPEAT
+		   , SEND_TERM_LOOP
+		   , SEND_TERM_END_DT
+		   , SEND_TERM_LOOP_TY
+		   , SEND_DT
+		   , WORK_STATUS
+		   , STATUS
+		   , CALL_URL_TYP
+		   , SEND_TYP
+		)
+		VALUES
+		(
+			NEXTVAL('NEO_PUSHMESSAGE_ID_SEQ')
+		   , #{userId}
+		   , #{deptNo}
+		   , #{regId}
+		   , #{regDt}
+		   , #{segNo}
+		   , #{sendTelno}
+		   , #{campNo}
+		   , #{pushName}
+		   , #{pushMessage}
+		   , #{pushGubun}
+		   , #{fileNm}
+		   , #{filePath}
+		   , #{fileSize}
+		   , #{callUri}
+		   , #{callUriIos} 
+		   , #{osGubun}
+		   , #{pushTitle}
+		   , #{pushAlarmday}
+		   , #{smsYn}
+		   , #{legalYn}
+		   , #{legalCf}
+		   , #{sendRepeat}
+		   , #{sendTermLoop}
+		   , #{sendTermEndDt}
+		   , #{sendTermLoopTy}
+		   , #{sendDt}
+		   , #{workStatus}
+		   , #{status}
+		   , #{callUrlTyp}
+		   , #{sendTyp}
+	    )
+	</insert> 
+ 
+	<update id="updatePushStatus" parameterType="pushVO">
+		UPDATE NEO_PUSHMESSAGE
+		   SET STATUS = #{status}
+		 WHERE PUSHMESSAGE_ID = #{pushmessageId}
+	</update> 
+ 
+	<update id="updatePushStatusAdmit" parameterType="pushVO">
+		UPDATE NEO_PUSHMESSAGE
+		   SET WORK_STATUS = #{workStatus}
+		 WHERE PUSHMESSAGE_ID = #{pushmessageId}
+	</update>
+
+	<select id="getPushInfo" parameterType="pushVO" resultType="pushVO">
+		SELECT NEO_PUSHMESSAGE.PUSHMESSAGE_ID
+			 , NEO_PUSHMESSAGE.USER_ID
+			 , (SELECT USER_NM FROM NEO_USER WHERE USER_ID = NEO_PUSHMESSAGE.USER_ID) USER_NM
+			 , DEPT_NO
+			 , (SELECT DEPT_NM FROM NEO_DEPT WHERE DEPT_NO = NEO_PUSHMESSAGE.DEPT_NO) DEPT_NM
+			 , REG_ID
+			 , (SELECT USER_NM FROM NEO_USER WHERE USER_ID = NEO_PUSHMESSAGE.REG_ID) REG_NM
+			 , REG_DT
+			 , SEG_NO
+			 , SEND_TELNO
+			 , CAMP_NO
+			 , (SELECT CAMP_NM FROM NEO_CAMPAIGN WHERE CAMP_NO = NEO_PUSHMESSAGE.CAMP_NO) CAMP_NM
+			 , SEND_DT
+			 , SEND_REPEAT
+			 , SEND_TERM_LOOP
+			 , SEND_TERM_END_DT
+			 , SEND_TERM_LOOP_TY
+			 , PUSH_NAME
+			 , PUSH_MESSAGE
+			 , PUSH_TITLE
+			 , SMS_YN
+			 , LEGAL_YN
+			 , LEGAL_CF
+			 , FILE_NM
+			 , FILE_PATH
+			 , FILE_SIZE
+			 , CALL_URL_TYP
+			 , CALL_URI
+			 , CALL_URI_IOS
+			 , STATUS
+			 , (SELECT CD_NM FROM NEO_CD WHERE CD_GRP = 'C009' AND CD = NEO_PUSHMESSAGE.STATUS AND UILANG = #{uilang}) STATUS_NM
+			 , PUSH_GUBUN 
+			 , (SELECT CD_NM FROM NEO_CD WHERE CD_GRP = 'C124' AND CD = NEO_PUSHMESSAGE.PUSH_GUBUN AND UILANG = #{uilang}) PUSH_GUBUN_NM
+			 , WORK_STATUS
+			 , (SELECT CD_NM FROM NEO_CD WHERE CD_GRP = 'C118' AND CD = NEO_PUSHMESSAGE.WORK_STATUS AND UILANG = #{uilang}) WORK_STATUS_NM
+			 , SEND_TYP
+			 , (SELECT SEG_NM FROM NEO_SEGMENT WHERE NEO_SEGMENT.SEG_NO = NEO_PUSHMESSAGE.SEG_NO AND NEO_SEGMENT.PUSHUSE_YN = 'Y') SEG_NM
+			 , (SELECT ( NEO_SEGMENT.SEG_NO || '|' || NEO_SEGMENT.MERGE_KEY) SEG_NOC FROM NEO_SEGMENT WHERE NEO_SEGMENT.SEG_NO = NEO_PUSHMESSAGE.SEG_NO AND NEO_SEGMENT.PUSHUSE_YN = 'Y') SEG_NOC
+		  FROM NEO_PUSHMESSAGE 
+		 WHERE PUSHMESSAGE_ID = #{pushmessageId}
+	</select>
+	
+	<update id="updatePushInfo" parameterType="pushVO">
+		UPDATE NEO_PUSHMESSAGE
+		   SET USER_ID        = #{userId}
+			 , DEPT_NO        = #{deptNo}
+			 , UP_ID          = #{upId}
+			 , UP_DT          = #{upDt}
+			 , SEG_NO         = #{segNo}
+			 , SEND_TELNO     = #{sendTelno}
+			 , CAMP_NO        = #{campNo}
+			 , PUSH_NAME      = #{pushName}
+			 , PUSH_MESSAGE   = #{pushMessage}
+			 , PUSH_GUBUN     = #{pushGubun}
+			 , FILE_PATH      = #{filePath}
+			 , CALL_URI       = #{callUri}
+			 , CALL_URI_IOS   = #{callUriIos}
+			 , PUSH_TITLE     = #{pushTitle}
+			 , SMS_YN         = #{smsYn}
+			 , LEGAL_YN       = #{legalYn}
+			 , LEGAL_CF       = #{legalCf}
+			 , SEND_DT        = #{sendDt}
+			 , SEND_TYP       = #{sendTyp}
+			 , CALL_URL_TYP   = #{callUrlTyp}
+			 , FILE_NM        = #{fileNm}
+			 , FILE_SIZE      = #{fileSize}
+		WHERE PUSHMESSAGE_ID = #{pushmessageId}
+	</update>
+</mapper>

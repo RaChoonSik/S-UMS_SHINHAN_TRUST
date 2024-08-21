@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.sict.ums.ems.sch.dao.ScheduleMapper">
+
+	<select id="getScheduleList" parameterType="taskVO" resultType="taskVO">
+		SELECT T1.TASK_NO
+			 , T2.SUB_TASK_NO
+			 , T2.SEND_DT
+			 , T1.MAIL_TITLE
+			 , T1.TASK_NM
+			 , T3.SEG_NM
+			 , T1.SEND_REPEAT
+			 , (SELECT CD_NM FROM NEO_CD WHERE UILANG='000' AND CD_GRP='C017' AND CD = T1.SEND_REPEAT) SEND_REPEAT_NM
+			 , T4.CAMP_NM
+			 , T5.USER_NM
+			 , T2.WORK_STATUS
+			 , T6.CD_NM WORK_STATUS_NM
+			 , CASE WHEN (SELECT COUNT(1) FROM NEO_SECUAPPROVAL_LINE WHERE TASK_NO = T1.TASK_NO AND RSLT_CD = '002') = 0 THEN 'N' ELSE 'Y' END APPROVAL_PROC_APP_YN
+		  FROM NEO_TASK T1, NEO_SUBTASK T2, NEO_SEGMENT T3, NEO_CAMPAIGN T4, NEO_USER T5, NEO_CD T6
+		 WHERE T1.TASK_NO = T2.TASK_NO
+		   AND T2.SUB_TASK_NO = (
+				SELECT MAX(SUB_TASK_NO) FROM NEO_SUBTASK
+				  WHERE TASK_NO = T1.TASK_NO
+				    AND SEND_DT &gt;= CONCAT(#{searchStartDt},'000000')
+				    AND SEND_DT &lt;  CONCAT(#{searchEndDt},'240000')
+				)
+		   AND T2.SEND_TEST_YN = 'N'
+		   AND T1.SEG_NO = T3.SEG_NO
+		   AND T1.CAMP_NO = T4.CAMP_NO
+		   AND T1.USER_ID = T5.USER_ID
+		   AND T2.WORK_STATUS = T6.CD
+		   AND T6.UILANG = '000'
+		   AND T6.CD_GRP = 'C101'
+		   <if test="searchDeptNo != 0">
+		   AND T1.DEPT_NO = #{searchDeptNo}
+		   </if>
+		   <!-- AND T2.SEND_DT &gt;= CONCAT(#{searchStartDt},'000000') -->
+		   <!-- AND T2.SEND_DT &lt; CONCAT(#{searchEndDt},'240000') -->
+		   AND T1.SEND_REPEAT IN ('000', '001')
+		 ORDER BY T2.SEND_DT
+	</select> 
+	
+	<select id="getScheduleAggrList" parameterType="taskVO" resultType="scheduleVO">
+		SELECT SUBSTR(T2.SEND_DT, 1, 8 ) SEND_DT
+			 , SUM(CASE WHEN WORK_STATUS IN ('000','001') THEN 1 ELSE 0 END) SCH_CNT
+			 , SUM(CASE WHEN WORK_STATUS IN ('002') THEN 1 ELSE 0 END) ING_CNT
+			 , SUM(CASE WHEN WORK_STATUS IN ('003') THEN 1 ELSE 0 END) SUC_CNT
+			 , SUM(CASE WHEN WORK_STATUS IN ('201') THEN 1 ELSE 0 END) APP_CNT
+			 , SUM(CASE WHEN WORK_STATUS IN ('202') THEN 1 ELSE 0 END) AIG_CNT
+			 , SUM(CASE WHEN WORK_STATUS IN ('203') THEN 1 ELSE 0 END) REJ_CNT
+			 , SUM(CASE WHEN WORK_STATUS IN ('204') THEN 1 ELSE 0 END) AFN_CNT
+			 , SUM(CASE WHEN WORK_STATUS NOT IN ('000','001','002','003', '201', '202', '203', '204') THEN 1 ELSE 0 END) FAIL_CNT
+			 , COUNT(*) TOT_CNT
+		  FROM NEO_TASK T1, NEO_SUBTASK T2, NEO_SEGMENT T3, NEO_CAMPAIGN T4, NEO_USER T5, NEO_CD T6
+		 WHERE T1.TASK_NO = T2.TASK_NO
+		   AND T2.SUB_TASK_NO = (
+				SELECT MAX(SUB_TASK_NO) FROM NEO_SUBTASK
+				  WHERE TASK_NO = T1.TASK_NO
+				    AND SEND_DT &gt;= CONCAT(#{searchStartDt},'000000')
+				    AND SEND_DT &lt;  CONCAT(#{searchEndDt},'240000')
+				)
+		   AND T2.SEND_TEST_YN = 'N'
+		   AND T1.SEG_NO = T3.SEG_NO
+		   AND T1.CAMP_NO = T4.CAMP_NO
+		   AND T1.USER_ID = T5.USER_ID
+		   AND T1.SEND_REPEAT IN ('000', '001')
+		   AND T2.WORK_STATUS = T6.CD
+		   AND T6.UILANG = '000'
+		   AND T6.CD_GRP = 'C101'
+		   <if test="searchDeptNo != 0">
+		   AND T1.DEPT_NO = #{searchDeptNo}
+		   </if>
+		   <!-- AND T2.SEND_DT &gt;=CONCAT( #{searchStartDt}, '000000') -->
+		   <!-- AND T2.SEND_DT &lt; CONCAT(#{searchEndDt} , '240000') -->
+		 GROUP BY SUBSTR(T2.SEND_DT, 1, 8 ) 
+	</select> 
+	
+	<select id="getScheduleGrant" parameterType="taskVO" resultType="_int">
+		SELECT COUNT(1) 
+		  FROM  NEO_MENUUSER_MAPP 
+		 WHERE USER_ID = #{userId}
+		   AND MENU_ID = #{searchSendRepeat} 
+	</select> 	
+ 
+</mapper>

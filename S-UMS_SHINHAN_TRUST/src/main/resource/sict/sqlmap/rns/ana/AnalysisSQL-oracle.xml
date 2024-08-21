@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.sict.ums.rns.ana.dao.RnsAnalysisMapper">
+
+	<select id="getMonthList" parameterType="rnsAnaMonthVO" resultType="rnsAnaMonthVO">
+ 		SELECT TO_NUMBER(SUBSTR(TO_CHAR( A.SDATE , 'YYYYMMDD'),7,2)) DAYS
+			 , SUM(B.SCOUNT) SEND
+			 , SUM(B.ECODE01) SUCCESS
+			 , SUM(B.ECODE02+B.ECODE03+B.ECODE04+B.ECODE05+B.ECODE06+B.ECODE07+B.ECODE08+B.ECODE09+B.ECODE10+B.ECODE11+B.ECODE12+B.ECODE13+
+			    B.ECODE14+B.ECODE15+B.ECODE16+B.ECODE17+B.ECODE18+B.ECODE19+B.ECODE20+B.ECODE21+B.ECODE41+B.ECODE42) FAILED
+			 , SUM(C.RSCOUNT) OPENED   
+		  FROM TS_MAILQUEUE A
+		     , TS_MAILQUEUE_RSINFO B
+		     , TS_RESPONSE_RSINFO C
+		 WHERE B.MID = C.MID 
+		   AND A.MID = B.MID 
+		   AND A.MID = C.MID
+		   AND B.MID IN (SELECT MID FROM TS_MAILQUEUE WHERE SUBSTR(TO_CHAR(SDATE, 'YYYYMMDD'), 1, 6)= #{searchYm})
+		   <if test="searchService != null and searchService != ''">
+		   AND B.TID = #{searchService}
+		   </if>
+		   <if test="searchSname != null and searchSname != ''">
+		   AND A.SNAME = #{searchSname}
+		   </if>
+		 GROUP BY TO_CHAR(A.SDATE, 'YYYYMMDD')
+		 ORDER BY TO_CHAR(A.SDATE, 'YYYYMMDD')
+	</select>
+	 
+	<select id="getServiceList" parameterType="rnsAnaServiceVO" resultType="rnsAnaServiceVO">
+		SELECT B.TID
+			 , D.TNM
+			 , SUM(B.SCOUNT) SEND
+			 , SUM(B.ECODE01) SUCCESS
+			 , SUM(B.ECODE02+B.ECODE03+B.ECODE04+B.ECODE05+B.ECODE06+B.ECODE07+B.ECODE08
+				+B.ECODE09+B.ECODE10+B.ECODE11+B.ECODE12+B.ECODE13+B.ECODE14+B.ECODE15+B.ECODE16
+				+B.ECODE17+B.ECODE18+B.ECODE19+B.ECODE20+B.ECODE21+B.ECODE41+B.ECODE42) FAILED
+			 , SUM(C.RSCOUNT) REPLY  
+		  FROM TS_MAILQUEUE A
+		     , TS_MAILQUEUE_RSINFO B
+		     , TS_RESPONSE_RSINFO C
+		     , TS_SERVICETYP D
+		 WHERE B.MID = C.MID 
+		   AND A.MID = B.MID 
+		   AND A.MID = C.MID
+		   AND B.TID = D.TID 
+		   AND TO_CHAR(A.SDATE, 'YYYYMMDD') &gt;= #{searchStdDt}
+		   AND TO_CHAR(A.SDATE, 'YYYYMMDD') &lt;= #{searchEndDt} 
+		   <if test="searchSname != null and searchSname != ''">
+		   AND A.SNAME = #{searchSname}
+		   </if>
+		 GROUP BY B.TID, D.TNM
+		 ORDER BY B.TID
+	</select>
+
+	<select id="getDomainList" parameterType="rnsAnaDomainVO" resultType="rnsAnaDomainVO">
+		SELECT DOMAINNAME
+			 , SUM(ECODE01+ECODE02+ECODE03+ECODE04+ECODE05+ECODE06+ECODE07+ECODE08
+			   +ECODE09+ECODE10+ECODE11+ECODE12+ECODE13+ECODE14+ECODE15+ECODE16
+			   +ECODE17+ECODE18+ECODE19+ECODE20+ECODE21+ECODE41+ECODE42) TOTAL
+			 , SUM(ECODE01) SUCCESS
+			 , SUM(ECODE02+ECODE03+ECODE04+ECODE05+ECODE06+ECODE07+ECODE08
+				+ECODE09+ECODE10+ECODE11+ECODE12+ECODE13+ECODE14+ECODE15+ECODE16
+				+ECODE17+ECODE18+ECODE19+ECODE20+ECODE21+ECODE41+ECODE42) FAIL
+			 , SUM(ECODE11+ECODE15+ECODE41+ECODE42) SYNTAX
+			 , SUM(ECODE03+ECODE04+ECODE05) DNS
+			 , SUM(ECODE07+ECODE08+ECODE09+ECODE10+ECODE13) TRANSACT
+			 , SUM(ECODE06+ECODE19) RECEIVER
+			 , SUM(ECODE02+ECODE14) NETWORK
+			 , SUM(ECODE12+ECODE16+ECODE17+ECODE18+ECODE20+ECODE21) SERVICE 
+		  FROM TS_MAILQUEUE_DOMAIN
+		 WHERE SYY || SMM &gt;= #{searchStdDt}
+		   AND SYY || SMM &lt;= #{searchEndDt} 
+		 GROUP BY DOMAINNAME  
+	</select>
+
+	<select id="getReceiverList" parameterType="rnsAnaDetailLogVO" resultType="rnsAnaDetailLogVO">
+		SELECT *
+		  FROM (	
+				SELECT X.MID 
+					 , X.SUBID 
+					 , X.TID
+					 , Y.SUBJECT 
+					 , Y.SMAIL     
+					 , X.RMAIL     
+					 , X.RID 
+					 , X.RNAME 
+					 , (SELECT CD_DESC FROM TS_RCODE WHERE UILANG =#{uilang} AND X.RCODE = RCODE ) RCODE 
+					 , Y.CONTENTS
+					 , C.ATTCH_CNT
+					 , Y.SDATE
+					 , X.STIME 
+					 , REPLACE(B.RSDATE, '/', '-')  RSDATE
+					 , C.TNM
+					 , Y.SNAME
+					 , NVL((SELECT DEPT_NM FROM NEO_DEPT WHERE DEPT_NO = C.DEPT_NO ), '정보없음') DEPT_NM
+					 , ROW_NUMBER() OVER (ORDER BY Y.SDATE DESC) SEQ
+					 , COUNT(1) OVER() TOTAL_COUNT					  
+				  FROM TS_RESULTLOG X
+				     , TS_MAILQUEUE Y 
+				     , TS_RESPONSELOG B
+				     , TS_SERVICETYP C
+				     , ( SELECT MID, MAX(SUBID) SUBID, RID FROM TS_RESULTLOG GROUP BY MID, RID) D 
+				 WHERE X.MID = Y.MID
+				   AND X.TID = Y.TID
+				   AND X.SUBID = Y.SUBID
+				   AND X.TID = C.TID
+				   AND X.MID = B.MID(+) 
+				   AND X.RID = B.RID(+) 
+				   AND X.MID = D.MID 
+				   AND X.SUBID = D.SUBID 
+				   AND X.RID = D.RID  
+				   <if test="searchRcode != null and searchRcode != ''"> 
+				   AND TO_NUMBER(X.RCODE) = TO_NUMBER(#{searchRcode})
+				   </if> 
+				   <if test="searchStdDt != null and searchStdDt != ''">
+				   AND TO_CHAR(Y.SDATE, 'YYYYMMDD') &gt;= #{searchStdDt}
+				   </if>
+				   <if test="searchEndDt != null and searchEndDt != ''">
+				   AND TO_CHAR(Y.SDATE, 'YYYYMMDD') &lt;= #{searchEndDt}
+				   </if>				    
+				   <if test="searchRname != null and searchRname != ''">
+				   AND X.RNAME LIKE '%' || #{searchRname} || '%'
+				   </if>
+				   <if test="searchRmail != null and searchRmail != ''">
+				   AND X.RMAIL = #{searchRmail}
+				   </if>		   				   		   
+				   <if test="searchRid != null and searchRid != ''">
+				   AND X.RID  LIKE '%' || #{searchRid} || '%'
+				   </if> 
+				   <if test="searchService != null and searchService != 0">
+				   AND X.TID  = #{searchService}
+				   </if> 
+				ORDER BY Y.SDATE DESC 
+				)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}		
+	</select>
+
+	<select id="getMailList" parameterType="rnsAnaDetailLogVO" resultType="rnsAnaDetailLogVO">
+		SELECT *
+		  FROM (
+				SELECT Y.MID
+					 , Y.SUBID 
+					 , Y.TID 
+					 , Y.SUBJECT 
+					 , Y.SMAIL 
+					 , Y.CDATE
+					 , Y.SDATE 
+					 , C.TNM
+					 , Y.REFMID  
+					 , Y.STATUS
+					 , Y.CONTENTS
+					 , Y.SNAME
+					 , C.ATTCH_CNT
+					 , NVL((SELECT DEPT_NM FROM NEO_DEPT WHERE DEPT_NO = C.DEPT_NO ), '정보없음') DEPT_NM
+					 , ROW_NUMBER() OVER (ORDER BY Y.SDATE DESC) SEQ
+					 , COUNT(1) OVER() TOTAL_COUNT
+				  FROM TS_MAILQUEUE Y
+				     , TS_SERVICETYP C
+				  WHERE Y.TID = C.TID
+				   <if test="searchStdDt != null and searchStdDt != ''">
+				   AND TO_CHAR(Y.SDATE, 'YYYYMMDD') &gt;= #{searchStdDt}
+				   </if>
+				   <if test="searchEndDt != null and searchEndDt != ''">
+				   AND TO_CHAR(Y.SDATE, 'YYYYMMDD') &lt;= #{searchEndDt}
+				   </if>
+				   <if test="searchService != null and searchService != ''">
+				   AND Y.TID = #{searchService}
+				   </if> 
+				)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+
+	<select id="getDetailLogList" parameterType="rnsAnaDetailLogVO" resultType="rnsAnaDetailLogVO">
+		SELECT *
+		  FROM (
+			SELECT SDATE
+				 , CDATE
+				 , MID
+				 , SUBID
+				 , TID
+				 , TNM
+				 , SUBJECT
+				 , RID
+				 , RNAME
+				 , RMAIL
+				 , SID
+				 , SNAME
+				 , SMAIL
+				 , STATUS
+				 , REFMID
+				 , DEPT_NM
+				 , CONTENTS
+				 , ATTCH_CNT
+				 , RCODE
+				 , ROW_NUMBER() OVER (ORDER BY SDATE DESC) SEQ
+				 , COUNT(1) OVER() TOTAL_COUNT
+			  FROM (
+					SELECT Y.SDATE
+						 , Y.CDATE
+						 , X.MID 
+						 , D.SUBID 
+						 , X.TID 
+						 , C.TNM 
+						 , Y.SUBJECT 
+						 , X.RID 
+						 , X.RNAME 
+						 , X.RMAIL 
+						 , X.SID 
+						 , X.SNAME 
+						 , X.SMAIL 
+						 , Y.STATUS 
+						 , X.REFMID
+						 , NVL((SELECT DEPT_NM FROM NEO_DEPT WHERE DEPT_NO = C.DEPT_NO ), '정보없음') DEPT_NM 
+				 		 , Y.CONTENTS
+				 		 , C.ATTCH_CNT
+						 , (SELECT CD_DESC FROM TS_RCODE WHERE UILANG =#{uilang} AND X.RCODE = RCODE ) RCODE
+					  FROM TS_RESULTLOG X
+					 INNER JOIN TS_SERVICETYP C ON (X.TID = C.TID)
+					 INNER JOIN TS_MAILQUEUE Y ON (X.MID = Y.MID AND X.SUBID= Y.SUBID AND X.TID = Y.TID)
+					 INNER JOIN (SELECT MID, MAX(SUBID) SUBID FROM TS_MAILQUEUE GROUP BY MID) D ON (X.MID = D.MID)
+					 WHERE 1=1
+					   <if test="searchStdDt != null and searchStdDt != ''">
+					   AND TO_CHAR(Y.SDATE, 'YYYYMMDD') &gt;= #{searchStdDt}
+					   </if>
+					   <if test="searchEndDt != null and searchEndDt != ''">
+					   AND TO_CHAR(Y.SDATE, 'YYYYMMDD') &lt;= #{searchEndDt}
+					   </if>
+					   <if test="searchService != null and searchService != ''">
+					   AND X.TID = #{searchService}
+					   </if>
+					   <if test="searchSname != null and searchSname != ''">
+					   AND X.SNAME = #{searchSname}
+					   </if>
+					   <if test="searchRcode != null and searchRcode != ''"> 
+					   AND TO_NUMBER(X.RCODE) = TO_NUMBER(#{searchRcode})
+					   </if> 
+					   <if test="searchMid != null and searchMid != 0">
+					   AND X.MID = #{searchMid}
+					   </if>
+					) RR
+			 WHERE NOT EXISTS ( SELECT MID FROM TS_MAILQUEUE_TEST RT WHERE RR.MID = RT.MID ) 
+				)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	
+	<select id="getMailSendResultList" resultType="rnsAnaMailSendResultVO">
+		SELECT A.MID 
+			 , A.SUBID 
+			 , A.REFMID
+			 , SUM(B.SCOUNT) SEND
+			 , SUM(B.ECODE01) SUCCESS
+		  FROM TS_MAILQUEUE A 
+		     , TS_MAILQUEUE_RSINFO B
+		  WHERE A.MID = B.MID
+		    AND A.SUBID = B.SUBID
+		    AND A.MID = #{searchMid}
+		  GROUP BY A.MID, A.SUBID, A.REFMID
+	</select>
+	  
+	<select id="getServiceCodeList" resultType="codeVO">
+		SELECT TID CD 
+			 , TNM CD_NM
+		  FROM TS_SERVICETYP
+	</select>
+
+	<select id="getSenderList" resultType="string">
+		SELECT DISTINCT SNAME 
+		  FROM TS_MAILQUEUE
+	</select>
+	
+	<select id="getRcodeList" parameterType="codeVO" resultType="codeVO">
+		SELECT RCODE CD
+		     , CD_DESC CDNM 
+		  FROM TS_RCODE
+		  WHERE UILANG =#{uilang} 
+	</select>
+		
+</mapper>

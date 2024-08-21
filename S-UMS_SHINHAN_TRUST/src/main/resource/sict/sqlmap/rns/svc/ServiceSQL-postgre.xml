@@ -1,0 +1,759 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.sict.ums.rns.svc.dao.RnsServiceMapper">
+
+	<select id="getServiceList" parameterType="rnsServiceVO" resultType="rnsServiceVO">
+		SELECT *
+		  FROM (
+				SELECT T1.TID
+					 , T1.TNM
+					 , T1.DEPT_NO
+					 , T2.DEPT_NM
+					 , T1.USER_ID
+					 , T3.USER_NM
+					 , T1.CONTENTS_TYP
+					 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C109' AND CD = T1.CONTENTS_TYP) CONTENTS_TYP_NM
+					 , T1.STATUS
+					 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C023' AND CD = T1.STATUS) STATUS_NM
+					 , T1.REG_DT
+					 , T1.WORK_STATUS
+					 , T6.CD_NM WORK_STATUS_NM
+					 , T6.CD_DTL WORK_STATUS_DTL
+					 , CASE WHEN (SELECT COUNT(1) FROM TS_SECUAPPROVAL_LINE WHERE TID = T1.TID) = 0 THEN 'N' ELSE 'Y' END APPROVAL_LINE_YN
+					 , CASE WHEN (SELECT COUNT(1) FROM TS_SECUAPPROVAL_LINE WHERE TID = T1.TID AND RSLT_CD &gt;= '002') = 0 THEN 'N' ELSE 'Y' END APPROVAL_PROC_YN
+					 , CASE WHEN (SELECT COUNT(1) FROM TS_SECUAPPROVAL_LINE WHERE TID = T1.TID AND RSLT_CD = '002') = 0 THEN 'N' ELSE 'Y' END APPROVAL_PROC_APP_YN
+					 , ROW_NUMBER() OVER (ORDER BY T1.REG_DT DESC) SEQ
+					 , COUNT(1) OVER() TOTAL_COUNT
+				  FROM TS_SERVICETYP T1, NEO_DEPT T2, NEO_USER T3, NEO_CD T6
+				 WHERE T1.DEPT_NO = T2.DEPT_NO
+				   AND T1.USER_ID = T3.USER_ID
+				   AND T1.WORK_STATUS = T6.CD
+				   AND T6.UILANG = '000'
+				   AND T6.CD_GRP = 'C121'
+				   <if test="searchStartDt != null and searchStartDt != ''">
+				   AND T1.REG_DT &gt;= #{searchStartDt} || '000000'
+				   </if>
+				   <if test="searchEndDt != null and searchEndDt != ''">
+				   AND T1.REG_DT &lt; #{searchEndDt} || '240000'
+				   </if>
+				   <if test="searchTnm != null and searchTnm != ''">
+				   AND T1.TNM LIKE '%' || #{searchTnm} || '%'
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND T1.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test='adminYn == "N"'>
+				   AND T1.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND T1.USER_ID = #{searchUserId}
+				   </if>
+				   <if test="searchContentsTyp != null and searchContentsTyp != ''">
+				   AND T1.CONTENTS_TYP = #{searchContentsTyp}
+				   </if>
+				   <if test="searchStatus != null and searchStatus != ''">
+				   AND T1.STATUS = #{searchStatus}
+				   </if>
+				)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	
+	<select id="getServiceInfo" parameterType="_int" resultType="rnsServiceVO">
+		SELECT T1.TID
+			 , T1.TNM
+			 , T1.TDESC
+			 , T1.SNAME
+			 , T1.SMAIL
+			 , T1.SID
+			 , T1.EMAIL_SUBJECT
+			 , T1.CONTENTS_PATH
+			 , T1.CONTENTS_TYP
+			 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C109' AND CD = T1.CONTENTS_TYP) CONTENTS_TYP_NM
+			 , T1.ATTCH_CNT
+			 , T1.RECV_CHK_YN
+			 , T1.USER_ID
+			 , T6.USER_NM
+			 , T1.DEPT_NO
+			 , T5.DEPT_NM
+			 , T1.USE_YN
+			 , T1.STATUS
+			 , T1.EAI_CAMP_NO
+			 , T1.REG_ID
+			 , (SELECT USER_NM FROM NEO_USER WHERE USER_ID = T1.REG_ID) REG_NM
+			 , T1.REG_DT
+			 , T1.UP_ID
+			 , (SELECT USER_NM FROM NEO_USER WHERE USER_ID = T1.UP_ID) UP_NM
+			 , T1.UP_DT
+			 , T1.WORK_STATUS
+			 , CASE WHEN (SELECT COUNT(1) FROM TS_SECUAPPROVAL_LINE WHERE TID = T1.TID) = 0 THEN 'N' ELSE 'Y' END APPROVAL_LINE_YN
+			 , CASE WHEN (SELECT COUNT(1) FROM TS_SECUAPPROVAL_LINE WHERE TID = T1.TID AND RSLT_CD &gt;= '002') = 0 THEN 'N' ELSE 'Y' END APPROVAL_PROC_YN
+			 , CASE WHEN (SELECT COUNT(1) FROM TS_SECUAPPROVAL_LINE WHERE TID = T1.TID AND RSLT_CD = '002') = 0 THEN 'N' ELSE 'Y' END APPROVAL_PROC_APP_YN
+			 , T8.ORG_KOR_NM
+		FROM TS_SERVICETYP T1,NEO_USERORG_MAPP T7, V_NEO_ORGANIZATION T8,NEO_DEPT T5, NEO_USER T6
+		WHERE TID = #{tid}
+		  AND T1.USER_ID = T7.USER_ID
+		  AND T7.ORG_CD = T8.ORG_CD
+		  AND T1.DEPT_NO = T5.DEPT_NO
+		  AND T1.USER_ID = T6.USER_ID
+	</select>
+
+	<insert id="insertServiceInfo" parameterType="rnsServiceVO">
+		INSERT INTO TS_SERVICETYP
+		(
+			  TID
+			, TNM
+			, SNAME
+			, SMAIL
+			, SID
+			, EMAIL_SUBJECT
+			, CONTENTS_PATH
+			, CONTENTS_TYP
+			, ATTCH_CNT
+			, RECV_CHK_YN
+			, USER_ID
+			, DEPT_NO
+			, USE_YN
+			, STATUS
+			, EAI_CAMP_NO
+			, REG_ID
+			, REG_DT
+			, WORK_STATUS
+		)
+		VALUES
+		(
+			  NEXTVAL('TS_SERVICE_TID_SEQ')
+			, #{tnm}
+			, #{sname}
+			, #{smail}
+			, #{sid}
+			, #{emailSubject}
+			, #{contentsPath}
+			, #{contentsTyp}
+			, #{attchCnt}
+			, #{recvChkYn}
+			, #{userId}
+			, #{deptNo}
+			, #{useYn}
+			, #{status}
+			, #{eaiCampNo}
+			, #{regId}
+			, #{regDt}
+			, #{workStatus}
+		)
+	</insert>
+	
+	<update id="updateServiceInfo" parameterType="rnsServiceVO">
+		UPDATE TS_SERVICETYP
+		   SET
+			  TNM           = #{tnm}
+			, SNAME         = #{sname}
+			, SMAIL         = #{smail}
+			, SID           = #{sid}
+			, EMAIL_SUBJECT = #{emailSubject}
+			, CONTENTS_PATH = #{contentsPath}
+			, CONTENTS_TYP  = #{contentsTyp}
+			, ATTCH_CNT     = #{attchCnt}
+			, RECV_CHK_YN   = #{recvChkYn}
+			, USER_ID       = #{userId}
+			, DEPT_NO       = #{deptNo}
+			, USE_YN        = #{useYn}
+			, EAI_CAMP_NO   = #{eaiCampNo}
+			, UP_ID         = #{upId}
+			, UP_DT         = #{upDt}
+			, WORK_STATUS   = #{workStatus}
+		WHERE TID           = #{tid}
+	</update>
+	
+	<select id="getCurrServiceTid" resultType="_int">
+		SELECT CURRVAL('TS_SERVICE_TID_SEQ')
+	</select>
+	
+	<update id="updateServiceStatus" parameterType="rnsServiceVO">
+		UPDATE TS_SERVICETYP
+		   SET STATUS = #{status}
+			 , UP_ID  = #{upId}
+			 , UP_DT  = #{upDt}
+		 WHERE TID    = #{tid}
+	</update>
+	
+	<!-- RNS 웹에이전트 -->
+	<select id="getWebAgentInfo" parameterType="_int" resultType="rnsWebAgentVO">
+		SELECT ATT_NO
+			 , SOURCE_URL
+			 , SECU_ATT_YN
+			 , SECU_ATT_TYP
+			 , REG_ID
+			 , REG_DT
+			 , UP_ID
+			 , UP_DT
+		  FROM TS_WEBAGENT
+		 WHERE TID = #{tid}
+	</select>
+	
+	<insert id="insertWebAgent" parameterType="rnsWebAgentVO">
+		INSERT INTO TS_WEBAGENT
+		(
+			  TID
+			, ATT_NO
+			, SOURCE_URL
+			, SECU_ATT_YN
+			, SECU_ATT_TYP
+			, REG_ID
+			, REG_DT
+		)
+		VALUES
+		(
+			  #{tid}
+			, #{attNo}
+			, #{sourceUrl}
+			, #{secuAttYn}
+			, #{secuAttTyp}
+			, #{regId}
+			, #{regDt}
+		)
+	</insert>
+	
+	<delete id="deleteWebAgent" parameterType="rnsWebAgentVO">
+		DELETE FROM TS_WEBAGENT
+		 WHERE TID     = #{tid}
+	</delete>
+	
+	<!-- RNS 첨부파일 -->
+	<insert id="insertAttachInfo" parameterType="rnsAttachVO">
+		INSERT INTO TS_ATTACH
+		(
+			  TID
+			, ATT_NO
+			, ATT_NM
+			, ATT_FL_PATH
+			, ATT_FL_SIZE
+			, REG_ID
+			, REG_DT
+		)
+		VALUES
+		(
+			  #{tid}
+			, #{attNo}
+			, #{attNm}
+			, #{attFlPath}
+			, #{attFlSize}
+			, #{regId}
+			, #{regDt}
+		)
+	</insert>
+	
+	<delete id="deleteAttachInfo" parameterType="_int">
+		DELETE FROM TS_ATTACH
+		 WHERE TID = #{tid}
+	</delete>
+	
+	<select id="getAttachList" parameterType="_int" resultType="rnsAttachVO">
+		SELECT TID
+			 , ATT_NO
+			 , ATT_NM
+			 , ATT_FL_PATH
+			 , ATT_FL_SIZE
+			 , ATT_FL_TY
+			 , ENCRYPT_YN
+			 , ENCRYPT_TY
+			 , ENCRYPT_KEY
+			 , USE_YN
+			 , REG_ID
+			 , REG_DT
+			 , UP_ID
+			 , UP_DT
+		  FROM TS_ATTACH
+		 WHERE TID = #{tid}
+		 ORDER BY ATT_NO
+	</select>
+	
+	<!-- 테스트 발송 등록 -->
+	<select id="getNextMailQueueId" resultType="_long">
+		SELECT NEXTVAL('MID_SEQ')
+	</select>
+	
+	<select id="getCurrMailQueueId" resultType="_long">
+		SELECT CURRVAL('MID_SEQ')
+	</select>
+	
+	<select id="getNextSubId" parameterType="_long" resultType="_int">
+		SELECT COALESCE(MAX(SUBID),0)+1 I_MAX 
+		  FROM TS_MAILQUEUE
+		 WHERE MID = #{mid}
+	</select>
+	
+	<select id="getRecipientInfo" parameterType="rnsRecipientInfoVO" resultType="rnsRecipientInfoVO">
+		SELECT MID
+			 , SUBID
+			 , TID
+			 , RID
+			 , RNAME
+			 , RMAIL
+			 , ENCKEY
+			 , MAP1
+			 , MAP2
+			 , MAP3
+			 , MAP4
+			 , MAP5
+			 , MAP6
+			 , MAP7
+			 , MAP8
+			 , MAP9
+			 , MAP10
+			 , MAP11
+			 , MAP12
+			 , MAP13
+			 , MAP14
+			 , MAP15
+		FROM TS_RECIPIENTINFO T1
+		WHERE MID = #{mid}
+		  AND SUBID = #{subid}
+		  AND TID = #{tid}
+		  AND RID = #{rid}
+	</select>
+	
+	<insert id="insertRecipientInfo" parameterType="rnsRecipientInfoVO">
+		INSERT INTO TS_RECIPIENTINFO
+		(
+			  MID
+			, SUBID
+			, TID
+			, RID
+			, RNAME
+			, RMAIL
+			, ENCKEY
+			, MAP1
+			, MAP2
+			, MAP3
+			, MAP4
+			, MAP5
+			, MAP6
+			, MAP7
+			, MAP8
+			, MAP9
+			, MAP10
+			, MAP11
+			, MAP12
+			, MAP13
+			, MAP14
+			, MAP15
+		)
+		VALUES
+		(
+			  #{mid}
+			, #{subid}
+			, #{tid}
+			, #{rid}
+			, #{rname}
+			, #{rmail}
+			, #{enckey}
+			, #{map1}
+			, #{map2}
+			, #{map3}
+			, #{map4}
+			, #{map5}
+			, #{map6}
+			, #{map7}
+			, #{map8}
+			, #{map9}
+			, #{map10}
+			, #{map11}
+			, #{map12}
+			, #{map13}
+			, #{map14}
+			, #{map15}
+		)
+	</insert>
+	
+	<select id="getMailQueue" parameterType="rnsRecipientInfoVO" resultType="rnsMailQueueVO">
+		SELECT MID
+			 , SUBID
+			 , TID
+			 , SPOS
+			 , SNAME
+			 , SMAIL
+			 , SID
+			 , RPOS
+			 , QUERY
+			 , CTNPOS
+			 , SUBJECT
+			 , CONTENTS
+			 , CDATE
+			 , SDATE
+			 , STATUS
+			 , DBCODE
+ 			 , REFMID
+			 , CHARSET
+			 , ATTACHFILE01
+			 , ATTACHFILE02
+ 			 , ATTACHFILE03
+			 , ATTACHFILE04
+			 , ATTACHFILE05
+			 , DEPT_NO
+			 , RTY_MID
+			 , RTY_SUBID
+			 , RTY_TYP
+		FROM TS_MAILQUEUE T1
+		WHERE MID = #{mid}
+		  AND SUBID = #{subid}
+		  AND TID = #{tid}
+	</select>
+
+	<insert id="insertMailQueue" parameterType="rnsMailQueueVO">
+		INSERT INTO TS_MAILQUEUE
+		(
+			  MID
+			, SUBID
+			, TID
+			, SPOS
+			, SNAME
+			, SMAIL
+			, SID
+			, RPOS
+			, QUERY
+			, CTNPOS
+			, SUBJECT
+			, CONTENTS
+			, CDATE
+			, SDATE
+			, STATUS
+			, DBCODE
+			, REFMID
+			, CHARSET
+			, ATTACHFILE01
+			, ATTACHFILE02
+			, ATTACHFILE03
+			, ATTACHFILE04
+			, ATTACHFILE05
+		)
+		VALUES
+		(
+			  NEXTVAL('MID_SEQ')
+			, #{subid}
+			, #{tid}
+			, #{spos}
+			, #{sname}
+			, #{smail}
+			, #{sid}
+			, #{rpos}
+			, #{query}
+			, #{ctnpos}
+			, #{subject}
+			, #{contents}
+			, NOW()
+			, NOW()
+			, #{status}
+			, #{dbcode}
+			, #{refmid}
+			, #{charset}
+			, #{attachfile01}
+			, #{attachfile02}
+			, #{attachfile03}
+			, #{attachfile04}
+			, #{attachfile05}
+		)
+	</insert>
+	
+	<insert id="insertReSendMailQueue" parameterType="rnsMailQueueVO">
+		INSERT INTO TS_MAILQUEUE
+		(
+			  MID
+			, SUBID
+			, TID
+			, SPOS
+			, SNAME
+			, SMAIL
+			, SID
+			, RPOS
+			, QUERY
+			, CTNPOS
+			, SUBJECT
+			, CONTENTS
+			, CDATE
+			, SDATE
+			, STATUS
+			, DBCODE
+			, REFMID
+			, CHARSET
+			, ATTACHFILE01
+			, ATTACHFILE02
+			, ATTACHFILE03
+			, ATTACHFILE04
+			, ATTACHFILE05
+			, RTY_MID
+			, RTY_SUBID
+			, RTY_TYP
+		)
+		VALUES
+		(
+			  NEXTVAL('MID_SEQ')
+			, #{subid}
+			, #{tid}
+			, #{spos}
+			, #{sname}
+			, #{smail}
+			, #{sid}
+			, #{rpos}
+			, #{query}
+			, #{ctnpos}
+			, #{subject}
+			, #{contents}
+			, NOW()
+			, NOW()
+			, #{status}
+			, #{dbcode}
+			, #{refmid}
+			, #{charset}
+			, #{attachfile01}
+			, #{attachfile02}
+			, #{attachfile03}
+			, #{attachfile04}
+			, #{attachfile05}
+			, #{rtyMid}
+			, #{rtySubid}
+			, #{rtyTyp}
+		)
+	</insert>
+
+	<insert id="insertMailQueueTest" parameterType="rnsMailQueueTestVO">
+		INSERT INTO TS_MAILQUEUE_TEST
+		(
+			  MID
+			, USE_YN
+			, REG_ID
+			, REG_DT
+		)
+		VALUES
+		(
+			  #{mid}
+			, #{useYn}
+			, #{regId}
+			, #{regDt}
+		)
+	</insert>
+	
+	<select id="getServiceTestList" parameterType="rnsServiceVO" resultType="rnsServiceVO">
+		SELECT *
+		  FROM (
+				SELECT T1.MID
+					 , T2.TID
+					 , T2.SDATE
+					 , T3.TNM
+					 , T1.REG_ID
+					 , T4.USER_NM REG_NM
+					 , (SELECT COUNT(1) FROM TS_RESULTLOG WHERE MID = T2.MID AND TID = T2.TID AND RCODE = '1') SUCC_CNT
+					 , (SELECT COUNT(1) FROM TS_RESULTLOG WHERE MID = T2.MID AND TID = T2.TID AND RCODE != '1') FAIL_CNT
+					 , ROW_NUMBER() OVER (ORDER BY T2.SDATE DESC, T2.TID) SEQ
+					 , COUNT(1) OVER () TOTAL_COUNT
+				  FROM TS_MAILQUEUE_TEST T1
+					 , TS_MAILQUEUE T2
+					 , TS_SERVICETYP T3
+					 , NEO_USER T4
+				 WHERE T1.MID = T2.MID
+				   AND T2.TID = T3.TID
+				   AND T1.REG_ID = T4.USER_ID
+				   AND T2.SUBID = 0
+				   <if test='adminYn == "N"'>
+				   AND T3.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchStartDt != null and searchStartDt != ''">
+				   AND T2.SDATE &gt;= TO_DATE(#{searchStartDt}||'000000','YYYYMMDDHH24MISS')
+				   </if>
+				   <if test="searchEndDt != null and searchEndDt != ''">
+				   AND T2.SDATE &lt;= TO_DATE(#{searchEndDt}||'235959','YYYYMMDDHH24MISS')
+				   </if>
+				   <if test="searchTnm != null and searchTnm != ''">
+				   AND T3.TNM LIKE '%' || #{searchTnm} || '%'
+				   </if>
+				)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	
+	<select id="getServiceTestResultList" parameterType="rnsRecipientInfoVO" resultType="rnsRecipientInfoVO">
+		SELECT *
+		  FROM (
+				SELECT RID
+					 , RNAME
+					 , RMAIL
+					 , (SELECT COUNT(1) FROM TS_RESULTLOG WHERE MID = T1.MID AND SUBID = T1.SUBID AND RCODE = '1') SUCC_CNT 
+					 , (SELECT COUNT(1) FROM TS_RESULTLOG WHERE MID = T1.MID AND SUBID = T1.SUBID AND RCODE != '1') FAIL_CNT
+					 , (SELECT Y.CD_DESC FROM TS_RESULTLOG X, TS_RCODE Y 
+					     WHERE X.MID = T1.MID
+					       AND X.SUBID = T1.SUBID
+					       AND X.RCODE != '1'
+					       AND X.RCODE = Y.RCODE
+					       AND ROWNUM = 1
+					    ) FAIL_DESC
+					 , ROW_NUMBER() OVER (ORDER BY SUBID) SEQ
+					 , COUNT(1) OVER() TOTAL_COUNT
+				FROM TS_RECIPIENTINFO T1
+				WHERE MID = #{mid}
+				)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+
+	<!--  실시간 이메일 결재 관련 처리  -->
+	<select id="getRnsApprovalLineList" parameterType="_int" resultType="rnsApprovalLineVO">
+		SELECT T1.TID
+			 , T1.APPR_STEP
+			 , T1.APPR_USER_ID
+			 , (SELECT USER_NM FROM NEO_USER WHERE USER_ID = T1.APPR_USER_ID) APPR_USER_NM
+			 , T1.ORG_CD
+			 , (SELECT COALESCE(MAX(T7.ORG_KOR_NM), 'NONE')  FROM V_NEO_ORGANIZATION T7  WHERE T7.ORG_CD = T3.ORG_CD) ORG_NM
+			 , T1.POSITION_GB
+			 , T1.JOB_GB
+			 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = #{uilang} AND CD_GRP = 'C105' AND CD = T1.JOB_GB) JOB_NM
+			 , T1.APPR_DT
+			 , T1.RSLT_CD
+			 , CASE WHEN T1.COMPLIANCE_YN ='Y' AND T1.RSLT_CD IN ('002','003') AND T1.APPR_USER_ID != T1.ACT_APPR_USER_ID THEN '전결' ELSE
+			 (SELECT CASE WHEN CD = '000' THEN '' ELSE CD_NM  END FROM NEO_CD WHERE UILANG = #{uilang} AND CD_GRP = 'C103' AND CD = T1.RSLT_CD) END RSLT_NM
+			 , T1.REJECT_CD
+			 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = #{uilang} AND CD_GRP = 'C104' AND CD = T1.REJECT_CD) REJECT_NM
+			 , T1.REJECT_DESC
+			 , T1.REG_ID
+			 , T1.REG_DT
+			 , T1.UP_DT
+			 , T1.COMPLIANCE_YN
+		  FROM NEO_USER T2
+			   INNER JOIN  TS_SECUAPPROVAL_LINE T1 ON (T2.USER_ID = T1.APPR_USER_ID AND T1.TID = #{tid})
+			   LEFT OUTER JOIN NEO_USERORG_MAPP T3 ON (T2.USER_ID = T3.USER_ID ) 
+		 ORDER BY T1.APPR_STEP
+	</select>
+	
+	<insert id="insertRnsApprovalLine" parameterType="rnsApprovalLineVO">
+		INSERT INTO TS_SECUAPPROVAL_LINE
+		(
+			  TID
+			, APPR_STEP
+			, APPR_USER_ID
+			, ORG_CD
+			, POSITION_GB
+			, JOB_GB
+			, APPR_DT
+			, RSLT_CD
+			, REJECT_CD
+			, REG_ID
+			, REG_DT
+		)
+		VALUES
+		(
+			  #{tid}
+			, #{apprStep}
+			, #{apprUserId}
+			, #{orgCd}
+			, #{positionGb}
+			, #{jobGb}
+			, #{apprDt}
+			, #{rsltCd}
+			, #{rejectCd}
+			, #{regId}
+			, #{regDt}
+		)
+	</insert>
+	
+	<update id="updateRnsApprovalLine" parameterType="rnsApprovalLineVO">
+		UPDATE TS_SECUAPPROVAL_LINE
+		   SET
+			  APPR_DT    = #{apprDt}
+			 , RSLT_CD   = #{rsltCd} 
+			 , UP_ID     = #{upId}
+			 , UP_DT     = #{upDt}
+		 WHERE TID       = #{tid} 
+	</update>
+
+	<delete id="deleteRnsApprovalLine" parameterType="_int">
+		DELETE FROM TS_SECUAPPROVAL_LINE
+		 WHERE TID    = #{tid}
+	</delete>
+	
+	<update id="updateRnsServiceAprStep" parameterType="rnsApprovalLineVO">
+		UPDATE TS_SECUAPPROVAL_LINE
+		   SET RSLT_CD   = #{rsltCd}
+			 , REJECT_CD  = #{rejectCd}
+			 , APPR_DT       = #{apprDt}
+			 , UP_ID            = #{upId}
+			 , UP_DT           = #{upDt}
+		 WHERE TID       = #{tid}
+		   AND APPR_STEP = #{apprStep}
+	</update>
+	
+	<update id="updateRnsServiceAprStepNext" parameterType="rnsApprovalLineVO">
+		UPDATE TS_SECUAPPROVAL_LINE
+		   SET RSLT_CD   = '001'
+		 WHERE TID       = #{tid}
+		   AND APPR_STEP = #{apprStep} + 1
+	</update>
+
+	<update id="updateRnsServiceWorkStatus" parameterType="rnsServiceVO">
+		UPDATE TS_SERVICETYP
+		   SET WORK_STATUS = #{workStatus}
+		 WHERE TID         = #{tid} 
+	</update>
+	
+	<update id="updateSubmitApproval" parameterType="rnsServiceVO">
+		UPDATE TS_SERVICETYP
+		   SET WORK_STATUS = #{workStatus}
+		 WHERE TID         = #{tid}
+	</update>
+	
+	<update id="updateSubmitApprovalLine" parameterType="rnsServiceVO">
+		UPDATE TS_SECUAPPROVAL_LINE
+		   SET RSLT_CD   = '001'
+			 , UP_ID     = #{upId}
+			 , UP_DT     = #{upDt}
+		 WHERE TID       = #{tid}
+		   AND APPR_STEP = 1
+	</update>
+	
+	<select id="getFirstApprUserId" parameterType="_int" resultType="string">
+		SELECT APPR_USER_ID
+		  FROM TS_SECUAPPROVAL_LINE
+		 WHERE TID = #{tid}
+		   AND APPR_STEP = 1
+	</select>
+
+	
+	<select id="nextRnsAprStep" parameterType="rnsApprovalLineVO" resultType="rnsApprovalLineVO">
+		SELECT T1.TID
+			 , T1.APPR_STEP
+			 , T1.APPR_USER_ID
+			 , T2.USER_NM APPR_USER_NM
+			 , T1.ORG_CD
+			 , T3.ORG_KOR_NM ORG_NM
+			 , T1.RSLT_CD
+			 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C103' AND CD = T1.RSLT_CD) RSLT_NM
+			 , T1.REJECT_CD
+			 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C104' AND CD = T1.REJECT_CD) REJECT_NM
+			 , T1.UP_DT
+			 , T1.REG_ID
+			 , COUNT(1) OVER() TOTAL_COUNT
+		  FROM TS_SECUAPPROVAL_LINE T1, NEO_USER T2, V_NEO_ORGANIZATION T3
+		 WHERE T1.TID = #{tid}
+		   AND T1.APPR_USER_ID = T2.USER_ID
+		   AND T1.ORG_CD = T3.ORG_CD
+		 ORDER BY T1.APPR_STEP
+	</select>
+	
+	<select id="nowRnsAprStep" parameterType="rnsApprovalLineVO" resultType="rnsApprovalLineVO">	 
+		SELECT T1.TID 
+			 , T1.APPR_STEP
+			 , T1.APPR_USER_ID
+			 , T2.USER_NM APPR_USER_NM
+			 , T1.ORG_CD
+			 , T3.ORG_KOR_NM ORG_NM
+			 , T1.RSLT_CD
+			 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C103' AND CD = T1.RSLT_CD) RSLT_NM
+			 , T1.REJECT_CD
+			 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C104' AND CD = T1.REJECT_CD) REJECT_NM
+			 , T1.UP_DT
+			 , T1.REG_ID
+			 , COUNT(1) OVER() TOTAL_COUNT
+		  FROM TS_SECUAPPROVAL_LINE T1, NEO_USER T2, V_NEO_ORGANIZATION T3
+		 WHERE T1.TID = #{tid}
+		   AND T1.APPR_USER_ID = T2.USER_ID
+		   AND T1.ORG_CD = T3.ORG_CD
+		 ORDER BY T1.APPR_STEP	 
+	</select>
+</mapper>

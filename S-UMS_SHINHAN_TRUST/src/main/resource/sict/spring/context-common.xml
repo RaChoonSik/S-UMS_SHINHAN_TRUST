@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx.xsd
+	http://www.springframework.org/schema/util
+	http://www.springframework.org/schema/util/spring-util.xsd">
+	
+	<context:component-scan base-package="kr.co.sict" use-default-filters="false">
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Service"></context:include-filter>
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Repository"></context:include-filter>
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"></context:exclude-filter>
+	</context:component-scan>
+
+	<bean id="configSystem" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>/WEB-INF/config/properties/db.properties</value>
+			</list>
+		</property>
+	</bean>
+	
+	<!-- 설정된 시간마다 메시지를 다시 읽는다. -->
+	<bean id="propsSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+		<property name="basenames">
+			<list>
+				<value>/WEB-INF/config/properties/ums</value>
+				<value>/WEB-INF/config/properties/ums.crypto</value>
+			</list>
+		</property>
+		<property name="cacheSeconds">
+			<value>300</value>
+		</property>
+	</bean>
+	
+	<bean id="propertiesSourceAccessor" class="org.springframework.context.support.MessageSourceAccessor">
+		<constructor-arg ref="propsSource"/>
+	</bean>
+
+	<bean id="properties" class="kr.co.sict.util.PropertiesUtil">
+		<property name="propertiesSourceAccessor" ref="propertiesSourceAccessor"></property>
+	</bean>	
+	
+	<!-- 설정된 시간마다 메시지를 다시 읽는다. -->
+	<bean id="messageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+		<property name="basenames">
+			<list>
+				<value>/WEB-INF/config/message/message</value>
+			</list>
+		</property>
+		<property name="cacheSeconds">
+			<value>300</value>
+		</property>
+	</bean>
+	
+	<!-- 다국어 지원 -->
+	<bean id="localeResolver" class="org.springframework.web.servlet.i18n.SessionLocaleResolver" />
+
+	<bean id="messageSourceAccessor" class="org.springframework.context.support.MessageSourceAccessor">
+		<constructor-arg ref="messageSource"/>
+	</bean>
+	
+	<bean id="messageUtil" class="kr.co.sict.util.MessageUtil">
+		<property name="messageSourceAccessor" ref="messageSourceAccessor"></property>
+	</bean>
+	
+</beans>

@@ -1,0 +1,700 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.sict.ums.sys.dbc.dao.DBConnMapper">
+
+	<!-- #############################################################  데이터베이스 연결 정보 처리  ############################################################# -->	
+	<!-- DB Conntion 목록 조회 -->
+	<select id="getDbConnList" parameterType="dbConnVO" resultType="dbConnVO">
+		SELECT *
+		  FROM (
+				SELECT A.DB_CONN_NO
+					 , A.DB_CONN_NM
+					 , A.DB_TY
+					 , A.DB_DRIVER
+					 , A.DB_URL
+					 , A.DB_CHAR_SET
+					 , A.LOGIN_ID
+					 , A.STATUS
+					 , A.REG_ID
+					 , A.REG_DT
+					 , A.UP_ID
+					 , A.UP_DT
+					 , B.CD_NM DB_TY_NM
+					 , C.CD_NM DB_CHAR_SET_NM
+					 , D.CD_NM STATUS_NM
+					 , (SELECT USER_NM FROM NEO_USER WHERE A.REG_ID = USER_ID ) REG_NM
+					 , (SELECT USER_NM FROM NEO_USER WHERE A.UP_ID = USER_ID ) UP_NM
+					 , ROW_NUMBER() OVER (ORDER BY A.DB_CONN_NO) SEQ
+					 , COUNT(1) OVER() TOTAL_COUNT
+				  FROM NEO_DBCONN A
+					 , (
+						SELECT CD, CD_NM
+						  FROM NEO_CD
+						 WHERE CD_GRP = 'C033'
+						   AND UILANG = #{uilang}
+						   AND USE_YN = 'Y'
+						) B
+					 , (
+						SELECT CD, CD_NM
+						  FROM NEO_CD
+						 WHERE CD_GRP = 'C032'
+						   AND UILANG = #{uilang}
+						   AND USE_YN = 'Y'
+						) C
+					 , (
+						SELECT CD, CD_NM
+						  FROM NEO_CD
+						 WHERE CD_GRP = 'C011'
+						   AND UILANG = #{uilang}
+						   AND USE_YN = 'Y'
+						) D
+				 WHERE A.DB_TY = B.CD
+				   AND A.DB_CHAR_SET = C.CD
+				   AND A.STATUS = D.CD
+				   <if test="searchDbConnNm != null and searchDbConnNm != ''">
+				   AND A.DB_CONN_NM LIKE '%' || #{searchDbConnNm} || '%'
+				   </if>
+				   <if test="searchDbTy != null and searchDbTy != ''">
+				   AND A.DB_TY = #{searchDbTy}
+				   </if>
+				   <if test="searchStatus != null and searchStatus != ''">
+				   AND A.STATUS = #{searchStatus}
+				   </if>
+			   )
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	
+	<!-- DB Conntion 정보 조회 -->
+	<select id="getDbConnInfo" parameterType="dbConnVO" resultType="dbConnVO">
+		SELECT A.DB_CONN_NO
+			 , A.DB_CONN_NM
+			 , A.DB_TY
+			 , A.DB_DRIVER
+			 , A.DB_URL
+			 , A.DB_CHAR_SET
+			 , A.LOGIN_ID
+			 , A.LOGIN_PWD
+			 , A.DB_CONN_DESC
+			 , A.STATUS
+			 , A.REG_ID
+			 , A.REG_DT
+			 , A.UP_ID
+			 , A.UP_DT
+			 , B.CD_NM DB_TY_NM
+			 , C.CD_NM DB_CHAR_SET_NM
+			 , D.CD_NM STATUS_NM
+			 , (SELECT USER_NM FROM NEO_USER WHERE A.REG_ID = USER_ID ) REG_NM
+			 , (SELECT USER_NM FROM NEO_USER WHERE A.UP_ID = USER_ID ) UP_NM
+		  FROM NEO_DBCONN A
+			 , (
+				SELECT CD, CD_NM
+				  FROM NEO_CD
+				 WHERE CD_GRP = 'C033'
+				   AND UILANG = #{uilang}
+				   AND USE_YN = 'Y') B
+			 , (
+				SELECT CD, CD_NM
+				  FROM NEO_CD
+				 WHERE CD_GRP = 'C032'
+				   AND UILANG = #{uilang}
+				   AND USE_YN = 'Y') C
+			 , (
+				SELECT CD, CD_NM
+				  FROM NEO_CD
+				 WHERE CD_GRP = 'C011'
+				   AND UILANG = #{uilang}
+				   AND USE_YN = 'Y') D
+		 WHERE A.DB_CONN_NO = #{dbConnNo}
+		   AND A.DB_TY = B.CD
+		   AND A.DB_CHAR_SET = C.CD
+		   AND A.STATUS = D.CD
+	</select>
+	
+	<!-- DB Conntion 사용자  조회 -->
+	<select id="getDbConnUserList" parameterType="dbConnUserVO" resultType="dbConnUserVO">
+		SELECT A.USER_ID
+			 , A.DEPT_NO
+			 , A.USER_NM 
+			 , A.STATUS 
+			 , D.ORG_CD 
+			 , D.ORG_KOR_NM  
+			 , I.CD_NM POSITION_NM
+			 , H.CD_NM JOB_NM 
+		  FROM NEO_USER A 
+			 , (
+				SELECT X.USER_ID, X.ORG_CD, Y.ORG_KOR_NM, X.POSITION_GB, X.JOB_GB
+				  FROM NEO_USERORG_MAPP X, V_NEO_ORGANIZATION  Y 
+				 WHERE X.ORG_CD = Y.ORG_CD 
+					   <if test="orgCd != null and orgCd != ''">
+ 					   AND X.ORG_CD  = #{orgCd} 
+					  </if>
+ 			   ) D 
+			 , (
+				SELECT CD, CD_NM
+				  FROM NEO_CD
+				 WHERE CD_GRP = 'C105'
+				   AND USE_YN = 'Y'
+				   AND UILANG = #{uilang}) H
+			 , (
+				SELECT CD, CD_NM
+				  FROM NEO_CD
+				 WHERE CD_GRP = 'C106'
+				   AND USE_YN = 'Y'
+				   AND UILANG = #{uilang}) I
+		 WHERE A.USER_ID = D.USER_ID 
+		   AND D.POSITION_GB = I.CD
+		   AND D.JOB_GB = H.CD
+		   AND A.USE_YN ='Y'
+		   AND A.STATUS = '000'
+		   <if test="dbConnNo != null">
+		   AND A.USER_ID NOT IN (SELECT USER_ID FROM NEO_DBCONN_PERM WHERE DB_CONN_NO = #{dbConnNo} )
+		   </if>
+		   <if test="userId != null and userId != ''">
+		   AND A.USER_ID LIKE '%' || #{userId} || '%'
+		   </if>
+		   <if test="userNm != null and userNm != ''">
+		   AND A.USER_NM LIKE '%' || #{userNm} || '%'
+		   </if> 
+	</select>
+		
+	<!-- DB Conntion 정보 등록 -->
+	<insert id="insertDbConnInfo" parameterType="dbConnVO">
+		INSERT INTO NEO_DBCONN
+		(
+			  DB_CONN_NO
+			, DB_CONN_NM
+			, DB_TY
+			, DB_DRIVER
+			, DB_URL
+			, DB_CHAR_SET
+			, LOGIN_ID
+			, LOGIN_PWD
+			, DB_CONN_DESC
+			, STATUS
+			, REG_ID
+			, REG_DT
+		)
+		VALUES
+		(
+			  NEO_DBCONN_SEQ.NEXTVAL
+			, #{dbConnNm}
+			, #{dbTy}
+			, #{dbDriver}
+			, #{dbUrl}
+			, #{dbCharSet}
+			, #{loginId}
+			, #{loginPwd}
+			, #{dbConnDesc}
+			, #{status}
+			, #{regId}
+			, #{regDt}
+		)
+	</insert>
+	
+	<!-- DB Conntion 정보 수정 -->
+	<update id="updateDbConnInfo" parameterType="dbConnVO">
+		UPDATE NEO_DBCONN
+		   SET
+			   DB_CONN_NM   = #{dbConnNm}
+			 , DB_TY        = #{dbTy}
+			 , DB_DRIVER    = #{dbDriver}
+			 , DB_URL       = #{dbUrl}
+			 , DB_CHAR_SET  = #{dbCharSet}
+			 , LOGIN_ID     = #{loginId}
+			 , LOGIN_PWD    = #{loginPwd}
+			 , DB_CONN_DESC = #{dbConnDesc}
+			 , STATUS       = #{status}
+			 , UP_ID        = #{upId}
+			 , UP_DT        = #{upDt}
+		 WHERE DB_CONN_NO   = #{dbConnNo}
+	</update>
+	
+	<!-- DB Connection 정보 삭제 -->
+	<delete id="deleteDbConnInfo" parameterType="dbConnVO">
+		UPDATE NEO_DBCONN
+		   SET
+			   STATUS       = #{status}
+			 , UP_ID        = #{upId}
+			 , UP_DT        = #{upDt}
+		 WHERE DB_CONN_NO   = #{dbConnNo}
+	</delete>
+	
+	<!-- DB Connection 사용권한 목록 조회 -->
+<!-- 	<select id="getDbConnPermList" parameterType="dbConnPermVO" resultType="dbConnPermVO">
+		SELECT A.USER_ID
+			 , A.USER_NM
+			 , B.DEPT_NM
+			 , A.DEPT_NO
+			 , (
+				CASE WHEN (
+							SELECT DISTINCT 'Y'
+							  FROM NEO_DBCONN_PERM
+							 WHERE DB_CONN_NO = #{dbConnNo}
+							   AND USER_ID = A.USER_ID
+							) IS NULL
+					 THEN 'N' ELSE 'Y' END) PERM_YN
+		  FROM NEO_USER A
+			 , NEO_DEPT B
+		 WHERE B.STATUS = '000'
+		   AND A.DEPT_NO = B.DEPT_NO
+		 ORDER BY B.DEPT_NM, A.USER_NM
+	</select> -->
+	
+	<select id="getDbConnPermList" parameterType="dbConnPermVO" resultType="dbConnPermVO">
+		SELECT A.USER_ID 
+			 , B.USER_NM 
+			 , C.ORG_CD
+			 , C.ORG_NM
+			 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = #{uilang} AND CD_GRP = 'C105' AND CD = C.JOB_GB) JOB_NM
+			 , 'E' ADD_TYPE
+		  FROM NEO_DBCONN_PERM A
+			 , NEO_USER B 
+			 , (SELECT X.USER_ID, Y.ORG_CD, Y.ORG_KOR_NM ORG_NM, X.POSITION_GB, X.JOB_GB
+				  FROM NEO_USERORG_MAPP X, V_NEO_ORGANIZATION Y
+				 WHERE X.ORG_CD= Y.ORG_CD AND Y.USE_YN ='Y'
+			   ) C
+		 WHERE A.USER_ID = B.USER_ID
+		   AND A.USER_ID = C.USER_ID
+		   AND A.DB_CONN_NO = #{dbConnNo}
+		 ORDER BY C.ORG_CD, B.USER_NM
+	</select>
+	
+	<!-- DB Connection 사용권한 정보 삭제 -->
+	<delete id="deleteDbConnPermInfo" parameterType="_int">
+		DELETE FROM NEO_DBCONN_PERM
+		 WHERE DB_CONN_NO = #{dbConnNo}
+	</delete>
+	
+	<!-- DB Connection 사용권한 정보 등록 -->
+	<insert id="insertDbConnPermInfo" parameterType="dbConnPermVO">
+		INSERT INTO NEO_DBCONN_PERM
+		(
+			DB_CONN_NO
+		  , USER_ID
+		)
+		VALUES
+		(
+			#{dbConnNo}
+		  , #{userId}
+		)
+	</insert>
+	
+	<!-- DB Connection 사용권한 그룹 정보 조회 -->
+	<select id="getDbConnGrpPermList" parameterType="dbConnGrpPermVO" resultType="dbConnGrpPermVO">
+		SELECT A.DEPT_NO
+			 , B.DEPT_NM
+			 , 'E' ADD_TYPE
+		  FROM NEO_DBCONN_GRPPERM A
+			 , NEO_DEPT B
+		 WHERE A.DEPT_NO = B.DEPT_NO
+		   AND A.DB_CONN_NO = #{dbConnNo} 
+		   AND B.STATUS ='000'
+		   AND B.USE_YN ='Y'
+		 ORDER BY A.DEPT_NO, B.DEPT_NM
+	</select>
+	
+	<!-- DB Connection 사용권한 그룹 정보 삭제 -->
+	<delete id="deleteDbConnGrpPermInfo" parameterType="_int">
+		DELETE FROM NEO_DBCONN_GRPPERM
+		 WHERE DB_CONN_NO = #{dbConnNo}
+	</delete>
+	
+	<!-- DB Connection 사용권한 그룹 정보 등록 -->
+	<insert id="insertDbConnGrpPermInfo" parameterType="dbConnGrpPermVO">
+		INSERT INTO NEO_DBCONN_GRPPERM
+		(
+			DB_CONN_NO
+		  , DEPT_NO
+		)
+		VALUES
+		(
+			#{dbConnNo}
+		  , #{deptNo}
+		)
+	</insert>
+ 
+	<!-- DB Conntion 사용자  조회 -->
+	<select id="getDbConnDeptList" parameterType="dbConnUserVO" resultType="dbConnUserVO">
+		SELECT A.DEPT_NO
+			 , A.DEPT_NM
+		  FROM NEO_DEPT A 
+		 WHERE A.USE_YN ='Y'
+		   AND A.STATUS = '000'
+		   <if test="dbConnNo != null">
+		   AND A.DEPT_NO NOT IN (SELECT DEPT_NO FROM NEO_DBCONN_GRPPERM WHERE DB_CONN_NO = #{dbConnNo} )
+		   </if> 
+		   <if test="deptNm != null and deptNm != ''">
+		   AND A.DEPT_NM LIKE '%' || #{deptNm} || '%'
+		   </if> 
+	</select>
+	
+	<!-- #############################################################  메타 테이블 데이터 처리  ############################################################# -->
+	<!-- 메타 테이블 목록 조회 -->
+	<select id="getMetaTableList" parameterType="dbConnVO" resultType="metaTableVO">
+		SELECT TBL_NO
+			 , DB_CONN_NO
+			 , TBL_NM
+			 , TBL_DESC
+			 , TBL_ALIAS
+		  FROM NEO_METATABLE
+		 WHERE DB_CONN_NO = #{dbConnNo}
+		 ORDER BY TBL_NM
+	</select>
+	
+	<!-- 메타 테이블 정보 등록 -->
+	<insert id="insertMetaTableInfo" parameterType="metaTableVO">
+		INSERT INTO NEO_METATABLE
+		(
+			  TBL_NO
+			, DB_CONN_NO
+			, TBL_NM
+			, TBL_DESC
+			, TBL_ALIAS
+		)
+		VALUES
+		(
+			  NEO_METATABLE_SEQ.NEXTVAL
+			, #{dbConnNo}
+			, #{tblNm}
+			, #{tblDesc}
+			, #{tblAlias}
+		)
+	</insert>
+	
+	<!-- 등록시 입력된 메타 테이블 번호 조회 -->
+	<select id="getMetaTableSeq" resultType="_int">
+		SELECT NEO_METATABLE_SEQ.CURRVAL SEQ FROM DUAL
+	</select>
+	
+	<!-- 메타 테이블 정보 조회 -->
+	<select id="getMetaTableInfo" parameterType="metaTableVO" resultType="metaTableVO">
+		<if test='tblNo != 0'>
+		SELECT DB_CONN_NO
+			 , TBL_NM
+			 , TBL_DESC
+			 , TBL_ALIAS
+			 , TBL_NO
+		  FROM NEO_METATABLE
+		 WHERE TBL_NO = #{tblNo}
+		</if>
+		<if test='tblNo == 0'>
+		SELECT DB_CONN_NO
+			 , TBL_NM
+			 , TBL_DESC
+			 , TBL_ALIAS
+			 , TBL_NO
+		  FROM NEO_METATABLE
+		 WHERE TBL_NM = #{tblNm}
+		   AND DB_CONN_NO = #{dbConnNo}
+		</if>
+	</select>
+	
+	<!-- 메타 테이블 정보 수정 -->
+	<update id="updateMetaTableInfo" parameterType="metaTableVO">
+		UPDATE NEO_METATABLE
+		   SET
+			   TBL_NM    = #{tblNm}
+			 , TBL_ALIAS = #{tblAlias}
+			 , TBL_DESC  = #{tblDesc}
+		 WHERE TBL_NO    = #{tblNo}
+	</update>
+	
+	<!-- 메타 테이블 삭제 : 관계식 삭제 -> 관계값 삭제 -> 메타컬럼 삭제 -> 메타테이블 삭제 -->
+	<delete id="deleteMetaTableOperator" parameterType="metaTableVO">
+		DELETE FROM NEO_OPERATOR
+		 WHERE COL_NO IN (
+		 					SELECT COL_NO
+							  FROM NEO_METACOLUMN
+							 WHERE TBL_NO = #{tblNo}
+						)
+	</delete>
+	<delete id="deleteMetaTableValue" parameterType="metaTableVO">
+		DELETE FROM NEO_VALUE
+		 WHERE COL_NO IN (
+		 					SELECT COL_NO
+							  FROM NEO_METACOLUMN
+							 WHERE TBL_NO = #{tblNo}
+						)
+	</delete>
+	<delete id="deleteMetaTableColumn" parameterType="metaTableVO">
+		DELETE FROM NEO_METACOLUMN
+		 WHERE TBL_NO = #{tblNo}
+	</delete>
+	<delete id="deleteMetaTableInfo" parameterType="metaTableVO">
+		DELETE FROM NEO_METATABLE
+		 WHERE TBL_NO = #{tblNo}
+	</delete>
+	  
+	<!-- #############################################################  메타 컬럼 데이터 처리  ############################################################# -->
+	<!-- 메타 컬럼 목록 조회 -->
+	<select id="getMetaColumnList" parameterType="metaColumnVO" resultType="metaColumnVO">
+		<if test='tblNo != 0'>
+		SELECT COL_NO
+			 , TBL_NO
+			 , COL_NM
+			 , COL_DATA_TY
+			 , COL_DATA_TY_JDBC
+			 , COL_DESC
+			 , COL_ALIAS
+			 , COL_HIDDEN_YN
+			 , COL_ENCR_DECR_YN 
+		  FROM NEO_METACOLUMN 
+		 WHERE TBL_NO = #{tblNo}
+		 ORDER BY COL_NM
+		</if>
+		<if test='tblNo == 0'>
+		SELECT COL_NO
+			 , TBL_NO
+			 , COL_NM
+			 , COL_DATA_TY
+			 , COL_DATA_TY_JDBC
+			 , COL_DESC
+			 , COL_ALIAS
+			 , COL_HIDDEN_YN
+			 , COL_ENCR_DECR_YN		 
+		  FROM NEO_METACOLUMN
+		 WHERE TBL_NO IN (SELECT TBL_NO FROM NEO_METATABLE WHERE DB_CONN_NO = #{dbConnNo})
+		 ORDER BY COL_NO
+		 </if>
+	</select>
+	
+	<select id="getMetaColumnInfo" parameterType="metaColumnVO" resultType="metaColumnVO">
+		SELECT COL_NO
+			 , TBL_NO
+			 , COL_NM
+			 , COL_DATA_TY
+			 , COL_DATA_TY_JDBC
+			 , COL_DESC
+			 , COL_ALIAS
+			 , COL_HIDDEN_YN
+			 , COL_ENCR_DECR_YN 
+			 , (SELECT TBL_NM FROM NEO_METATABLE WHERE TBL_NO = #{tblNo} ) TBL_NM
+		  FROM NEO_METACOLUMN 
+		 WHERE TBL_NO = #{tblNo} AND COL_NO = #{colNo}  
+	</select>
+		
+	
+	<!-- 등록시 입력된 메타 테이블 번호 조회 -->
+	<select id="getMetaColumnNo" resultType="_int">
+		SELECT COL_NO  
+		  FROM NEO_METACOLUMN
+		 WHERE TBL_NO = #{tblNo} AND COL_NM = #{colNm}
+	</select>
+		
+	<!-- 메타 컬럼 정보 등록 -->
+	<insert id="insertMetaColumnInfo" parameterType="metaColumnVO">
+		INSERT INTO NEO_METACOLUMN
+		(
+			  COL_NO
+			, TBL_NO
+			, COL_NM
+			, COL_DATA_TY
+			, COL_DATA_TY_JDBC
+			, COL_DESC
+			, COL_ALIAS
+			, COL_HIDDEN_YN
+			, COL_ENCR_DECR_YN
+		)
+		VALUES
+		(
+			  NEO_METACOLUMN_SEQ.NEXTVAL
+			, #{tblNo}
+			, #{colNm}
+			, #{colDataTy}
+			, #{colDataTyJdbc}
+			, #{colDesc}
+			, #{colAlias}
+			, #{colHiddenYn}
+			, #{colEncrDecrYn}
+		)
+	</insert>
+	
+	<!-- 메타 컬럼 정보 등록 -->
+	<update id="updateMetaColumnInfo" parameterType="metaColumnVO">
+		UPDATE NEO_METACOLUMN
+		   SET COL_ALIAS = #{colAlias}
+			 , COL_DESC = #{colDesc}
+			 , COL_HIDDEN_YN = #{colHiddenYn}
+			 , COL_ENCR_DECR_YN = #{colEncrDecrYn}
+		 WHERE COL_NO = #{colNo} AND TBL_NO = #{tblNo}
+	</update>
+	
+	<!-- 메타 컬럼 삭제 : 관계식 삭제 -> 관계값 삭제 -> 메타컬럼 삭제 -->
+	<delete id="deleteMetaColumnOperator" parameterType="_int">
+		DELETE FROM NEO_OPERATOR
+		 WHERE COL_NO = #{colNo} 
+	</delete>
+	<delete id="deleteMetaColumnValue" parameterType="_int">
+		DELETE FROM NEO_VALUE
+		 WHERE COL_NO = #{colNo}
+	</delete>
+	<delete id="deleteMetaColumnInfo" parameterType="_int">
+		DELETE FROM NEO_METACOLUMN
+			WHERE COL_NO = #{colNo} 
+	</delete>
+	 
+	<!-- #############################################################  메타 관계식 데이터 처리  ############################################################# -->
+	<!-- 메타 관계식 정보 조회 -->
+	<select id="getMetaOperatorList" parameterType="metaOperatorVO" resultType="metaOperatorVO">
+		SELECT A.OPER_NO
+			 , A.COL_NO
+			 , A.OPER_CD
+			 , B.CD_NM OPER_NM
+			 , B.CD_DTL
+			 , B.CD_DTL OPER_ALIAS
+		  FROM NEO_OPERATOR A
+			 , (
+				SELECT CD, CD_NM, CD_DTL
+				  FROM NEO_CD
+				 WHERE CD_GRP = 'C037'
+				   AND UILANG = #{uilang}
+				   AND USE_YN = 'Y'
+				) B
+		 WHERE A.COL_NO = #{colNo}
+		   AND A.OPER_CD = B.CD
+		 ORDER BY OPER_NO
+	</select>
+	
+	<!-- 메타 관계식 정보 등록 -->
+	<insert id="insertMetaOperatorInfo" parameterType="metaOperatorVO">
+		INSERT INTO NEO_OPERATOR
+		(
+			  OPER_NO
+			, COL_NO
+			, OPER_CD
+		)
+		VALUES
+		(
+			  NEO_OPERATOR_SEQ.NEXTVAL
+			, #{colNo}
+			, #{operCd}
+		)
+	</insert>
+  
+	<!-- #############################################################  메타 관계값 데이터 처리  ############################################################# -->
+	<!-- 메타 관계값 록록 조회 -->
+	<select id="getMetaValueList" parameterType="metaValueVO" resultType="metaValueVO">
+		SELECT VALUE_NO
+			 , COL_NO
+			 , VALUE_NM
+			 , VALUE_ALIAS
+		  FROM NEO_VALUE
+		 WHERE COL_NO = #{colNo}
+		 ORDER BY VALUE_NO
+	</select>
+	
+	<!-- 메타 관계값 정보 등록 -->
+	<insert id="insertMetaValueInfo" parameterType="metaValueVO">
+		INSERT INTO NEO_VALUE
+		(
+			  VALUE_NO
+			, COL_NO
+			, VALUE_NM
+			, VALUE_ALIAS
+		)
+		VALUES
+		(
+			  NEO_VALUE_SEQ.NEXTVAL
+			, #{colNo}
+			, #{valueNm}
+			, #{valueAlias}
+		)
+	</insert>
+	
+	<!-- 메타 관계값 정보 수정 -->
+	<update id="updateMetaValueInfo" parameterType="metaValueVO">
+		UPDATE NEO_VALUE
+		   SET VALUE_NM    = #{valueNm}
+			 , VALUE_ALIAS = #{valueAlias}
+		 WHERE VALUE_NO    = #{valueNo}
+	</update>
+	
+	<!-- 메타 관계값 정보 삭제 -->
+	<delete id="deleteMetaValueInfo" parameterType="metaValueVO">
+		DELETE FROM NEO_VALUE
+		 WHERE VALUE_NO = #{valueNo}
+	</delete>
+	
+	<!-- #############################################################  메타 조인 데이터 처리  ############################################################# -->
+	<!-- 메타 조인 목록 조회 -->
+	<select id="getMetaJoinList" parameterType="metaJoinVO" resultType="metaJoinVO">
+		SELECT *
+		  FROM (
+				SELECT A.JOIN_NO
+					 , A.DB_CONN_NO
+					 , A.MST_TBL_NM
+					 , A.MST_COL_NM
+					 , A.FOR_TBL_NM
+					 , A.FOR_COL_NM
+					 , A.JOIN_TY
+					 , A.REL_TY
+					 , B.CD_NM JOIN_TY_NM
+					 , C.CD_NM REL_TY_NM
+					 , ROW_NUMBER() OVER (ORDER BY A.MST_TBL_NM, A.MST_COL_NM, A.FOR_TBL_NM, A.FOR_COL_NM) SEQ
+					 , COUNT(1) OVER() TOTAL_COUNT
+				  FROM NEO_METAJOIN A
+					 , (
+						SELECT CD, CD_NM
+						  FROM NEO_CD
+						 WHERE CD_GRP = 'C040'
+						   AND UILANG = #{uilang}
+						   AND USE_YN = 'Y'
+						) B
+					 , (
+						SELECT CD, CD_NM
+						  FROM NEO_CD
+						 WHERE CD_GRP = 'C041'
+						   AND UILANG = #{uilang}
+						   AND USE_YN = 'Y'
+						) C
+				 WHERE A.DB_CONN_NO = #{dbConnNo}
+				   AND A.JOIN_TY = B.CD
+				   AND A.REL_TY = C.CD
+			   )
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	
+	<!-- 메타 조인 정보 등록 -->
+	<insert id="insertMetaJoinInfo" parameterType="metaJoinVO">
+		INSERT INTO NEO_METAJOIN
+		(
+			  JOIN_NO
+			, DB_CONN_NO
+			, MST_TBL_NM
+			, MST_COL_NM
+			, FOR_TBL_NM
+			, FOR_COL_NM
+			, JOIN_TY
+			, REL_TY
+		)
+		VALUES
+		(
+			  NEO_METAJOIN_SEQ.NEXTVAL
+			, #{dbConnNo}
+			, #{mstTblNm}
+			, #{mstColNm}
+			, #{forTblNm}
+			, #{forColNm}
+			, #{joinTy}
+			, #{relTy}
+		)
+	</insert>
+	
+	<!-- 메타 조인 정보 수정 -->
+	<update id="updateMetaJoinInfo" parameterType="metaJoinVO">
+		UPDATE NEO_METAJOIN
+		   SET
+			   JOIN_TY  = #{joinTy}
+			 , REL_TY   = #{relTy}
+		 WHERE JOIN_NO  = #{joinNo}
+	</update>
+	
+	<!-- 메타 조인 정보 삭제 -->
+	<delete id="deleteMetaJoinInfo" parameterType="metaJoinVO">
+		DELETE FROM NEO_METAJOIN
+		 WHERE JOIN_NO = #{joinNo}
+	</delete>
+	
+</mapper>

@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.sict.ums.sys.log.dao.SystemLogMapper">
+
+	<!-- 사용자 로그인 이력 조회 -->
+	<select id="getLoginHistList" parameterType="loginHistVO" resultType="loginHistVO">
+		SELECT *
+		  FROM (
+				SELECT B.DEPT_NO
+					 , A.DEPT_NM
+					 , B.USER_ID
+					 , B.LGN_HST_ID
+					 , B.LGN_DT
+					 , B.LGN_IP
+					 , ROW_NUMBER() OVER (ORDER BY LGN_DT DESC) SEQ
+					 , COUNT(1) OVER() TOTAL_COUNT
+				  FROM NEO_DEPT A
+					 , NEO_LGN_HST B
+				 WHERE A.DEPT_NO = B.DEPT_NO
+				   AND LGN_DT &gt;= #{searchLgnStdDt} || '000000'
+				   AND LGN_DT &lt; #{searchLgnEndDt} || '240000'
+				   <if test="searchDeptNm != null and searchDeptNm != ''">
+				   AND A.DEPT_NM LIKE '%' || #{searchDeptNm} || '%'
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND B.USER_ID LIKE '%' || #{searchUserId} || '%'
+				   </if>
+			   )
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	
+	<!-- 사용자 액션 로그 조회 -->
+	<select id="getActionLogList" parameterType="actionLogVO" resultType="actionLogVO">
+		SELECT *
+		  FROM (
+				SELECT A.LOG_DT
+					 , A.SESSION_ID
+					 , A.IP_ADDR
+					 , A.USER_ID
+					 , A.DEPT_NO
+					 , A.ORG_CD
+					 , A.STATUS_GB
+					 , A.CONTENT_TYPE
+					 , NVL2(F.MENU_ID, '/' || F.SERVICE_NM || '/' || F.P_MENU_NM || '/' || F.MENU_NM , A.CONTENT ) CONTENT
+					 , A.CONTENT_PATH					 
+					 , A.CONTENT_RSLT 
+					 , CASE WHEN A.CONTENT_TYPE ='004' THEN
+								(SELECT CD_NM || '(' || A.CONTENT_RSLT || ')' FROM NEO_CD
+								  WHERE CD_GRP = 'C103' AND USE_YN = 'Y' AND UILANG = '000' AND CD = A.CONTENT_RSLT )
+                       ELSE A.MESSAGE END MESSAGE
+					 , A.EXTR_YN
+					 , A.REC_CNT
+					 , A.MOBIL_YN
+					 , B.USER_NM
+					 , C.DEPT_NM 
+					 , D.ORG_KOR_NM ORG_NM
+					 , E.CD_NM CONTENT_TYPE_NM
+					 , ROW_NUMBER() OVER (ORDER BY LOG_DT DESC) SEQ
+					 , COUNT(1) OVER() TOTAL_COUNT
+				  FROM NEO_ACTION_LOG A
+					 , NEO_USER B 
+					 , NEO_DEPT C
+					, (
+						SELECT X.USER_ID, X.ORG_CD, Y.ORG_KOR_NM
+						  FROM NEO_USERORG_MAPP X, V_NEO_ORGANIZATION  Y 
+						 WHERE X.ORG_CD = Y.ORG_CD
+							<if test="searchOrgCd != null and searchOrgCd != ''">
+							AND Y.ORG_CD IN 
+							<foreach collection="arrSearchOrgCds" item="item" index="index" open="(" close=")" separator=",">
+    							#{item}
+    						</foreach>
+							</if>
+						     ) D
+					, (
+						SELECT CD, CD_NM
+						  FROM NEO_CD
+						 WHERE CD_GRP = 'C112'
+						   AND USE_YN = 'Y'
+						   AND UILANG = #{uilang}) E
+                    ,( 
+						SELECT P.MENU_ID, R.SERVICE_NM, Q.MENU_NM P_MENU_NM, P.MENU_NM
+						  FROM NEO_SYSMENU P, NEO_SYSMENU Q,
+								(SELECT SERVICE_GB, SERVICE_NM FROM NEO_SERVICEKEY
+								 UNION ALL
+								 SELECT 99 SERVICE_GB, '공통설정' SERVICE_NM FROM DUAL )R
+                         WHERE P.FUNCTION_YN = 'Y' 
+                           AND P.PARENTMENU_ID = Q.MENU_ID 
+                           AND P.SERVICE_GB = R.SERVICE_GB ) F 
+				 WHERE A.USER_ID = B.USER_ID 
+				   AND A.USER_ID = D.USER_ID
+				   AND B.DEPT_NO = C.DEPT_NO
+				   AND A.CONTENT_TYPE = E.CD
+				   AND A.CONTENT = F.MENU_ID(+) 
+				   AND A.LOG_DT &gt;= #{searchLogStdDt} || '000000'
+				   AND A.LOG_DT &lt; #{searchLogEndDt} || '240000'
+				   <if test="searchStatusGb != null and searchStatusGb != ''">
+				   AND A.STATUS_GB = #{searchStatusGb}
+				   </if>
+				   <if test="searchContentType != null and searchContentType != ''">
+				   AND A.CONTENT_TYPE = #{searchContentType}
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND A.DEPT_NO = #{searchDeptNo}
+				   </if> 
+				   <if test="searchUserNm != null and searchUserNm != ''">
+				   AND B.USER_NM LIKE '%' || #{searchUserNm} || '%'
+				   </if>
+			   )
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>	
+
+	<!-- 사용자활동로그 등록 -->
+	<insert id="insertActionLog" parameterType="actionLogVO">
+		INSERT INTO NEO_ACTION_LOG
+		(
+			 LOG_DT
+			, SESSION_ID
+			, IP_ADDR
+			, USER_ID
+			, DEPT_NO
+			, ORG_CD
+			, STATUS_GB
+			, CONTENT_TYPE
+			, CONTENT
+			, CONTENT_PATH
+			, CONTENT_RSLT
+			, MESSAGE
+			, EXTR_YN
+			, REC_CNT
+			, MOBIL_YN
+		)
+		VALUES
+		(
+			  #{logDt}
+			, #{sessionId}
+			, #{ipAddr}
+			, #{userId}
+			, #{deptNo}
+			, #{orgCd}
+			, #{statusGb}
+			, #{contentType}
+			, #{content}
+			, #{contentPath}
+			, #{contentRslt}
+			, #{message}
+			, #{extrYn}
+			, #{recCnt}
+			, #{mobilYn}
+		)
+	</insert>
+	
+</mapper>

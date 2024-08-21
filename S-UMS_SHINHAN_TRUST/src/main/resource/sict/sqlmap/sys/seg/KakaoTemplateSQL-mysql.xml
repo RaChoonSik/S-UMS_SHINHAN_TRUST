@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.sict.ums.sys.seg.dao.KakaoTemplateMapper">
+
+	<select id="getKakaoTemplateList" parameterType="kakaoTemplateVO" resultType="kakaoTemplateVO">
+		SELECT *
+		  FROM (
+				SELECT TEMP_NM
+					 , TEMP_CD 
+					 , TEMP_CONTENT
+					 , MERGY_ITEM 
+					 , DEPT_NM 
+					 , USER_NM
+					 , REG_DT
+					 , STATUS
+					 , STATUS_NM
+					 , TOTAL_COUNT
+				  FROM (
+						SELECT 'X' JOIN_COL
+							  , T1.TEMP_NM 
+							  , T1.TEMP_CD 
+							  , T1.TEMP_CONTENT 
+							  , T1.MERGY_ITEM 
+							  , T2.DEPT_NM 
+							  , T3.USER_NM 
+							  , T1.REG_DT
+							  , T1.STATUS
+							  , (SELECT CD_NM FROM NEO_CD WHERE CD_GRP = 'C023' AND CD= T1.STATUS AND UILANG =#{uilang}) STATUS_NM
+						  FROM NEO_KAKAOTALK_TEMPLATE T1
+							 , NEO_DEPT T2 
+							 , NEO_USER T3
+						 WHERE T1.DEPT_NO = T2.DEPT_NO 
+						   AND T1.USER_ID = T3.USER_ID
+						   <if test="searchStartDt != null and searchStartDt != ''">
+						   AND T1.REG_DT &gt;= CONCAT(#{searchStartDt},'000000')
+						   </if>
+						   <if test="searchEndDt != null and searchEndDt != ''">
+						   AND T1.REG_DT &lt; CONCAT(#{searchEndDt},'240000')
+						   </if>
+						   <if test="searchDeptNo != 0">
+						   AND T1.DEPT_NO = #{searchDeptNo}
+						   </if>
+						   <if test='searchStatus != null and searchStatus != ""'>
+						   AND T1.STATUS = #{searchStatus}
+						   </if>
+						   <if test='searchTempNm != null and searchTempNm != ""'>
+						   AND T1.TEMP_NM LIKE CONCAT('%', #{searchTempNm},'%')
+						   </if>
+						   <if test='searchTempCd != null and searchTempCd != ""'>
+						   AND T1.TEMP_CD LIKE CONCAT('%', #{searchTempCd},'%')
+						   </if>
+						   <if test="searchUserId != null and searchUserId != ''">
+						   AND T1.USER_ID = #{searchUserId}
+						   </if>
+					   ) TT1,
+					   (
+						SELECT 'X' JOIN_COL
+							 , COUNT(*) TOTAL_COUNT
+						  FROM NEO_KAKAOTALK_TEMPLATE T1
+							 , NEO_DEPT T2 
+							 , NEO_USER T3
+						 WHERE T1.DEPT_NO = T2.DEPT_NO
+						   AND T1.USER_ID = T3.USER_ID
+						   <if test="searchStartDt != null and searchStartDt != ''">
+						   AND T1.REG_DT &gt;= CONCAT(#{searchStartDt},'000000')
+						   </if>
+						   <if test="searchEndDt != null and searchEndDt != ''">
+						   AND T1.REG_DT &lt; CONCAT(#{searchEndDt},'240000')
+						   </if>
+						   <if test="searchDeptNo != 0">
+						   AND T1.DEPT_NO = #{searchDeptNo}
+						   </if>
+						   <if test='searchStatus != null and searchStatus != ""'>
+						   AND T1.STATUS = #{searchStatus}
+						   </if>
+						   <if test='searchTempNm != null and searchTempNm != ""'>
+						   AND T1.TEMP_NM LIKE CONCAT('%', #{searchTempNm},'%')
+						   </if>
+						   <if test='searchTempCd != null and searchTempCd != ""'>
+						   AND T1.TEMP_CD LIKE CONCAT('%', #{searchTempCd},'%')
+						   </if>
+						   <if test="searchUserId != null and searchUserId != ''">
+						   AND T1.USER_ID = #{searchUserId}
+						   </if>
+					   ) TT2
+				 WHERE TT1.JOIN_COL = TT2.JOIN_COL
+				 ORDER BY TT1.REG_DT DESC
+			    ) TTT
+		 LIMIT #{startRow}, #{rows}
+	</select>
+	
+	<select id="getKakaoTemplateInfo" parameterType="string" resultType="kakaoTemplateVO">
+		SELECT TEMP_CD
+			 , DEPT_NO
+			 , USER_ID
+			 , TEMP_NM
+			 , TEMP_DESC
+			 , TEMP_CONTENT
+			 , MERGY_ITEM
+			 , STATUS
+			 , (SELECT USER_NM FROM NEO_USER WHERE USER_ID = T1.REG_ID) AS REG_NM
+			 , (SELECT USER_NM FROM NEO_USER WHERE USER_ID = T1.UP_ID) AS UP_NM
+			 , REG_DT
+			 , UP_DT
+			 , IFNULL(T1.LEGAL_YN,'N') LEGAL_YN
+			 , IFNULL(T1.WEBLINK_YN,'N') WEBLINK_YN
+			 , SEG_NO
+			 , TEMP_MAPP_CONTENT
+			 , MAPP_TEMP_CD AS API_TEMP_CD
+		  FROM NEO_KAKAOTALK_TEMPLATE T1 
+		 WHERE TEMP_CD = #{tempCd}
+	</select>
+	
+	<update id="updateKakaoTemplateInfo" parameterType="kakaoTemplateVO">
+		UPDATE NEO_KAKAOTALK_TEMPLATE 
+		   SET TEMP_NM           = #{tempNm}
+			 , TEMP_DESC         = #{tempDesc}
+			 , TEMP_CONTENT      = #{tempContent}
+			 , MERGY_ITEM        = #{mergyItem}
+			 , STATUS            = #{status}
+			 , DEPT_NO           = #{deptNo}
+			 , USER_ID           = #{userId}
+			 , UP_ID             = #{upId}
+			 , UP_DT             = #{upDt}
+			 , LEGAL_YN          = #{legalYn}
+			 , WEBLINK_YN   = #{weblinkYn}
+			 , SEG_NO            = #{segNo}
+			 , TEMP_MAPP_CONTENT = #{tempMappContent}
+			 , MAPP_TEMP_CD      = #{apiTempCd}
+		 WHERE TEMP_CD = #{tempCd}
+	</update>
+	
+	<insert id="insertKakaoTemplateInfo" parameterType="kakaoTemplateVO">
+		INSERT INTO NEO_KAKAOTALK_TEMPLATE
+		(	
+			TEMP_CD
+		  , TEMP_NM
+		  , TEMP_DESC
+		  , TEMP_CONTENT
+		  , MERGY_ITEM
+		  , STATUS
+		  , DEPT_NO
+		  , USER_ID
+		  , REG_ID
+		  , REG_DT
+		  , LEGAL_YN
+		  , WEBLINK_YN
+		  , SEG_NO
+		  , TEMP_MAPP_CONTENT
+		  , MAPP_TEMP_CD
+		)
+		VALUES
+		(	
+			#{tempCd}
+		  , #{tempNm}
+		  , #{tempDesc}
+		  , #{tempContent}
+		  , #{mergyItem}
+		  , #{status}
+		  , #{deptNo}
+		  , #{userId}
+		  , #{regId}
+		  , #{regDt}
+		  , #{legalYn}
+		  , #{weblinkYn}
+		  , #{segNo}
+		  , #{tempMappContent}
+		  , #{apiTempCd}
+		)
+	</insert>
+	
+	<select id="getKakaoTemplateCodeCount" parameterType="string" resultType="_int">
+		SELECT COUNT(*) AS COUNT
+		  FROM NEO_KAKAOTALK_TEMPLATE
+		 WHERE TEMP_CD = #{tempCd}
+	</select>
+	
+	<select id="getApiKakaoTemplateMergeList" parameterType="kakaoTemplateVO" resultType="kakaoTemplateVO">
+		SELECT X.MERGY_ITEM
+			 , Y.KAKAO_COL AS API_KAKAO_COL
+			 , Y.MERGE_COL AS API_MERGE_COL
+		  FROM NEO_KAKAOTALK_TEMPLATE X
+		  	   LEFT OUTER JOIN NEO_KAKAOTALK_TEMPLATE_MAPP Y ON ( X.TEMP_CD  = Y.TEMP_CD )
+		 WHERE X.TEMP_CD  = #{tempCd}
+	</select>
+
+	<insert id="insertApiKakaoTemplateMerge" parameterType="kakaoTemplateVO">
+		INSERT INTO NEO_KAKAOTALK_TEMPLATE_MAPP
+		(
+			TEMP_CD
+		  , KAKAO_COL
+		  , MERGE_COL
+		  , REG_ID
+		  , REG_DT
+		  , UP_ID
+		  , UP_DT
+		)
+		VALUES
+		( 
+			#{tempCd}
+		  , #{apiKakaoCol}
+		  , #{apiMergeCol}
+		  , #{regId}
+		  , #{regDt}
+		  , #{upId}
+		  , #{upDt}
+		)
+	</insert>
+	
+	<delete id="deleteApiKakaoTemplateMerge" parameterType="kakaoTemplateVO">
+		DELETE FROM NEO_KAKAOTALK_TEMPLATE_MAPP
+		 WHERE TEMP_CD = #{tempCd}
+	</delete>
+	
+	<select id="getApiKakaoTemplateMappList" parameterType="string" resultType="kakaoTemplateVO">
+		SELECT TEMP_CD
+		  FROM NEO_KAKAOTALK_TEMPLATE 
+		 WHERE MAPP_TEMP_CD  = #{mappTempCd}
+	</select>
+</mapper>

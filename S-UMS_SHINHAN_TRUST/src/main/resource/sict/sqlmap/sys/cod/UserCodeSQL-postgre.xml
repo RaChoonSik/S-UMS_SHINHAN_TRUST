@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.sict.ums.sys.cod.dao.UserCodeMapper">	
+
+	<select id="getUserCodeGroupList" parameterType="userCodeGroupVO" resultType="userCodeGroupVO">
+ 	 	SELECT *
+		  FROM (	
+			SELECT A.UILANG
+				 , A.CD_GRP
+				 , A.CD_GRP_NM
+				 , (SELECT CD_GRP FROM NEO_CD_GRP WHERE A.UP_CD_GRP = CD_GRP AND A.UILANG = UILANG) AS UP_CD_GRP
+				 , (SELECT CD_GRP_NM FROM NEO_CD_GRP WHERE A.UP_CD_GRP = CD_GRP AND A.UILANG = UILANG) AS UP_CD_GRP_NM
+				 , A.USE_YN
+				 , COALESCE(A.SYS_YN, 'N') AS SYS_YN
+				 , A.CD_GRP_DTL
+				 , A.UP_ID
+				 , A.UP_DT
+				 , A.REG_ID
+				 , A.REG_DT
+				 , (SELECT USER_NM FROM NEO_USER WHERE A.REG_ID = USER_ID ) REG_NM
+				 , (SELECT USER_NM FROM NEO_USER WHERE A.UP_ID = USER_ID ) UP_NM
+				 , ROW_NUMBER() OVER (ORDER BY A.CD_GRP, A.CD_GRP_NM) SEQ
+				 , COUNT(1) OVER() TOTAL_COUNT				 
+			  FROM NEO_CD_GRP A
+			  WHERE A.UILANG = #{searchUiLang}
+				<if test='searchCdGrp != null and searchCdGrp != "" and searchCdGrp != "0"'>
+				AND UPPER(A.CD_GRP) LIKE '%' || #{searchCdGrp} || '%'
+				</if>
+				<if test="searchCdGrpNm != null and searchCdGrpNm != ''">
+				AND UPPER(A.CD_GRP_NM) LIKE '%' || #{searchCdGrpNm} || '%'
+				</if>
+			)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	
+	<select id="getUserCodeGroupInfo" parameterType="userCodeGroupVO" resultType="userCodeGroupVO">
+		SELECT A.UILANG
+			 , A.CD_GRP
+			 , A.CD_GRP_NM
+			 , A.CD_GRP_DTL
+			 , (SELECT CD_GRP FROM NEO_CD_GRP WHERE A.UP_CD_GRP = CD_GRP AND A.UILANG = UILANG) AS UP_CD_GRP
+			 , (SELECT CD_GRP_NM FROM NEO_CD_GRP WHERE A.UP_CD_GRP = CD_GRP AND A.UILANG = UILANG) AS UP_CD_GRP_NM
+			 , A.USE_YN
+			 , COALESCE(A.SYS_YN, 'N') AS SYS_YN
+			 , A.CD_GRP_DTL
+			 , A.UP_ID
+			 , A.UP_DT
+			 , A.REG_ID
+			 , A.REG_DT
+			 , (SELECT USER_NM FROM NEO_USER WHERE A.REG_ID = USER_ID ) REG_NM
+			 , (SELECT USER_NM FROM NEO_USER WHERE A.UP_ID = USER_ID ) UP_NM
+		  FROM NEO_CD_GRP A
+		 WHERE A.UILANG = #{uilang}
+		   AND UPPER(A.CD_GRP) = #{cdGrp}
+	</select> 
+			 
+	<select id="getCodeCountUnderCodeGroup" parameterType="userCodeGroupVO" resultType="_int">
+		SELECT COUNT(*) AS REC_CNT
+		  FROM NEO_CD 
+		 WHERE UILANG = #{uilang}
+		   AND UPPER(CD_GRP) = #{cdGrp}
+	</select>
+	
+	<select id="getCodeGroupCountByCodeGroup" parameterType="userCodeGroupVO" resultType="_int">
+		SELECT COUNT(*) AS REC_CNT
+		  FROM NEO_CD_GRP
+		 WHERE UILANG = #{uilang}
+		   AND UPPER(CD_GRP) = #{cdGrp}
+	</select>
+
+	<select id="getCodeGroupCountByCodeGroupNm" parameterType="userCodeGroupVO" resultType="_int">
+		SELECT COUNT(*) AS REC_CNT
+		  FROM NEO_CD_GRP 
+		 WHERE UILANG = #{uilang}
+		   AND CD_GRP_NM = #{cdGrpNm}
+	</select>
+	
+	<select id="getCodeGroup" parameterType="userCodeGroupVO" resultType="string">
+		SELECT 'C' || ( MAX(SUBSTR(CD_GRP, 2, 3)) + 1 ) AS N_CODE_GROUP  
+		  FROM NEO_CD_GRP 
+		 WHERE UILANG = #{uilang} 
+	</select>	
+			
+	<insert id="insertUserCodeGroupInfo" parameterType="userCodeGroupVO">
+		INSERT INTO NEO_CD_GRP
+		(
+			  UILANG
+			, CD_GRP
+			, CD_GRP_NM
+			, CD_GRP_DTL
+			, UP_CD_GRP
+			, USE_YN
+			, SYS_YN
+			, REG_ID
+			, REG_DT
+		)
+		VALUES
+		(
+			  #{uilang}
+			, #{cdGrp}
+			, #{cdGrpNm}
+			, #{cdGrpDtl}
+			, #{upCdGrp}
+			, #{useYn}
+			, #{sysYn}
+			, #{regId}
+			, #{regDt}
+		)
+	</insert>
+	
+	<update id="updateUserCodeGroupInfo" parameterType="userCodeGroupVO">
+		UPDATE NEO_CD_GRP
+		   SET CD_GRP_NM = #{cdGrpNm}
+			 , CD_GRP_DTL = #{cdGrpDtl}
+			 , UP_CD_GRP = #{upCdGrp}
+			 , USE_YN = #{useYn}
+			 , SYS_YN = #{sysYn}
+			 , UP_ID = #{upId}
+			 , UP_DT = #{upDt}
+		 WHERE UILANG = #{uilang}
+		   AND UPPER(CD_GRP) = #{cdGrp}
+	</update>
+	
+	<update id="deleteUserCodeGroupInfo" parameterType="userCodeGroupVO">
+		UPDATE NEO_CD_GRP
+		   SET USE_YN = 'N' 
+			 , UP_ID  = #{upId}
+			 , UP_DT  = #{upDt}		
+		 WHERE CD_GRP = #{cdGrp}
+		   AND UILANG = #{uilang}
+	</update>
+	 
+	<delete id="deleteUserCodeUnderCodeGroup" parameterType="userCodeGroupVO">
+		DELETE FROM NEO_CD
+		 WHERE CD_GRP = #{cdGrp}
+		   AND UILANG = #{uilang}
+	</delete>
+		 
+	<select id="getUserCodeList" parameterType="userCodeVO" resultType="userCodeVO">
+		SELECT *
+		  FROM (	
+				SELECT SRC.UILANG
+					 , SRC.CD
+					 , SRC.CD_NM
+					 , SRC.CD_GRP
+					 , SRC.CD_GRP_NM
+					 , (SELECT CD FROM NEO_CD WHERE SRC.UP_CD = CD AND SRC.UP_CD_GRP = CD_GRP AND SRC.UILANG = UILANG) AS UP_CD
+					 , (SELECT CD_NM FROM NEO_CD WHERE SRC.UP_CD = CD AND SRC.UP_CD_GRP = CD_GRP AND SRC.UILANG = UILANG) AS UP_CD_NM 
+					 , COALESCE(SRC.CD_DTL, '') AS CD_DTL
+					 , COALESCE(SRC.USE_YN, 'N') AS USE_YN
+					 , COALESCE(SRC.SYS_YN, 'N') AS SYS_YN
+					 , UP_ID
+					 , UP_DT
+					 , REG_ID
+					 , REG_DT
+					 , REG_NM
+					 , UP_NM
+					 , SORT_NO
+					 , ROW_NUMBER() OVER (ORDER BY SRC.CD_GRP,  SRC.SORT_NO, SRC.CD ) SEQ
+					 , COUNT(1) OVER() TOTAL_COUNT
+				  FROM ( 
+						SELECT A.UILANG 
+							 , A.CD
+							 , CD_NM
+							 , A.UP_CD
+							 , B.CD_GRP
+							 , B.CD_GRP_NM
+							 , B.UP_CD_GRP
+							 , COALESCE(CD_DTL, '') AS CD_DTL
+							 , COALESCE(A.USE_YN, 'N') AS USE_YN
+							 , COALESCE(B.SYS_YN, 'N') AS SYS_YN
+							 , A.UP_ID
+							 , A.UP_DT
+							 , A.REG_ID
+							 , A.REG_DT
+							 , (SELECT USER_NM FROM NEO_USER WHERE A.REG_ID = USER_ID ) REG_NM
+							 , (SELECT USER_NM FROM NEO_USER WHERE A.UP_ID = USER_ID ) UP_NM 
+							 , SORT_NO
+				 		  FROM NEO_CD A, NEO_CD_GRP B 
+						 WHERE A.UILANG = #{searchUiLang} 
+						   AND A.CD_GRP = B.CD_GRP 
+						   AND A.UILANG = B.UILANG
+						   <if test="searchCdGrp != null and searchCdGrp != ''">
+						   AND UPPER(B.CD_GRP) = #{searchCdGrp}
+						   </if>
+						   <if test="searchCdGrpNm != null and searchCdGrpNm != ''">
+						   AND UPPER(B.CD_GRP_NM) LIKE '%' || #{searchCdGrpNm} || '%'
+						   </if> 
+					) SRC  
+				)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	
+	<select id="getUserCodeInfo" parameterType="userCodeVO" resultType="userCodeVO">
+		SELECT A.UILANG
+			 , A.CD
+			 , A.CD_NM
+			 , B.CD_GRP
+			 , B.CD_GRP_NM
+			 , (SELECT CD FROM NEO_CD WHERE A.UP_CD = CD AND A.UILANG = UILANG AND B.UP_CD_GRP = CD_GRP) AS UP_CD
+			 , (SELECT CD_NM FROM NEO_CD WHERE A.UP_CD = CD AND A.UILANG = UILANG AND B.UP_CD_GRP = CD_GRP) AS UP_CD_NM	
+			 , COALESCE(A.CD_DTL, '') AS CD_DTL
+			 , COALESCE(A.USE_YN, 'N') AS USE_YN
+			 , COALESCE(B.SYS_YN, 'N') AS SYS_YN
+			 , A.UP_ID
+			 , A.UP_DT
+			 , A.REG_ID
+			 , A.REG_DT
+			 , (SELECT USER_NM FROM NEO_USER WHERE A.REG_ID = USER_ID ) REG_NM
+			 , (SELECT USER_NM FROM NEO_USER WHERE A.UP_ID = USER_ID ) UP_NM
+		  FROM NEO_CD A, NEO_CD_GRP B
+		 WHERE A.UILANG = #{uilang}
+		   AND A.CD_GRP = B.CD_GRP
+		   AND A.UILANG = B.UILANG
+		   AND UPPER(A.CD_GRP) = #{cdGrp}
+		   AND UPPER(A.CD) = #{cd}
+	</select>
+		
+	<select id="getUserCodeGroupUpCdGrp" parameterType="userCodeVO" resultType="string">
+		SELECT UP_CD_GRP
+		  FROM NEO_CD_GRP 
+		 WHERE UILANG = #{uilang}
+		   AND UPPER(CD_GRP) = #{cdGrp}
+	</select>
+			
+	<select id="getCodeCountByCode" parameterType="userCodeVO" resultType="_int">
+		SELECT COUNT(*) AS REC_CNT
+		  FROM NEO_CD
+		 WHERE UILANG = #{uilang}
+		   AND UPPER(CD_GRP) = #{cdGrp}
+		   AND CD = #{cd}
+	</select>
+	
+	<select id="getCodeCountByCodeNm" parameterType="userCodeVO" resultType="_int">
+		SELECT COUNT(*) AS REC_CNT
+		  FROM NEO_CD
+		 WHERE UILANG = #{uilang}		   
+		   AND UPPER(CD_GRP) = #{cdGrp}
+		   AND CD_NM = #{cdNm} 
+	</select>
+	
+	<select id="getCodeMaxSortNo" parameterType="userCodeVO" resultType="_int">
+		SELECT COALESCE(Max(SORT_NO), 0) + 1 SORT_NO
+		  FROM NEO_CD
+		 WHERE UILANG = #{uilang}		   
+		   AND UPPER(CD_GRP) = #{cdGrp} 
+	</select>	
+	
+	<select id="getCode" parameterType="userCodeGroupVO" resultType="_int">
+		SELECT COALESCE(MAX(CD), 0) + 1 AS N_CODE
+		  FROM NEO_CD
+		 WHERE UILANG = #{uilang}
+		   AND UPPER(CD_GRP) = #{cdGrp}
+	</select>	
+		 
+	<insert id="insertUserCodeInfo" parameterType="userCodeVO">
+		INSERT INTO NEO_CD
+		(
+			  UILANG
+			, CD_GRP
+			, CD
+			, CD_NM
+			, CD_DTL
+			, UP_CD	
+			, USE_YN
+			, SORT_NO
+			, REG_ID
+			, REG_DT
+		)
+		VALUES
+		(
+			  #{uilang}
+			, #{cdGrp}
+			, #{cd}
+			, #{cdNm}
+			, #{cdDtl}
+			, #{upCd}
+			, #{useYn}			
+			, #{sortNo}
+			, #{regId}
+			, #{regDt}
+		)
+	</insert>
+	
+	<update id="updateUserCodeInfo" parameterType="userCodeVO">
+		UPDATE NEO_CD
+		   SET CD_NM   = #{cdNm}
+			 , CD_DTL  = #{cdDtl}
+			 , UP_CD   = #{upCd}
+			 , USE_YN  = #{useYn}
+			 , UP_ID   = #{upId}
+			 , UP_DT   = #{upDt}
+		 WHERE UILANG  = #{uilang}
+		   AND CD_GRP  = #{cdGrp}
+		   AND CD      = #{cd}
+	</update>
+	
+	<update id="updateUserCodeSortNo" parameterType="userCodeVO">
+		UPDATE NEO_CD
+		   SET SORT_NO   = #{sortNo}
+			 , UP_ID   = #{upId}
+			 , UP_DT   = #{upDt}
+		 WHERE UILANG  = #{uilang}
+		   AND CD_GRP  = #{cdGrp}
+		   AND CD      = #{cd}
+	</update>
+		
+	<update id="deleteUserCodeInfo" parameterType="userCodeVO">
+		UPDATE NEO_CD
+		   SET USE_YN = 'N' 
+			 , UP_ID = #{upId}
+			 , UP_DT = #{upDt}			
+		 WHERE CD_GRP = #{cdGrp}
+		   AND CD     = #{cd}
+	</update>
+		
+</mapper>

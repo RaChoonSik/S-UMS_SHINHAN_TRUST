@@ -1,0 +1,236 @@
+@charset "utf-8";
+
+/**
+ * --------------------------------
+ * EMS CSS
+ * creator : chowoobin, leejeha
+ * --------------------------------
+*/
+
+/* lnb */
+/* #lnb nav > ul > li:first-child > a:after{content:'';display:none;background-image:none;} */
+
+/* list-item */
+.list-item a{font-size:12px;color:#5668F0;text-decoration:underline;}
+/* .list-item.mr12 input[type="checkbox"] + span{margin-right:12px;}
+.lineheight32 *{line-height:32px;vertical-align:middle;} */
+
+
+/* 발송현황 공통 : calendar-date */
+/* .calendar-date {position:relative;margin-top:40px;text-align:center;}
+.calendar-date .input-date {display:inline-block;width:90px;height:30px;margin:0 25px;padding:0;background:transparent;color:#111;font-size:24px;font-weight:500;text-align:center;vertical-align:middle;border:none;}
+.calendar-date button {display:inline-block;width:30px;height:30px;background-color:#fff;background-repeat:no-repeat;background-position:50% 50%;border:1px solid #E1E1E1;border-radius:3px;text-indent:-9999px;}
+.calendar-date button:hover {box-shadow:0px 3px 6px rgba(0,0,0,0.16);transition:all .4s;}
+.calendar-date .btn-prev {background-image:url("../img/ems/btn_calendarprev.png");}
+.calendar-date .btn-next {background-image:url("../img/ems/btn_calendarnext.png");}
+.calendar-date .btn-calendar {position:absolute;top:0;left:50%;background-image:url("../img/ems/btn_calendar.png");}
+.calendar-date .btn-prev:hover {background-image:url("../img/ems/btn_calendarprev_on.png");}
+.calendar-date .btn-next:hover {background-image:url("../img/ems/btn_calendarnext_on.png");}
+.calendar-date .btn-calendar:hover {background-image:url("../img/ems/btn_calendar_on.png");} */
+
+/* 발송현황 공통 : calendar-state */
+.calendar-state {margin-top:20px;text-align:right;}
+.calendar-state li {display:inline-block;margin-left:13px;background-repeat:no-repeat;background-position:0 2px;color:#111;font-size:14px;font-weight:500;}
+.calendar-state li:before {content:"";display:inline-block;width:16px;height:16px;margin-right:5px;}
+.calendar-state li.payment {background-image:url("../img/ems/icon_week_payment.png");}
+.calendar-state li.wait {background-image:url("../img/ems/icon_week_wait.png");}
+.calendar-state li.ing {background-image:url("../img/ems/icon_week_ing.png");}
+.calendar-state li.end {background-image:url("../img/ems/icon_week_end.png");}
+.calendar-state li em {font-size:13px;font-weight:400;}
+@media screen and (max-width:1600px) {
+    .calendar-state li em {display:block;padding-left:18px;}
+}
+
+/* 발송현황 공통 : date-list */
+.date-list {color:#666;}
+.date-list > div {margin-top:11px;padding-left:22px;background-repeat:no-repeat;background-position:0 2px;}
+.date-list > div:first-child {margin-top:0;}
+.date-list > div.payment {background-image:url("../img/ems/icon_week_payment.png");}
+.date-list > div.wait {background-image:url("../img/ems/icon_week_wait.png");}
+.date-list > div.ing {background-image:url("../img/ems/icon_week_ing.png");}
+.date-list > div.end {background-image:url("../img/ems/icon_week_end.png");}
+.date-list p {display:inline-block;margin-left:5px;}
+.date-list p span {display:block;}
+.date-list em {margin-left:5px;color:#111;font-weight:500;}
+.date-list a {display:inline-block;margin-bottom:3px;color:#5668F0;font-weight:600;border-bottom:1px solid #5668F0;}
+.date-list .time {display:inline-block;vertical-align:top;}
+
+/* 발송현황 - 주간일정 */
+.week-wrap .calendar-date .btn-calendar {margin-left:210px;}
+.week-wrap .calendar-date .input-date {width:270px;}
+.calendar-week {margin-top:10px;}
+.calendar-week ul {display:table;width:100%;margin-top:11px;background:#fff;box-shadow:0px 3px 10px rgba(141,141,141,0.16);border-radius:10px;overflow:hidden;}
+.calendar-week li {display:table-row;}
+.calendar-week li:first-child > div {border-top:none;}
+.calendar-week li > div {display:table-cell;vertical-align:middle;border-top:1px solid #E1E1E1;}
+.calendar-week li > div:first-child {width:90px;padding:15px 0;background:#F2F2F2;font-size:14px;font-weight:500;text-align:center;}
+.calendar-week li > div:last-child {width:calc(100% - 90px);padding:15px 20px;}
+.calendar-week .today {display:block;margin-top:-5px;color:#5668F0;font-size:9px;}
+.calendar-week .today:before {content:"";display:inline-block;width:6px;height:6px;margin-right:3px;background:#5668F0;vertical-align:middle;border-radius:100%;}
+
+/* 발송현황 - 월간일정 */
+.month-wrap .calendar-date .btn-calendar {margin-left:124px;}
+.calendar-month {margin-top:10px;border:1px solid #E1E1E1;border-radius:10px;box-shadow:0px 3px 10px rgba(141,141,141,0.16);overflow:hidden;}
+.calendar-month table thead th {height:50px;background:#F2F2F2;font-size:14px;font-weight:500;}
+.calendar-month table tbody td {position:relative;height:140px;font-size:13px;font-weight:500;vertical-align:top;border:1px solid #E1E1E1;}
+.calendar-month table tbody td > span {position:absolute;top:3px;left:2px;width:25px;height:25px;line-height:23px;text-align:center;z-index:1;}
+.calendar-month table tbody tr:first-child td{border-top:none;}
+.calendar-month table tbody tr:last-child td{border-bottom:none;}
+.calendar-month table tbody tr td:first-child{border-left:none;}
+.calendar-month table .btn-popopen {display:block;position:relative;top:0;left:0;width:100%;height:100%;padding-top:4px;padding-bottom:7px;border:1px solid transparent;overflow-y:auto;}
+.calendar-month table .btn-popopen:hover {background:#FCFCFC;border-color:#111;box-shadow:0px 3px 6px rgba(0,0,0,0.16);;}
+.calendar-month table .btn-popopen::-webkit-scrollbar {width:6px;}
+.calendar-month table .btn-popopen::-webkit-scrollbar-thumb {background-color:#ccc;border-radius:30px;}
+.calendar-month table .btn-popopen::-webkit-scrollbar-track {background-color:#fff;}
+.calendar-month table .mark {margin-top:5px;margin-left:24px;padding-right:8px;}
+.calendar-month table .mark span {display:block;position:relative;margin-bottom:2px;padding:3px 12px 3px 15px;background:#F2F2F2;font-size:13px;font-weight:500;text-align:left;letter-spacing:-0.05em;border-radius:3px;}
+.calendar-month table .mark span:before {content:"";position:absolute;top:12px;left:8px;width:3px;height:3px;border-radius:100%;}
+.calendar-month table .mark span.today {color:#5668F0;}
+.calendar-month table .mark span.holiday {color:#f00;}
+.calendar-month table .mark span.today:before {background:#5668F0;}
+.calendar-month table .mark span.holiday:before {background:#f00;}
+.calendar-month table .btn-popopen .mark {margin-top:0;padding-left:0;}
+.calendar-month table .calendar-state {margin-top:1px;margin-left:24px;text-align:left;}
+.calendar-month table .calendar-state li{display:block;margin-top:5px;margin-left:0;}
+
+/* 캠페인 서비스 */
+.camp-service .graybox .grid td .link-gray{color:#666;text-decoration:none;}
+.camp-service .graybox .grid td .link-gray:first-child{margin-right:10px;}
+.camp-service .graybox .grid td .calender:before{content:"";display:inline-block;width:16px;height:16px;margin-left:-2px;margin-right:3px;background:url("../img/ems/btn_calendar.png") no-repeat 0 45% / 100%;vertical-align:middle;}
+.camp-service .graybox .grid td .plus:before{content:"";display:inline-block;width:14px;height:14px;margin-left:-2px;margin-right:3px;background:url("../img/common/btn_plus_gray.png") no-repeat 0 45%;vertical-align:middle;}
+.camp-service .toggle-unfold li .btn-toggle {padding-left:17px;background:url("../img/common/btn_toggle.png") no-repeat 1px 0px;text-indent:-9999px;}
+.camp-service .toggle-unfold li.open > ul > .col-box .btn-toggle {background-position:1px -25px;color:#111;font-weight:600;}
+.camp-service .gridtoggle-area .col.mailtitle {width:auto;min-width:182px;}
+.camp-service .gridtoggle-area .col.campaign {width:9%;min-width:95px;}
+.camp-service .gridtoggle-area .col.sendingdate {width:10%;min-width:90px;}
+.camp-service .gridtoggle-area .col.requiredtime {width:8%;min-width:65px;}
+.camp-service .gridtoggle-area .col.sendingcase {width:8%;min-width:65px;}
+.camp-service .gridtoggle-area .col.mailtype {width:8%;min-width:65px;}
+.camp-service .gridtoggle-area .col.svcstate {width:8%;min-width:65px;}
+.camp-service .gridtoggle-area .col.option {width:20%;min-width:160px;}
+.camp-service .gridtoggle-area .toggle-unfold .depth1 .col.mailtitle{padding-left:10px;text-align:left !important;}
+.camp-service .gridtoggle-area .toggle-unfold .depth2 .col.mailtitle{position:relative;padding-left:28px;}
+.camp-service .gridtoggle-area .toggle-unfold .depth2 .col.mailtitle:before{content:'';display:block;position:absolute;top:24px;left:12px; width:8px;height:10px;margin-top:3px;margin-right:3px;background:transparent;border-left:1px solid #333;border-bottom:1px solid #333;}
+.camp-service .gridtoggle-area .gridbody .depth2 > li{background:#f0f0f0;}
+.camp-service .toggle-unfold .depth2 .option button{margin-left:0 !important;}
+.camp-service .paging + .btn-wrap {margin-top:80px;margin-bottom:0px;}
+
+/* 캠페인신규등록, 정보수정 */
+.campaign-wrap textarea {height:250px;}
+
+/* 메일발송결재 */
+.approvemail-wrap .graybox .table-area .inline-txt {display:inline-block;line-height:40px;}
+.approvemail-wrap .graybox .table-area th {padding:0 10px 0 20px;}
+.approvemail-wrap .graybox .table-area td {padding:0;height:50px;text-align:left;}
+.approvemail-wrap .graybox .table-area .select {vertical-align: bottom;}
+.approval-sample {margin-top:130px;}
+.approval-sample:after {content:'';display:block;clear:both;}
+.approval-sample > div  {float:left;margin-right:70px;}
+.approval-sample > div strong a{text-decoration: underline;}
+.approvebox::after {content:'';display:block;clear:both;}
+.approvebox h4{margin-bottom:10px;}
+.approvebox > div {float:right;width:470px; margin-bottom:30px;text-align:center;border-radius:10px;box-shadow:0px 3px 10px rgba(141,141,141,0.16);overflow:hidden;}
+.approvebox th {padding:7px 0;background:#F2F2F2;color:#666;font-size:11px;font-weight:400;}
+.approvebox td {max-height:80px;padding:16px 0;color:#888; vertical-align:middle !important;}
+.approvebox td button:first-child {margin-right:10px;}
+.approvebox strong {display:block;color:#111;}
+.approvebox th strong {font-size:14px;}
+.approvebox td strong {font-size:18px;}
+.approvebox td strong.txt-gray {color:#888 !important;font-size:18px;font-weight:400;}
+
+/* 단기메일 통계분석(결과요약) */
+.graybox .piegraph-wrap {padding-top:0;padding-bottom:20px;overflow:hidden;}
+.graybox .piegraph-wrap .piegraph {display:inline-block;width:48%;margin-left:-50px;text-align:center;}
+.graybox .piegraph-wrap .grid {float:right;width:52%;margin-top:20px;}
+.graybox .bar-chartwrap {position:relative;}
+.graybox .bar-chartwrap > div {position:absolute;width:100%;height:100%;}
+.graybox .barstep-chartwrap {position:relative;height:460px;}
+.graybox .barstep-chartwrap > div {position:absolute;width:100%;height:100%;}
+
+/* popup : 일간일정  */
+.popcalendar .cont {padding:0 20px 50px;}
+.popcalendar .datebannerwrap {position:relative;}
+.popcalendar .datebannerswiper {border-radius:10px;box-shadow:0px 3px 10px rgba(141,141,141,0.16);overflow:hidden;}
+.popcalendar .calendar-state {margin:0;padding:17px 20px;background:#F2F2F2;text-align:left;}
+.popcalendar .calendar-state li {margin-left:0;margin-right:16px;}
+.popcalendar .date-list {padding:20px;}
+.popcalendar .swiper-slide {position:relative;background:#fff;}
+.popcalendar .swiper-button-prev-date {position:absolute;top:50%;left:-40px;width:40px;height:40px;margin-top:-20px;cursor:pointer;}
+.popcalendar .swiper-button-prev-date:after {content:"";position:absolute;top:0;left:0;width:100%;height:100%;background:url("../img/ems/btn_swiperprev.png") no-repeat 0 0;}
+.popcalendar .swiper-button-next-date {position:absolute;top:50%;right:-40px;width:40px;height:40px;margin-top:-20px;cursor:pointer;}
+.popcalendar .swiper-button-next-date:after {content:"";position:absolute;top:0;left:0;width:100%;height:100%;background:url("../img/ems/btn_swipernext.png") no-repeat 0 0;}
+
+/* popup : 발송결재라인 등록 */
+.popsendenroll h4 {position:relative; padding-bottom:7px;font-size:14px;font-weight:600;border-bottom:1px solid #111;}
+.popsendenroll h4::after{content:'';display:block;clear:both;}
+.popsendenroll h4 .btn{position:absolute;top:-12px;right:0;}
+.popsendenroll h4 .btn-reset {position:absolute;top:0;right:0; width:24px;height:24px;background:url("../img/common/btn_reset.png") no-repeat 0 0;}
+.popsendenroll .graybox {float:left;width:300px;height:490px;margin-top:0 !important;}
+.popsendenroll .graybox + .graybox {margin-left:20px;}
+.popsendenroll .content-area {padding:20px;}
+.popsendenroll .item input {width:76%;}
+.popsendenroll .item .btn {width:52px;}
+.popsendenroll .user {margin-top:20px;}
+.popsendenroll .user li {margin-top:10px;}
+.popsendenroll .user li:first-child{margin-top:0;}
+.popsendenroll .user strong {margin-right:10px;padding-left:17px;background:url("../img/ems/btn_user.png") no-repeat 0 4px;color:#666;font-weight:600;}
+.popsendenroll .user span {color:#666;}
+.popsendenroll .user span:last-child:before {content:"|";display:inline-block;margin:0 5px 0 3px;}
+.popsendenroll .user li.active strong {color:#5668F0;background-position:0 -23px;}
+.popsendenroll .btn-area {position:absolute;top:200px;left:649px;}
+.popsendenroll .btn-area.sec {top:350px;}
+.popsendenroll .btn-area button {display:block;width:30px;height:30px;margin-bottom:15px;}
+.popsendenroll .btn-area .btn-add {background:url("../img/common/arrow_right.png") no-repeat 0 0;}
+.popsendenroll .btn-area .btn-remove {background:url("../img/common/arrow_left.png") no-repeat 0 0;}
+.popsendenroll .requester {display:flex;justify-content:space-between;margin-bottom:20px;padding:8px 13px 8px 23px;border-bottom:1px solid #E1E1E1;}
+.popsendenroll .requester span {color:#666;}
+.popsendenroll .grid-area {padding:0;}
+.popsendenroll .grid-area:not(:last-child){margin-bottom:20px;}
+.popsendenroll .grid thead th {padding:6px 5px; font-weight:400;letter-spacing: -0.03em;}
+.popsendenroll .grid tbody tr {background-color:#fff;}
+.popsendenroll .grid tbody td{padding:6px 5px;}
+.popsendenroll .grid tbody td:first-child {padding-left:30px;letter-spacing: -0.03em;}
+.popsendenroll .grid .selected {background-color:#f2f2f2;}
+.popsendenroll .btn-wrap {margin-top:15px;}
+
+/* popup : 결재라인 정보 */
+.poppaymentinfo h3 {padding-bottom:7px;font-size:16px;font-weight:600;border-bottom:1px solid #111;}
+.poppaymentinfo .popcont {padding-top:30px;}
+.poppaymentinfo .requester {display:flex;justify-content:space-between;margin-bottom:20px;padding:15px 13px 15px 23px;border-bottom:1px solid #E1E1E1;}
+.poppaymentinfo .requester span {color:#666;}
+.poppaymentinfo .grid thead th {font-weight:400;}
+.poppaymentinfo .grid tbody tr {background-color:#fff;}
+.poppaymentinfo .btn-wrap {margin-top:30px;}
+
+/* popup : HTML 등록, 파일 등록 */
+.pophtmlenroll .btn-wrap, .popfileenroll .btn-wrap {margin-top:40px;}
+.pophtmlenroll .list-star, .popfileenroll .list-star {margin-bottom:-22px;}
+
+/* popup : 메일명 검색 */
+.popmailsearch .graybox .list-area > ul > li {width:49.2%;margin-right:10px;}
+.popmailsearch .graybox .list-area > ul > li > label {width:70px;}
+
+/* popup : 보안메일 등록 */
+.popregisteragent .cont .clear label {float:right;margin-top:5px;}
+.popregisteragent .cont .clear label span {margin-right:0;color:#888;font-size:13px;}
+.popregisteragent .cont input[type="text"] {margin-top:20px;}
+.popregisteragent .cont .list-star {display:inline-block;}
+
+/* popup : 수신자그룹 미리보기 */
+.poppreviewreceiver .table-area button{padding:0 22px;}
+
+/* popup : 반려사유 */
+.popreturnreason .graybox .table-area th {background:#f2f2f2;}
+.popreturnreason .graybox .table-area td {padding:15px 20px;}
+.popreturnreason .grid td{text-align:left;}
+.popreturnreason .read-txt .grid td textarea{padding:10px 0; border:0;}
+
+/* popup : 템플릿 미리보기 */
+.poppreviewtemplate .graybox .table-area th {background:#f2f2f2;}
+.poppreviewtemplate .graybox .table-area td {padding:10px 20px;}
+.poppreviewtemplate .previewbox {margin-top:20px;border-radius:5px;box-shadow:0px 3px 10px rgba(141,141,141,0.16);}
+.poppreviewtemplate .previewbox img {max-width:100%;}
+
+/* popup : 통계분석 > 이메일상세정보 */
+.poptestsendinfo .table-area td input[type="checkbox"] + span {height:25px;margin-right:10px;line-height:25px;}
+.poptestsendinfo .table-area td input[type="checkbox"] + span:before{top:2px;}

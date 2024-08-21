@@ -1,0 +1,39 @@
+@charset "utf-8";
+
+/**
+ * --------------------------------
+ * CONTENT CSS
+ * creator : chowoobin
+ * --------------------------------
+*/
+
+/* layout */
+.content .cont-head .util .user .info em {color:#F26674;}
+
+/* lnb */
+.content #lnb nav > ul > li > a > span {padding-left:36px;background:url("../img/content/lnb_navicon.png") no-repeat;}
+.content #lnb nav > ul > li > a > span.item01 {background-position:0 5px;}
+.content #lnb nav > ul > li > a > span.item02 {background-position:0 -25px;}
+.content #lnb nav > ul > li > a > span.item03 {background-position:0 -58px;}
+.content #lnb nav > ul > li > a > span.item04 {background-position:0 -87px;}
+.content #lnb nav > ul > li:nth-child(n+4) > a:after {content:'';background:none;}
+.content #lnb .inner-menu li.active {background:#F26674;}
+
+/* input checkbox */
+input[type="checkbox"] + span:before {background-image:url("../img/content/form_chk.png");}
+
+/* input radio */
+input[type="radio"] + span:before {background-image:url("../img/content/form_rdo.png");}
+
+/* grid */
+.grid a {color:#F26674;}
+.grid a:not(.btn):hover {color:#c53b49;}
+
+/* toggle */
+.toggle li.active > button {color:#F26674;}
+
+/* popup : push */
+.popservicepush .cont .btn:hover {background:#F26674;}
+
+/* popup : 신규 메일 발송 */
+.popmailsend .list-wrap a:hover {background:#F26674;}

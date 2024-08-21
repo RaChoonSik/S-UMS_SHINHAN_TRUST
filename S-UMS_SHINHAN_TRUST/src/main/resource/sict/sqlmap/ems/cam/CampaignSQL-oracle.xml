@@ -1,0 +1,2159 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.sict.ums.ems.cam.dao.CampaignMapper">
+
+	<select id="getCampaignList" parameterType="campaignVO" resultType="campaignVO">
+		SELECT *
+		  FROM (
+				SELECT A.CAMP_NO
+					 , A.CAMP_NM
+					 , A.USER_ID
+					 , A.CAMP_TY
+					 , A.STATUS
+					 , A.DEPT_NO
+					 , A.REG_DT
+					 , A.REG_ID
+					 , A.UP_ID
+					 , A.UP_DT
+					 , A.CAMP_DESC
+					 , B.USER_NM
+					 , C.USER_NM REG_NM
+					 , D.DEPT_NM
+					 , E.CD_NM CAMP_TY_NM
+					 , F.CD_NM STATUS_NM
+					 , (SELECT COUNT(1) FROM NEO_TASK T1, NEO_SUBTASK T2 WHERE T1.TASK_NO = T2.TASK_NO AND T2.SUB_TASK_NO = 1 AND T2.SEND_TEST_YN = 'N' AND T2.RTY_TYP = '000' AND T1.CAMP_NO = A.CAMP_NO) CAMP_MAIL_CNT				 
+					 , ROW_NUMBER() OVER (ORDER BY CAMP_NO DESC) SEQ
+					 , COUNT(1) OVER() TOTAL_COUNT
+				  FROM NEO_CAMPAIGN A
+					 , NEO_USER B
+					 , NEO_USER C
+					 , NEO_DEPT D
+					 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C004' AND UILANG = #{uilang}) E
+					 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C014' AND UILANG = #{uilang}) F
+				 WHERE A.USER_ID = B.USER_ID
+				   AND A.REG_ID = C.USER_ID
+				   AND A.DEPT_NO = D.DEPT_NO
+				   AND A.CAMP_TY = E.CD
+				   AND A.STATUS = F.CD
+				   <if test="searchCampNm != null and searchCampNm != ''">
+				   AND A.CAMP_NM LIKE '%' || #{searchCampNm} || '%'
+				   </if>
+				   <if test="searchCampTy != null and searchCampTy != ''">
+				   AND A.CAMP_TY = #{searchCampTy}
+				   </if>
+				   <if test='searchStatus != null and searchStatus != "ALL"'>
+				   AND A.STATUS = #{searchStatus}
+				   </if>
+				   <if test='adminYn == "N"'>
+				   AND A.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND A.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND A.USER_ID = #{searchUserId}
+				   </if>
+				   <if test="searchStartDt != null and searchStartDt != ''">
+				   AND A.REG_DT &gt;= #{searchStartDt} || '000000'
+				   </if>
+				   <if test="searchEndDt != null and searchEndDt != ''">
+				   AND A.REG_DT &lt; #{searchEndDt} || '240000'
+				   </if>
+				)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+
+	<select id="getCampaignRnsList" parameterType="campaignVO" resultType="campaignVO">
+		SELECT *
+		  FROM (
+		  	SELECT CAMP_NO
+				 , CAMP_NM
+				 , CAMP_TY_NM
+				 , STATUS
+				 , SERVICE_GB
+				 , REG_DT
+				 , ROW_NUMBER() OVER (ORDER BY REG_DT DESC) SEQ
+				 , COUNT(1) OVER() TOTAL_COUNT
+		  	  FROM (
+					SELECT CAMP_NO
+						 , CAMP_NM
+						 , (SELECT CD_NM FROM NEO_CD WHERE CD_GRP = 'C004' AND UILANG = #{uilang} AND CD = NEO_CAMPAIGN.CAMP_TY) CAMP_TY_NM
+						 , STATUS
+						 , '10' SERVICE_GB
+						 , REG_DT
+					  FROM NEO_CAMPAIGN
+					 WHERE STATUS = '000'
+					   <if test="searchCampNm != null and searchCampNm != ''">
+					   AND CAMP_NM LIKE '%' || #{searchCampNm} || '%'
+					   </if>
+					   <if test="searchStartDt != null and searchStartDt != ''">
+					   AND REG_DT &gt;= #{searchStartDt} || '000000'
+					   </if>
+					   <if test="searchEndDt != null and searchEndDt != ''">
+					   AND REG_DT &lt; #{searchEndDt} || '240000'
+					   </if>
+					 UNION ALL
+					SELECT TID CAMP_NO
+				 		 , TNM CAMP_NM
+				 		 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C109' AND CD = TS_SERVICETYP.CONTENTS_TYP) CAMP_TY_NM
+						 , STATUS
+						 , '20' SERVICE_GB
+						 , REG_DT
+					  FROM TS_SERVICETYP
+					 WHERE STATUS = '000'
+					   <if test="searchCampNm != null and searchCampNm != ''">
+					   AND TNM LIKE '%' || #{searchCampNm} || '%'
+					   </if>
+					   <if test="searchStartDt != null and searchStartDt != ''">
+					   AND REG_DT &gt;= #{searchStartDt} || '000000'
+					   </if>
+					   <if test="searchEndDt != null and searchEndDt != ''">
+					   AND REG_DT &lt; #{searchEndDt} || '240000'
+					   </if>
+					)
+				)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	
+	<select id="getCampaignEmsOnlyList" parameterType="campaignVO" resultType="campaignVO">
+		SELECT *
+		  FROM (
+		  	SELECT CAMP_NO
+				 , CAMP_NM
+				 , CAMP_TY_NM
+				 , STATUS
+				 , SERVICE_GB
+				 , REG_DT
+				 , ROW_NUMBER() OVER (ORDER BY REG_DT DESC) SEQ
+				 , COUNT(1) OVER() TOTAL_COUNT
+		  	  FROM (
+					SELECT CAMP_NO
+						 , CAMP_NM
+						 , (SELECT CD_NM FROM NEO_CD WHERE CD_GRP = 'C004' AND UILANG = #{uilang} AND CD = NEO_CAMPAIGN.CAMP_TY) CAMP_TY_NM
+						 , STATUS
+						 , '10' SERVICE_GB
+						 , REG_DT
+					  FROM NEO_CAMPAIGN
+					 WHERE STATUS = '000'
+					   <if test="searchCampNm != null and searchCampNm != ''">
+					   AND CAMP_NM LIKE '%' || #{searchCampNm} || '%'
+					   </if>
+					   <if test="searchStartDt != null and searchStartDt != ''">
+					   AND REG_DT &gt;= #{searchStartDt} || '000000'
+					   </if>
+					   <if test="searchEndDt != null and searchEndDt != ''">
+					   AND REG_DT &lt; #{searchEndDt} || '240000'
+					   </if>
+					)
+				)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>	
+	
+	<select id="getCampaignRnsOnlyList" parameterType="campaignVO" resultType="campaignVO">
+		SELECT *
+		  FROM (
+		  	SELECT CAMP_NO
+				 , CAMP_NM
+				 , CAMP_TY_NM
+				 , STATUS
+				 , SERVICE_GB
+				 , REG_DT
+				 , ROW_NUMBER() OVER (ORDER BY REG_DT DESC) SEQ
+				 , COUNT(1) OVER() TOTAL_COUNT
+		  	  FROM (
+					SELECT TID CAMP_NO
+				 		 , TNM CAMP_NM
+				 		 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C109' AND CD = TS_SERVICETYP.CONTENTS_TYP) CAMP_TY_NM
+						 , STATUS
+						 , '20' SERVICE_GB
+						 , REG_DT
+					  FROM TS_SERVICETYP
+					 WHERE STATUS = '000'
+					   <if test="searchCampNm != null and searchCampNm != ''">
+					   AND TNM LIKE '%' || #{searchCampNm} || '%'
+					   </if>
+					   <if test="searchStartDt != null and searchStartDt != ''">
+					   AND REG_DT &gt;= #{searchStartDt} || '000000'
+					   </if>
+					   <if test="searchEndDt != null and searchEndDt != ''">
+					   AND REG_DT &lt; #{searchEndDt} || '240000'
+					   </if>
+					)
+				)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>			
+	 
+	<select id="getCampaignInfo" parameterType="campaignVO" resultType="campaignVO">
+		SELECT A.CAMP_NO
+			 , A.CAMP_NM
+			 , A.USER_ID
+			 , A.CAMP_TY
+			 , A.STATUS
+			 , A.DEPT_NO
+			 , A.REG_DT
+			 , A.REG_ID
+			 , A.UP_ID
+			 , A.UP_DT
+			 , A.CAMP_DESC
+			 , B.USER_NM
+			 , C.USER_NM REG_NM
+			 , (SELECT USER_NM FROM NEO_USER WHERE USER_ID = A.UP_ID) UP_NM
+			 , D.DEPT_NM
+			 , E.CD_NM CAMP_TY_NM
+			 , F.CD_NM STATUS_NM
+			 , A.EAI_CAMP_NO
+		  FROM NEO_CAMPAIGN A
+			 , NEO_USER B
+			 , NEO_USER C
+			 , NEO_DEPT D
+			 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C004' AND UILANG = #{uilang}) E	<!-- 캠페인목적 -->
+			 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C014' AND UILANG = #{uilang}) F	<!-- 상태 -->
+		 WHERE A.USER_ID = B.USER_ID
+		   AND A.REG_ID = C.USER_ID
+		   AND A.DEPT_NO = D.DEPT_NO
+		   AND A.CAMP_TY = E.CD
+		   AND A.STATUS = F.CD
+		   AND A.CAMP_NO = #{campNo}
+	</select>
+	
+	<insert id="insertCampaignInfo" parameterType="campaignVO">
+		INSERT INTO NEO_CAMPAIGN
+		(
+			  CAMP_NO
+			, CAMP_NM
+			, CAMP_DESC
+			, USER_ID
+			, CAMP_TY
+			, STATUS
+			, DEPT_NO
+			, REG_DT
+			, REG_ID
+			, UP_ID
+			, UP_DT
+			, EAI_CAMP_NO
+		)
+		VALUES
+		(
+			  NEO_CAMPAIGN_SEQ.NEXTVAL
+			, #{campNm}
+			, #{campDesc}
+			, #{userId}
+			, #{campTy}
+			, #{status}
+			, #{deptNo}
+			, #{regDt}
+			, #{regId}
+			, NULL
+			, NULL
+			, #{eaiCampNo}
+		)
+	</insert>
+	
+	<update id="updateCampaignInfo" parameterType="campaignVO">
+		UPDATE NEO_CAMPAIGN
+		   SET CAMP_NM   = #{campNm}
+			 , CAMP_DESC = #{campDesc}
+			 , USER_ID   = #{userId}
+			 , CAMP_TY   = #{campTy}
+			 , STATUS    = #{status}
+			 , DEPT_NO   = #{deptNo}
+			 , UP_ID     = #{upId}
+			 , UP_DT     = #{upDt}
+			 , EAI_CAMP_NO = #{eaiCampNo}
+		 WHERE CAMP_NO   = #{campNo}
+	</update>
+	
+	<select id="getMailList" parameterType="taskVO" resultType="taskVO">
+		SELECT *
+		  FROM (
+				SELECT NEO_TASK.TASK_NO
+					 , NEO_SUBTASK.SUB_TASK_NO
+					 , TASK_NM
+					 , NEO_TASK.SEG_NO
+					 , SEG_NM
+					 , SEND_REPEAT_CD.CD_NM SEND_REPEAT_NM
+					 , SEND_REPEAT_CD.CD SEND_REPEAT
+					 , NEO_TASK.USER_ID
+					 , (SELECT USER_NM FROM NEO_USER WHERE USER_ID = NEO_TASK.USER_ID) USER_NM
+					 , SEND_DT
+					 , WORK_STATUS_CD.CD_NM WORK_STATUS_NM
+					 , WORK_STATUS_CD.CD WORK_STATUS
+					 , WORK_STATUS_CD.CD_DTL WORK_STATUS_DTL
+					 , STATUS_CD.CD STATUS
+					 , STATUS_CD.CD_NM STATUS_NM
+					 , DB_CONN_NO
+					 , SELECT_ SELECT_SQL
+					 , FROM_ FROM_SQL
+					 , WHERE_ WHERE_SQL
+					 , ORDERBY_ ORDERBY_SQL
+					 , MERGE_KEY
+					 , MERGE_COL
+					 , SEG_FL_PATH
+					 , DEPT_NM
+					 , NEO_CAMPAIGN.CAMP_NO
+					 , CAMP_NM
+					 , SUB_STATUS_CD.CD SUB_STATUS
+					 , SUB_STATUS_CD.CD_NM SUB_STATUS_NM
+					 , NEO_TASK.REG_DT
+					 , ROW_NUMBER() OVER (ORDER BY NEO_TASK.TASK_NO DESC, NEO_SUBTASK.SUB_TASK_NO DESC) SEQ
+					 , COUNT(1) OVER() TOTAL_COUNT
+				  FROM NEO_TASK
+					 , NEO_SUBTASK
+					 , NEO_SEGMENT
+					 , NEO_CAMPAIGN
+					 , NEO_CD SEND_REPEAT_CD
+					 , NEO_CD WORK_STATUS_CD
+					 , NEO_CD STATUS_CD
+					 , NEO_DEPT
+					 , NEO_CD SUB_STATUS_CD
+				 WHERE SEND_REPEAT_CD.CD_GRP = 'C017'
+				   AND SEND_REPEAT_CD.UILANG = #{uilang}
+				   AND WORK_STATUS_CD.CD_GRP = 'C101'
+				   AND WORK_STATUS_CD.UILANG = #{uilang}
+				   AND STATUS_CD.CD_GRP = 'C023'
+				   AND STATUS_CD.UILANG = #{uilang}
+				   AND SUB_STATUS_CD.CD_GRP = 'C023'
+				   AND SUB_STATUS_CD.UILANG = #{uilang}
+				   AND NEO_SUBTASK.SEND_TEST_YN = 'N'
+				   AND NEO_TASK.TASK_NO = NEO_SUBTASK.TASK_NO
+				   AND NEO_TASK.SEG_NO = NEO_SEGMENT.SEG_NO
+				   AND NEO_TASK.SEND_REPEAT = SEND_REPEAT_CD.CD
+				   AND NEO_TASK.STATUS = STATUS_CD.CD
+				   AND NEO_SUBTASK.STATUS = SUB_STATUS_CD.CD
+				   AND NEO_SUBTASK.WORK_STATUS = WORK_STATUS_CD.CD
+				   AND NEO_TASK.DEPT_NO = NEO_DEPT.DEPT_NO
+				   AND NEO_TASK.CAMP_NO = NEO_CAMPAIGN.CAMP_NO
+				   <if test='adminYn == "N"'>
+				   AND NEO_TASK.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchCampNo != 0">
+				   AND NEO_TASK.CAMP_NO = #{searchCampNo}
+				   </if>
+				   <if test="searchTaskNm != null and searchTaskNm != ''">
+				   AND NEO_TASK.TASK_NM LIKE '%' || #{searchTaskNm} || '%'
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND NEO_TASK.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test='searchStatus != null and searchStatus != "ALL"'>
+				   AND NEO_TASK.STATUS = #{searchStatus}
+				   </if>
+				   <if test="searchWorkStatus != null and searchWorkStatus != ''">
+				   		<if test='searchWorkStatus == "004"'>
+				   		AND NEO_SUBTASK.WORK_STATUS NOT IN ('000', '001', '002', '003', '201', '202', '203')
+				   		</if>
+				   		<if test='searchWorkStatus != "004"'>
+				   			AND NEO_SUBTASK.WORK_STATUS IN
+				   			<foreach collection="searchWorkStatusList" item="item" open="(" close=")" separator=",">
+				   			#{item}
+				   			</foreach>
+				   		</if>
+				   </if>
+				   <if test="searchStartDt != null and searchStartDt != ''">
+				   AND NEO_SUBTASK.SEND_DT &gt;= #{searchStartDt} || '000000'
+				   </if>
+				   <if test="searchEndDt != null and searchEndDt != ''">
+				   AND NEO_SUBTASK.SEND_DT &lt; #{searchEndDt} || '240000'
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND NEO_TASK.USER_ID = #{searchUserId}
+				   </if>
+				)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	
+	<select id="getMailListUnion" parameterType="taskVO" resultType="taskVO">
+		SELECT *
+		  FROM (
+				SELECT NEO_TASK.TASK_NO
+					 , NEO_SUBTASK.SUB_TASK_NO
+					 , TASK_NM
+					 , NEO_TASK.SEG_NO
+					 , SEG_NM
+					 , SEND_REPEAT_CD.CD_NM SEND_REPEAT_NM
+					 , SEND_REPEAT_CD.CD SEND_REPEAT
+					 , NEO_TASK.USER_ID
+					 , (SELECT USER_NM FROM NEO_USER WHERE USER_ID = NEO_TASK.USER_ID) USER_NM
+					 , SEND_DT
+					 , WORK_STATUS_CD.CD_NM WORK_STATUS_NM
+					 , WORK_STATUS_CD.CD WORK_STATUS
+					 , WORK_STATUS_CD.CD_DTL WORK_STATUS_DTL
+					 , STATUS_CD.CD STATUS
+					 , STATUS_CD.CD_NM STATUS_NM
+					 , DB_CONN_NO
+					 , SELECT_ SELECT_SQL
+					 , FROM_ FROM_SQL
+					 , WHERE_ WHERE_SQL
+					 , ORDERBY_ ORDERBY_SQL
+					 , MERGE_KEY
+					 , MERGE_COL
+					 , SEG_FL_PATH
+					 , DEPT_NM
+					 , NEO_CAMPAIGN.CAMP_NO
+					 , CAMP_NM
+					 , SUB_STATUS_CD.CD SUB_STATUS
+					 , SUB_STATUS_CD.CD_NM SUB_STATUS_NM
+					 , NEO_TASK.REG_DT
+					 , ROW_NUMBER() OVER (ORDER BY NEO_TASK.TASK_NO DESC, NEO_SUBTASK.SUB_TASK_NO DESC) SEQ
+					 , COUNT(1) OVER() TOTAL_COUNT
+				  FROM NEO_TASK
+					 , NEO_SUBTASK
+					 , NEO_SEGMENT
+					 , NEO_CAMPAIGN
+					 , NEO_CD SEND_REPEAT_CD
+					 , NEO_CD WORK_STATUS_CD
+					 , NEO_CD STATUS_CD
+					 , NEO_DEPT
+					 , NEO_CD SUB_STATUS_CD
+				 WHERE SEND_REPEAT_CD.CD_GRP = 'C017'
+				   AND SEND_REPEAT_CD.UILANG = #{uilang}
+				   AND WORK_STATUS_CD.CD_GRP = 'C101'
+				   AND WORK_STATUS_CD.UILANG = #{uilang}
+				   AND STATUS_CD.CD_GRP = 'C023'
+				   AND STATUS_CD.UILANG = #{uilang}
+				   AND SUB_STATUS_CD.CD_GRP = 'C023'
+				   AND SUB_STATUS_CD.UILANG = #{uilang}
+				   AND NEO_SUBTASK.SEND_TEST_YN = 'N'
+				   AND NEO_TASK.TASK_NO = NEO_SUBTASK.TASK_NO
+				   AND NEO_TASK.SEG_NO = NEO_SEGMENT.SEG_NO
+				   AND NEO_TASK.SEND_REPEAT = SEND_REPEAT_CD.CD
+				   AND NEO_TASK.STATUS = STATUS_CD.CD
+				   AND NEO_SUBTASK.STATUS = SUB_STATUS_CD.CD
+				   AND NEO_SUBTASK.WORK_STATUS = WORK_STATUS_CD.CD
+				   AND NEO_TASK.DEPT_NO = NEO_DEPT.DEPT_NO
+				   AND NEO_TASK.CAMP_NO = NEO_CAMPAIGN.CAMP_NO
+				   AND NEO_SUBTASK.SUB_TASK_NO = 1
+				   <if test='adminYn == "N"'>
+				   AND NEO_TASK.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchCampNo != 0">
+				   AND NEO_TASK.CAMP_NO = #{searchCampNo}
+				   </if>
+				   <if test="searchTaskNm != null and searchTaskNm != ''">
+				   AND NEO_TASK.TASK_NM LIKE '%' || #{searchTaskNm} || '%'
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND NEO_TASK.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test='searchStatus != null and searchStatus != "ALL"'>
+				   AND NEO_TASK.STATUS = #{searchStatus}
+				   </if>
+				   <if test="searchSendRepeat != null and searchSendRepeat != ''">
+				   AND NEO_TASK.SEND_REPEAT = #{searchSendRepeat}
+				   </if>
+				   <if test="searchWorkStatus != null and searchWorkStatus != ''">
+				   		<if test='searchWorkStatus == "004"'>
+				   		AND NEO_SUBTASK.WORK_STATUS NOT IN ('000', '001', '002', '003', '201', '202', '203')
+				   		</if>
+				   		<if test='searchWorkStatus != "004"'>
+				   			AND NEO_SUBTASK.WORK_STATUS IN
+				   			<foreach collection="searchWorkStatusList" item="item" open="(" close=")" separator=",">
+				   			#{item}
+				   			</foreach>
+				   		</if>
+				   </if>
+				   <if test="searchStartDt != null and searchStartDt != ''">
+				   AND NEO_SUBTASK.SEND_DT &gt;= #{searchStartDt} || '000000'
+				   </if>
+				   <if test="searchEndDt != null and searchEndDt != ''">
+				   AND NEO_SUBTASK.SEND_DT &lt; #{searchEndDt} || '240000'
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND NEO_TASK.USER_ID = #{searchUserId}
+				   </if>
+				)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	
+	<select id="getMailListOnetime" parameterType="taskVO" resultType="taskVO">
+		SELECT *
+		  FROM (
+				SELECT T1.TASK_NO
+					 , T2.SUB_TASK_NO
+					 , T1.TASK_NM
+					 , T1.SEG_NO
+					 , T3.SEG_NM
+					 , T1.CAMP_NO
+					 , T4.CAMP_NM
+					 , T1.USER_ID
+					 , T5.USER_NM
+					 , T1.STATUS
+					 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = #{uilang} AND CD_GRP = 'C023' AND CD = T1.STATUS) STATUS_NM
+					 , T2.WORK_STATUS
+					 , T6.CD_NM WORK_STATUS_NM
+					 , T6.CD_DTL WORK_STATUS_DTL
+					 , T2.SEND_DT
+					 , CASE WHEN (SELECT COUNT(1) FROM NEO_SECUAPPROVAL_LINE WHERE TASK_NO = T1.TASK_NO) = 0 THEN 'N' ELSE 'Y' END APPROVAL_LINE_YN
+					 , ROW_NUMBER() OVER (ORDER BY T2.SEND_DT DESC, T1.TASK_NO DESC) SEQ
+					 , COUNT(1) OVER() TOTAL_COUNT
+				  FROM NEO_TASK T1, NEO_SUBTASK T2, NEO_SEGMENT T3, NEO_CAMPAIGN T4, NEO_USER T5, NEO_CD T6
+				 WHERE T1.TASK_NO = T2.TASK_NO
+				   AND T2.SUB_TASK_NO = 1
+				   AND T2.SEND_TEST_YN = 'N'
+				   AND T2.RTY_TYP = '000'				   
+				   AND T1.SEG_NO = T3.SEG_NO
+				   AND T1.CAMP_NO = T4.CAMP_NO
+				   AND T1.USER_ID = T5.USER_ID
+				   AND T2.WORK_STATUS = T6.CD
+				   AND T6.UILANG = #{uilang}
+				   AND T6.CD_GRP = 'C101'
+				   AND T1.SEND_REPEAT = '000'
+				   <if test='adminYn == "N"'>
+				   AND T1.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchCampNo != 0">
+				   AND T1.CAMP_NO = #{searchCampNo}
+				   </if>
+				   <if test="searchTaskNm != null and searchTaskNm != ''">
+				   AND T1.TASK_NM LIKE '%' || #{searchTaskNm} || '%'
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND T1.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test='searchStatus != null and searchStatus != ""'>
+				   AND T1.STATUS = #{searchStatus}
+				   </if>
+				   <if test="searchWorkStatus != null and searchWorkStatus != ''">
+				   		<if test='searchWorkStatus == "004"'>
+				   		AND T2.WORK_STATUS NOT IN ('000', '001', '002', '003', '201', '202', '203')
+				   		</if>
+				   		<if test='searchWorkStatus != "004"'>
+				   		AND T2.WORK_STATUS = #{searchWorkStatus}
+				   		</if>
+				   </if>
+				   <if test="searchStartDt != null and searchStartDt != ''">
+				   AND T2.SEND_DT &gt;= #{searchStartDt} || '000000'
+				   </if>
+				   <if test="searchEndDt != null and searchEndDt != ''">
+				   AND T2.SEND_DT &lt; #{searchEndDt} || '240000'
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND T1.USER_ID = #{searchUserId}
+				   </if>
+				)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	
+	<select id="getMailListRepeat" parameterType="taskVO" resultType="taskVO">
+		SELECT *
+		  FROM (
+				SELECT T1.TASK_NO
+					 , T2.SUB_TASK_NO
+					 , T1.TASK_NM
+					 , T1.SEG_NO
+					 , T3.SEG_NM
+					 , T1.CAMP_NO
+					 , T4.CAMP_NM
+					 , T1.USER_ID
+					 , T5.USER_NM
+					 , T1.STATUS
+					 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C023' AND CD = T1.STATUS) STATUS_NM
+					 , T2.WORK_STATUS
+					 , T6.CD_NM WORK_STATUS_NM
+					 , T6.CD_DTL WORK_STATUS_DTL
+					 , T2.SEND_DT
+					 , T1.SEND_REPEAT
+					 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C017' AND CD = T1.SEND_REPEAT) SEND_REPEAT_NM 
+					 , (SELECT COUNT(1) FROM NEO_SUBTASK WHERE TASK_NO = T1.TASK_NO) MAIL_CNT
+					 , CASE WHEN (SELECT COUNT(1) FROM NEO_SECUAPPROVAL_LINE WHERE TASK_NO = T1.TASK_NO) = 0 THEN 'N' ELSE 'Y' END APPROVAL_LINE_YN
+					 , CASE WHEN (SELECT COUNT(1) FROM NEO_SECUAPPROVAL_LINE WHERE TASK_NO = T1.TASK_NO AND RSLT_CD &gt;= '002') = 0 THEN 'N' ELSE 'Y' END APPROVAL_PROC_YN
+					 , CASE WHEN (SELECT COUNT(1) FROM NEO_SECUAPPROVAL_LINE WHERE TASK_NO = T1.TASK_NO AND RSLT_CD = '002') = 0 THEN 'N' ELSE 'Y' END APPROVAL_PROC_APP_YN
+					 , T3.CREATE_TY SEG_CREATE_TY					 
+					 , ROW_NUMBER() OVER (ORDER BY T2.SEND_DT DESC, T1.TASK_NO DESC) SEQ
+					 , COUNT(1) OVER() TOTAL_COUNT
+				  FROM NEO_TASK T1, NEO_SUBTASK T2, NEO_SEGMENT T3, NEO_CAMPAIGN T4, NEO_USER T5, NEO_CD T6
+				 WHERE T1.TASK_NO = T2.TASK_NO
+				   AND T2.SUB_TASK_NO = (
+						SELECT MAX(SUB_TASK_NO) 
+						  FROM NEO_SUBTASK 
+						 WHERE TASK_NO = T1.TASK_NO
+						   <if test="searchStartDt != null and searchStartDt != ''">
+						   AND SEND_DT &gt;= #{searchStartDt} || '000000'
+						   </if>
+						   <if test="searchEndDt != null and searchEndDt != ''">
+						   AND SEND_DT &lt; #{searchEndDt} || '240000'
+						   </if>)
+				   AND T2.SEND_TEST_YN = 'N'
+				   AND T2.RTY_TYP = '000'				   
+				   AND T1.SEG_NO = T3.SEG_NO
+				   AND T1.CAMP_NO = T4.CAMP_NO
+				   AND T1.USER_ID = T5.USER_ID
+				   AND T2.WORK_STATUS = T6.CD
+				   AND T6.UILANG = #{uilang}
+				   AND T6.CD_GRP = 'C101'
+				   <if test='adminYn == "N"'>
+				   AND T1.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchCampNo != 0">
+				   AND T1.CAMP_NO = #{searchCampNo}
+				   </if>
+				   <if test="searchTaskNm != null and searchTaskNm != ''">
+				   AND T1.TASK_NM LIKE '%' || #{searchTaskNm} || '%'
+				   </if>
+				   <if test="searchSendRepeat != null and searchSendRepeat != ''">
+   				   AND T1.SEND_REPEAT = #{searchSendRepeat}
+   				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND T1.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test='searchStatus != null and searchStatus != ""'>
+				   AND T1.STATUS = #{searchStatus}
+				   </if>
+				   <if test='searchWorkStatus != null and searchWorkStatus != ""'>
+				   		<if test='searchWorkStatus == "004"'>
+				   		AND T2.WORK_STATUS NOT IN ('000','001','002','003','201','202','203','204')
+				   		</if>
+				   		<if test='searchWorkStatus != "004"'>
+				   		AND T2.WORK_STATUS = #{searchWorkStatus}
+				   		</if>
+				   </if>
+				   <if test="searchStartDt != null and searchStartDt != ''">
+				   AND T2.SEND_DT &gt;= #{searchStartDt} || '000000'
+				   </if>
+				   <if test="searchEndDt != null and searchEndDt != ''">
+				   AND T2.SEND_DT &lt; #{searchEndDt} || '240000'
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND T1.USER_ID = #{searchUserId}
+				   </if>
+				)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	
+	<select id="getMailListRepeatStep" parameterType="taskVO" resultType="taskVO">
+		SELECT *
+		  FROM (
+				SELECT NEO_TASK.TASK_NO
+					 , NEO_SUBTASK.SUB_TASK_NO
+					 , TASK_NM
+					 , NEO_TASK.SEG_NO
+					 , SEG_NM
+					 , SEND_REPEAT_CD.CD_NM SEND_REPEAT_NM
+					 , SEND_REPEAT_CD.CD SEND_REPEAT
+					 , NEO_TASK.USER_ID
+					 , (SELECT USER_NM FROM NEO_USER WHERE USER_ID = NEO_TASK.USER_ID) USER_NM
+					 , SEND_DT
+					 , WORK_STATUS_CD.CD_NM WORK_STATUS_NM
+					 , WORK_STATUS_CD.CD WORK_STATUS
+					 , WORK_STATUS_CD.CD_DTL WORK_STATUS_DTL
+					 , STATUS_CD.CD STATUS
+					 , STATUS_CD.CD_NM STATUS_NM
+					 , DB_CONN_NO
+					 , SELECT_ SELECT_SQL
+					 , FROM_ FROM_SQL
+					 , WHERE_ WHERE_SQL
+					 , ORDERBY_ ORDERBY_SQL
+					 , MERGE_KEY
+					 , MERGE_COL
+					 , SEG_FL_PATH
+					 , DEPT_NM
+					 , NEO_CAMPAIGN.CAMP_NO
+					 , CAMP_NM
+					 , SUB_STATUS_CD.CD SUB_STATUS
+					 , SUB_STATUS_CD.CD_NM SUB_STATUS_NM
+					 , NEO_TASK.REG_DT
+					 , ROW_NUMBER() OVER (ORDER BY NEO_TASK.TASK_NO DESC, NEO_SUBTASK.SUB_TASK_NO DESC) SEQ
+					 , COUNT(1) OVER() TOTAL_COUNT
+				  FROM NEO_TASK
+					 , NEO_SUBTASK
+					 , NEO_SEGMENT
+					 , NEO_CAMPAIGN
+					 , NEO_CD SEND_REPEAT_CD
+					 , NEO_CD WORK_STATUS_CD
+					 , NEO_CD STATUS_CD
+					 , NEO_DEPT
+					 , NEO_CD SUB_STATUS_CD
+				 WHERE SEND_REPEAT_CD.CD_GRP = 'C017'
+				   AND SEND_REPEAT_CD.UILANG = #{uilang}
+				   AND WORK_STATUS_CD.CD_GRP = 'C101'
+				   AND WORK_STATUS_CD.UILANG = #{uilang}
+				   AND STATUS_CD.CD_GRP = 'C023'
+				   AND STATUS_CD.UILANG = #{uilang}
+				   AND SUB_STATUS_CD.CD_GRP = 'C023'
+				   AND SUB_STATUS_CD.UILANG = #{uilang}
+				   AND NEO_SUBTASK.SEND_TEST_YN = 'N'
+				   AND NEO_TASK.TASK_NO = NEO_SUBTASK.TASK_NO
+				   AND NEO_TASK.SEG_NO = NEO_SEGMENT.SEG_NO
+				   AND NEO_TASK.SEND_REPEAT = SEND_REPEAT_CD.CD
+				   AND NEO_TASK.STATUS = STATUS_CD.CD
+				   AND NEO_SUBTASK.STATUS = SUB_STATUS_CD.CD
+				   AND NEO_SUBTASK.WORK_STATUS = WORK_STATUS_CD.CD
+				   AND NEO_TASK.DEPT_NO = NEO_DEPT.DEPT_NO
+				   AND NEO_TASK.CAMP_NO = NEO_CAMPAIGN.CAMP_NO
+				   <if test='adminYn == "N"'>
+				   AND NEO_TASK.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchCampNo != 0">
+				   AND NEO_TASK.CAMP_NO = #{searchCampNo}
+				   </if>
+				   <if test="searchTaskNm != null and searchTaskNm != ''">
+				   AND NEO_TASK.TASK_NM LIKE '%' || #{searchTaskNm} || '%'
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND NEO_TASK.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test='searchStatus != null and searchStatus != "ALL"'>
+				   AND NEO_TASK.STATUS = #{searchStatus}
+				   </if>
+				   <if test="searchWorkStatus != null and searchWorkStatus != ''">
+				   		<if test='searchWorkStatus == "004"'>
+				   		AND NEO_SUBTASK.WORK_STATUS NOT IN ('000', '001', '002', '003', '201', '202', '203')
+				   		</if>
+				   		<if test='searchWorkStatus != "004"'>
+				   			AND NEO_SUBTASK.WORK_STATUS IN
+				   			<foreach collection="searchWorkStatusList" item="item" open="(" close=")" separator=",">
+				   			#{item}
+				   			</foreach>
+				   		</if>
+				   </if>
+				   <if test="searchStartDt != null and searchStartDt != ''">
+				   AND NEO_SUBTASK.SEND_DT &gt;= #{searchStartDt} || '000000'
+				   </if>
+				   <if test="searchEndDt != null and searchEndDt != ''">
+				   AND NEO_SUBTASK.SEND_DT &lt; #{searchEndDt} || '240000'
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND NEO_TASK.USER_ID = #{searchUserId}
+				   </if>
+				)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	
+	<update id="updateTaskStatusAdmit" parameterType="taskVO">
+		UPDATE NEO_TASK
+		   SET RECO_STATUS = #{recoStatus}
+			 , EXE_USER_ID = #{exeUserId}
+		 WHERE TASK_NO     = #{taskNo}
+	</update>
+	
+	<update id="updateSubTaskStatusAdmit" parameterType="taskVO">
+		UPDATE NEO_SUBTASK
+		   SET WORK_STATUS = #{workStatus}
+		 WHERE TASK_NO     = #{taskNo}
+		   AND SUB_TASK_NO = #{subTaskNo}
+	</update>
+	
+	
+	<insert id="insertTaskInfo" parameterType="taskVO">
+		INSERT INTO NEO_TASK
+		(
+			  TASK_NO
+			, PLAN_USER_ID
+			, USER_ID
+			, MAIL_FROM_NM
+			, MAIL_FROM_EM
+			, REPLY_TO_EM
+			, RETURN_EM
+			, NM_MERGE
+			, ATT_CNT
+			, SEND_REPEAT
+			, CHANNEL
+			, RESP_LOG
+			, CONT_TY
+			, SEND_TERM_END_DT
+			, SEND_TERM_LOOP
+			, SEND_TERM_LOOP_TY
+			, SOCKET_TIMEOUT
+			, CONN_PER_CNT
+			, RETRY_CNT
+			, SEND_MODE
+			, HEADER_ENC
+			, BODY_ENC
+			, CHARSET
+			, SEG_NO
+			, CAMP_TY
+			, CAMP_NO
+			, DEPT_NO
+			, CONT_FL_PATH
+			, SEND_UNIT_COST
+			, STATUS
+			, RECO_STATUS
+			, MAIL_TITLE
+			, SURVEYNO
+			, REG_ID
+			, REG_DT
+			, TASK_NM
+			, RESP_YN
+			, LINK_YN
+		)
+		VALUES
+		(
+			  NEO_TASK_SEQ.NEXTVAL
+			, #{planUserId}
+			, #{userId}
+			, #{mailFromNm}
+			, #{mailFromEm}
+			, #{replyToEm}
+			, #{returnEm}
+			, #{nmMerge}
+			, #{attCnt}
+			, #{sendRepeat}
+			, #{channel}
+			, #{respLog}
+			, #{contTy}
+			, #{sendTermEndDt}
+			, #{sendTermLoop}
+			, #{sendTermLoopTy}
+			, #{socketTimeout}
+			, #{connPerCnt}
+			, #{retryCnt}
+			, #{sendMode}
+			, #{headerEnc}
+			, #{bodyEnc}
+			, #{charset}
+			, #{segNo}
+			, #{campTy}
+			, #{campNo}
+			, #{deptNo}
+			, #{contFlPath}
+			, #{sendUnitCost}
+			, #{status}
+			, #{recoStatus}
+			, #{mailTitle}
+			, #{surveyno}
+			, #{regId}
+			, #{regDt}
+			, #{taskNm}
+			, #{respYn}
+			, #{linkYn}
+		)
+	</insert>
+	
+	<select id="getTaskNo" resultType="_int">
+		SELECT NEO_TASK_SEQ.CURRVAL SEQ FROM DUAL
+	</select>
+	
+	<select id="getSubTaskNo" parameterType="_int" resultType="_int">
+		SELECT NVL(MAX(SUB_TASK_NO),0)+1 I_MAX 
+		  FROM NEO_SUBTASK
+		 WHERE TASK_NO = #{taskNo}
+	</select>
+	
+	<insert id="insertSubTaskInfo" parameterType="taskVO">
+		INSERT INTO NEO_SUBTASK
+		(
+			  TASK_NO
+			, SUB_TASK_NO
+			, SEND_DT
+			, RESP_END_DT
+			, WORK_STATUS
+			, RETRY_CNT
+			, SEND_TEST_YN
+			, SEND_TEST_EM
+			, SEND_IP
+			, CHANNEL
+			, STATUS
+		)
+		VALUES
+		(
+			  #{taskNo}
+			, #{subTaskNo}
+			, #{sendDt}
+			, #{respEndDt}
+			, #{workStatus}
+			, #{retryCnt}
+			, #{sendTestYn}
+			, #{sendTestEm}
+			, #{sendIp}
+			, #{channel}
+			, #{status}
+		)
+	</insert>
+	
+	<insert id="insertAttachInfo" parameterType="attachVO">
+		INSERT INTO NEO_ATTACH
+		(
+			  ATT_NO
+			, ATT_NM
+			, ATT_FL_PATH
+			, TASK_NO
+			, ATT_FL_SIZE
+		)
+		VALUES
+		(
+			  NEO_ATTACH_SEQ.NEXTVAL
+			, #{attNm}
+			, #{attFlPath}
+			, #{taskNo}
+			, #{attFlSize}
+		)
+	</insert>
+	
+	<insert id="insertLinkInfo" parameterType="linkVO">
+		INSERT INTO NEO_LINK
+		(
+			  LINK_NO
+			, LINK_URL
+			, LINK_NM
+			, ALIAS_NM
+			, LINK_TY
+			, REG_ID
+			, REG_DT
+		)
+		VALUES
+		(
+			  #{linkNo}
+			, #{linkUrl}
+			, #{linkNm}
+			, #{aliasNm}
+			, #{linkTy}
+			, #{regId}
+			, #{regDt}
+		)
+	</insert>
+	
+	<update id="updateTaskStatus" parameterType="taskVO">
+		UPDATE NEO_TASK
+		   SET STATUS  = #{status}
+			 , UP_ID   = #{upId}
+			 , UP_DT   = #{upDt}
+		 WHERE TASK_NO = #{taskNo}
+	</update>
+	<update id="updateSubTaskStatus" parameterType="taskVO">
+		UPDATE NEO_SUBTASK
+		   SET STATUS      = #{status}
+		   <if test="workStatus != null and workStatus != ''">
+		     , WORK_STATUS = #{workStatus}
+		   </if>
+		 WHERE TASK_NO     = #{taskNo}
+		   AND SUB_TASK_NO = #{subTaskNo}
+	</update>
+	
+	<update id="updateSubmitApproval" parameterType="taskVO">
+		UPDATE NEO_SUBTASK
+		   SET WORK_STATUS = #{workStatus}
+		 WHERE TASK_NO     = #{taskNo}
+		   AND SUB_TASK_NO = #{subTaskNo}
+	</update>
+	
+	<update id="updateSubmitApprovalLine" parameterType="taskVO">
+		UPDATE NEO_SECUAPPROVAL_LINE
+		   SET RSLT_CD   = '001'
+			 , UP_ID     = #{upId}
+			 , UP_DT     = #{upDt}
+		 WHERE TASK_NO   = #{taskNo}
+		   AND APPR_STEP = 1
+	</update>
+	
+	<select id="getFirstApprUserId" parameterType="_int" resultType="string">
+		SELECT APPR_USER_ID
+		  FROM NEO_SECUAPPROVAL_LINE
+		 WHERE TASK_NO = #{taskNo}
+		   AND APPR_STEP = 1
+	</select>
+	
+	<select id="getTaskInfo" parameterType="_int" resultType="taskVO">
+		SELECT TASK_NO
+			 , PLAN_USER_ID
+			 , USER_ID
+			 , EXE_USER_ID
+			 , MAIL_FROM_NM
+			 , MAIL_FROM_EM
+			 , REPLY_TO_EM
+			 , RETURN_EM
+			 , NM_MERGE
+			 , ATT_CNT
+			 , SEND_REPEAT
+			 , CHANNEL
+			 , RESP_LOG
+			 , CONT_TY
+			 , SEND_TERM_END_DT
+			 , SEND_TERM_LOOP
+			 , SEND_TERM_LOOP_TY
+			 , SOCKET_TIMEOUT
+			 , CONN_PER_CNT
+			 , RETRY_CNT
+			 , SEND_MODE
+			 , HEADER_ENC
+			 , BODY_ENC
+			 , SEG_NO
+			 , CAMP_TY
+			 , CAMP_NO
+			 , DEPT_NO
+			 , CONT_FL_PATH
+			 , SEND_UNIT_COST
+			 , STATUS
+			 , RECO_STATUS
+			 , MAIL_TITLE
+			 , SURVEYNO
+			 , REG_ID
+			 , REG_DT
+			 , UP_ID
+			 , UP_DT
+			 , TASK_NM
+			 , CHARSET
+			 , RESP_YN
+			 , LINK_YN
+			 , (SELECT SND_TPE_GB FROM NEO_EMAIL_CLINIC WHERE TASK_NO = NEO_TASK.TASK_NO) SND_TPE_GB
+			 , (SELECT MAIL_MKT_GB FROM NEO_MAILMKT_CHK WHERE TASK_NO = NEO_TASK.TASK_NO) MAIL_MKT_GB
+			 , NVL((SELECT CD_NM FROM NEO_MAILMKT_CHK, NEO_CD WHERE NEO_MAILMKT_CHK.MAIL_MKT_GB  = NEO_CD.CD AND CD_GRP='C114' AND NEO_MAILMKT_CHK.TASK_NO = NEO_TASK.TASK_NO), '해당없음') MAIL_MKT_NM
+			 , (SELECT SEG_NM FROM NEO_SEGMENT WHERE SEG_NO = NEO_TASK.SEG_NO) SEG_NM
+			 , (SELECT CAMP_NM FROM NEO_CAMPAIGN WHERE CAMP_NO = NEO_TASK.CAMP_NO) CAMP_NM
+			 , (SELECT USER_NM FROM NEO_USER WHERE USER_ID = NEO_TASK.USER_ID) USER_NM
+			 , (SELECT DEPT_NM FROM NEO_DEPT WHERE DEPT_NO = NEO_TASK.DEPT_NO) DEPT_NM
+			 , TARGET_GRP_TY			 
+		  FROM NEO_TASK
+		 WHERE TASK_NO = #{taskNo}
+	</select>
+	
+	<select id="getSubTaskInfo" parameterType="taskVO" resultType="taskVO">
+		SELECT SUB_TASK_NO
+			 , TASK_NO
+			 , SEND_DT
+			 , END_DT
+			 , RESP_END_DT
+			 , WORK_STATUS
+			 , RETRY_CNT
+			 , SEND_TEST_YN
+			 , SEND_TEST_EM
+			 , SEND_IP
+			 , CHANNEL
+			 , RTY_TYP
+			 , RTY_TASK_NO
+			 , RTY_SUB_TASK_NO
+			 , RTY_CODE			 
+		  FROM NEO_SUBTASK
+		 WHERE TASK_NO     = #{taskNo}
+		   AND SUB_TASK_NO = #{subTaskNo}
+	</select>
+	
+	<insert id="insertTaskInfoForCopy" parameterType="taskVO">
+		INSERT INTO NEO_TASK
+		(
+			  TASK_NO
+			, PLAN_USER_ID
+			, USER_ID
+			, EXE_USER_ID
+			, MAIL_FROM_NM
+			, MAIL_FROM_EM
+			, REPLY_TO_EM
+			, RETURN_EM
+			, NM_MERGE
+			, ATT_CNT
+			, SEND_REPEAT
+			, CHANNEL
+			, RESP_LOG
+			, CONT_TY
+			, SEND_TERM_END_DT
+			, SEND_TERM_LOOP
+			, SEND_TERM_LOOP_TY
+			, SOCKET_TIMEOUT
+			, CONN_PER_CNT
+			, RETRY_CNT
+			, SEND_MODE
+			, HEADER_ENC
+			, BODY_ENC
+			, SEG_NO
+			, CAMP_TY
+			, CAMP_NO
+			, DEPT_NO
+			, CONT_FL_PATH
+			, SEND_UNIT_COST
+			, STATUS
+			, RECO_STATUS
+			, MAIL_TITLE
+			, SURVEYNO
+			, REG_ID
+			, REG_DT
+			, UP_ID
+			, UP_DT
+			, TASK_NM
+			, CHARSET
+			, RESP_YN
+			, LINK_YN
+		)
+		VALUES
+		(
+			  NEO_TASK_SEQ.NEXTVAL
+			, #{planUserId}
+			, #{userId}
+			, #{exeUserId}
+			, #{mailFromNm}
+			, #{mailFromEm}
+			, #{replyToEm}
+			, #{returnEm}
+			, #{nmMerge}
+			, #{attCnt}
+			, #{sendRepeat}
+			, #{channel}
+			, #{respLog}
+			, #{contTy}
+			, #{sendTermEndDt}
+			, #{sendTermLoop}
+			, #{sendTermLoopTy}
+			, #{socketTimeout}
+			, #{connPerCnt}
+			, #{retryCnt}
+			, #{sendMode}
+			, #{headerEnc}
+			, #{bodyEnc}
+			, #{segNo}
+			, #{campTy}
+			, #{campNo}
+			, #{deptNo}
+			, #{contFlPath}
+			, #{sendUnitCost}
+			, #{status}
+			, #{recoStatus}
+			, #{mailTitle}
+			, #{surveyno}
+			, #{regId}
+			, #{regDt}
+			, #{upId}
+			, #{upDt}
+			, #{taskNm}
+			, #{charset}
+			, #{respYn}
+			, #{linkYn}
+		)
+	</insert>
+	
+	<insert id="insertSubTaskInfoForCopy" parameterType="taskVO">
+		INSERT INTO NEO_SUBTASK
+		(
+			  SUB_TASK_NO
+			, TASK_NO
+			, SEND_DT
+			, END_DT
+			, RESP_END_DT
+			, WORK_STATUS
+			, RETRY_CNT
+			, SEND_TEST_YN
+			, SEND_TEST_EM
+			, SEND_IP
+			, CHANNEL
+			, STATUS
+		)
+		VALUES
+		(
+			  #{subTaskNo}
+			, #{taskNo}
+			, #{sendDt}
+			, #{endDt}
+			, #{respEndDt}
+			, #{workStatus}
+			, #{retryCnt}
+			, #{sendTestYn}
+			, #{sendTestEm}
+			, #{sendIp}
+			, #{channel}
+			, #{status}
+		)
+	</insert>
+	
+	<select id="getAttachList" parameterType="_int" resultType="attachVO">
+		SELECT ATT_NM
+			 , ATT_FL_PATH
+			 , TASK_NO
+			 , ATT_FL_SIZE
+			 , ATT_FL_TY
+			 , ENCRYPT_YN
+			 , ENCRYPT_KEY
+			 , ENCRYPT_TY
+		  FROM NEO_ATTACH
+		 WHERE TASK_NO = #{taskNo}
+	</select>
+	
+	<select id="getTestCustList" parameterType="testEaiUserVO" resultType="testEaiUserVO">
+		SELECT X.IF_MAKE_DATE
+			 , X.RECEV_SEQNO
+			 , X.IF_ID
+			 , X.IF_NAME
+			 , X.IF_EMAIL
+			 , NVL(X.SEND_RES_CD, 'NOT') SEND_RES_CD
+			 , X.BIZKEY
+		  FROM IF_MAIL_INFO X, NEO_CAMPAIGN Y 
+		 WHERE X.IF_CAMP_ID = Y.EAI_CAMP_NO  
+		   AND Y.CAMP_NO = #{searchIfCampId}
+		    AND NVL(X.BIZKEY, 'X' ) != 'X' 
+		   <if test="searchIfName != null and searchIfName != ''">
+		   AND X.IF_NAME LIKE '%' || #{searchIfName} || '%'
+		   </if>
+		   <if test="searchIfId != null and searchIfId != ''">
+		   AND X.IF_ID LIKE '%' || #{searchIfId} || '%' 
+		   </if>
+		   <if test="searchIfEmail != null and searchIfEmail != ''">
+		   AND X.IF_EMAIL = #{searchIfEmail} 
+		   </if>
+		 ORDER BY X.RECEV_SEQNO DESC
+	</select>
+	
+	<select id="getTestUserList" parameterType="string" resultType="testUserVO">
+		SELECT TEST_USER_NO
+			 , TEST_USER_NM
+			 , TEST_USER_EM
+			 , USER_ID
+		  FROM NEO_TEST_USER
+		 WHERE USER_ID = #{userId}
+	</select>
+	
+	<insert id="insertTestUserInfo" parameterType="testUserVO">
+		INSERT INTO NEO_TEST_USER
+		(
+			  TEST_USER_NO
+			, TEST_USER_NM
+			, TEST_USER_EM
+			, USER_ID
+		)
+		VALUES
+		(
+			  NEO_TEST_USER_SEQ.NEXTVAL
+			, #{testUserNm}
+			, #{testUserEm}
+			, #{userId}
+		)
+	</insert>
+	
+	<update id="updateTestUserInfo" parameterType="testUserVO">
+		UPDATE NEO_TEST_USER
+		   SET TEST_USER_NM = #{testUserNm}
+			 , TEST_USER_EM = #{testUserEm}
+		 WHERE TEST_USER_NO = #{testUserNo}
+	</update>
+	
+	<delete id="deleteTestUserInfo" parameterType="testUserVO">
+		DELETE FROM NEO_TEST_USER
+		 WHERE TEST_USER_NO = #{testUserNo}
+	</delete>
+	
+	<insert id="insertTaskInfoForTestSend" parameterType="taskVO">
+		INSERT INTO NEO_TASK
+		(
+			  TASK_NO
+			, PLAN_USER_ID
+			, USER_ID
+			, EXE_USER_ID
+			, MAIL_FROM_NM
+			, MAIL_FROM_EM
+			, REPLY_TO_EM
+			, RETURN_EM
+			, NM_MERGE
+			, ATT_CNT
+			, SEND_REPEAT
+			, CHANNEL
+			, RESP_LOG
+			, CONT_TY
+			, SEND_TERM_END_DT
+			, SEND_TERM_LOOP
+			, SEND_TERM_LOOP_TY
+			, SOCKET_TIMEOUT
+			, CONN_PER_CNT
+			, RETRY_CNT
+			, SEND_MODE
+			, HEADER_ENC
+			, BODY_ENC
+			, SEG_NO
+			, CAMP_TY
+			, CAMP_NO
+			, DEPT_NO
+			, CONT_FL_PATH
+			, SEND_UNIT_COST
+			, STATUS
+			, RECO_STATUS
+			, MAIL_TITLE
+			, SURVEYNO
+			, REG_ID
+			, REG_DT
+			, UP_ID
+			, UP_DT
+			, TASK_NM
+			, CHARSET
+			, RESP_YN
+		)
+		VALUES
+		(
+			  NEO_TASK_SEQ.NEXTVAL
+			, #{planUserId}
+			, #{userId}
+			, #{exeUserId}
+			, #{mailFromNm}
+			, #{mailFromEm}
+			, #{replyToEm}
+			, #{returnEm}
+			, #{nmMerge}
+			, #{attCnt}
+			, #{sendRepeat}
+			, #{channel}
+			, #{respLog}
+			, #{contTy}
+			, #{sendTermEndDt}
+			, #{sendTermLoop}
+			, #{sendTermLoopTy}
+			, #{socketTimeout}
+			, #{connPerCnt}
+			, #{retryCnt}
+			, #{sendMode}
+			, #{headerEnc}
+			, #{bodyEnc}
+			, #{segNo}
+			, #{campTy}
+			, #{campNo}
+			, #{deptNo}
+			, #{contFlPath}
+			, #{sendUnitCost}
+			, #{status}
+			, #{recoStatus}
+			, #{mailTitle}
+			, #{surveyno}
+			, #{regId}
+			, #{regDt}
+			, #{upId}
+			, #{upDt}
+			, #{taskNm}
+			, #{charset}
+			, #{respYn}
+		)
+	</insert>
+	
+	<insert id="insertSubTaskInfoForTestSend" parameterType="taskVO">
+		INSERT INTO NEO_SUBTASK
+		(
+			  SUB_TASK_NO
+			, TASK_NO
+			, SEND_DT
+			, END_DT
+			, RESP_END_DT
+			, WORK_STATUS
+			, RETRY_CNT
+			, SEND_TEST_YN
+			, SEND_TEST_EM
+			, SEND_IP
+			, CHANNEL
+			, SEND_TEST_TASK_NO
+			, SEND_TEST_SUB_TASK_NO
+			, RTY_TYP
+			, RTY_CODE
+		)
+		VALUES
+		(
+			  #{subTaskNo}
+			, #{taskNo}
+			, #{sendDt}
+			, #{endDt}
+			, #{respEndDt}
+			, #{workStatus}
+			, #{retryCnt}
+			, #{sendTestYn}
+			, #{sendTestEm}
+			, #{sendIp}
+			, #{channel}
+			, #{sendTestTaskNo}
+			, #{sendTestSubTaskNo}
+			, #{rtyTyp}
+			, #{rtyCode}
+		)
+	</insert>
+	
+	<insert id="insertTaskInfoForReSend" parameterType="taskVO">
+		INSERT INTO NEO_TASK
+		(
+			  TASK_NO
+			, PLAN_USER_ID
+			, USER_ID
+			, EXE_USER_ID
+			, MAIL_FROM_NM
+			, MAIL_FROM_EM
+			, REPLY_TO_EM
+			, RETURN_EM
+			, NM_MERGE
+			, ATT_CNT
+			, SEND_REPEAT
+			, CHANNEL
+			, RESP_LOG
+			, CONT_TY
+			, SEND_TERM_LOOP_TY
+			, SOCKET_TIMEOUT
+			, CONN_PER_CNT
+			, RETRY_CNT
+			, SEND_MODE
+			, HEADER_ENC
+			, BODY_ENC
+			, SEG_NO
+			, CAMP_TY
+			, CAMP_NO
+			, DEPT_NO
+			, CONT_FL_PATH
+			, SEND_UNIT_COST
+			, STATUS
+			, RECO_STATUS
+			, MAIL_TITLE
+			, SURVEYNO
+			, REG_ID
+			, REG_DT
+			, UP_ID
+			, UP_DT
+			, TASK_NM
+			, CHARSET
+			, RESP_YN
+			, LINK_YN
+			, TARGET_GRP_TY
+		)
+		VALUES
+		(
+			  NEO_TASK_SEQ.NEXTVAL
+			, #{planUserId}
+			, #{userId}
+			, #{exeUserId}
+			, #{mailFromNm}
+			, #{mailFromEm}
+			, #{replyToEm}
+			, #{returnEm}
+			, #{nmMerge}
+			, #{attCnt}
+			, #{sendRepeat}
+			, #{channel}
+			, #{respLog}
+			, #{contTy}
+			, #{sendTermLoopTy}
+			, #{socketTimeout}
+			, #{connPerCnt}
+			, #{retryCnt}
+			, #{sendMode}
+			, #{headerEnc}
+			, #{bodyEnc}
+			, #{segNo}
+			, #{campTy}
+			, #{campNo}
+			, #{deptNo}
+			, #{contFlPath}
+			, #{sendUnitCost}
+			, #{status}
+			, #{recoStatus}
+			, #{mailTitle}
+			, #{surveyno}
+			, #{regId}
+			, #{regDt}
+			, #{upId}
+			, #{upDt}
+			, #{taskNm}
+			, #{charset}
+			, #{respYn}
+			, #{linkYn}
+			, #{targetGrpTy}
+		)
+	</insert>
+	
+	<insert id="insertSubTaskInfoForReSend" parameterType="taskVO">
+		INSERT INTO NEO_SUBTASK
+		(
+			  SUB_TASK_NO
+			, TASK_NO
+			, SEND_DT
+			, END_DT
+			, RESP_END_DT
+			, STATUS
+			, WORK_STATUS
+			, SEND_TEST_YN
+			, RETRY_CNT
+			, SEND_IP
+			, CHANNEL
+			, RTY_TYP
+			, RTY_TASK_NO
+			, RTY_SUB_TASK_NO
+			, RTY_CODE
+		)
+		VALUES
+		(
+			  #{subTaskNo}
+			, #{taskNo}
+			, #{sendDt}
+			, #{endDt}
+			, #{respEndDt}
+			, #{status}
+			, #{workStatus}
+			, #{sendTestYn}
+			, #{retryCnt}
+			, #{sendIp}
+			, #{channel}
+			, #{rtyTyp}
+			, #{rtyTaskNo}
+			, #{rtySubTaskNo}
+			, #{rtyCode}
+		)
+	</insert>	
+	
+	<select id="getMailInfo" parameterType="taskVO" resultType="taskVO">
+		SELECT NEO_TASK.TASK_NO
+			 , NEO_TASK.PLAN_USER_ID
+			 , NEO_TASK.USER_ID
+			 , NEO_TASK.MAIL_FROM_NM
+			 , NEO_TASK.MAIL_FROM_EM
+			 , NEO_TASK.REPLY_TO_EM
+			 , NEO_TASK.RETURN_EM
+			 , NEO_TASK.NM_MERGE
+			 , NEO_TASK.ATT_CNT
+			 , NEO_TASK.SEND_REPEAT
+			 , NEO_TASK.CHANNEL
+			 , NEO_TASK.RESP_LOG
+			 , NEO_TASK.CONT_TY
+			 , NEO_TASK.SEND_TERM_END_DT
+			 , NEO_TASK.SEND_TERM_LOOP
+			 , NEO_TASK.SEND_TERM_LOOP_TY
+			 , NEO_TASK.SOCKET_TIMEOUT
+			 , NEO_TASK.CONN_PER_CNT
+			 , NEO_TASK.RETRY_CNT
+			 , NEO_TASK.SEND_MODE
+			 , NEO_TASK.HEADER_ENC
+			 , NEO_TASK.BODY_ENC
+			 , NEO_TASK.CHARSET
+			 , NEO_TASK.SEG_NO
+			 , NEO_TASK.CAMP_TY
+			 , NEO_TASK.CAMP_NO
+			 , NEO_TASK.DEPT_NO
+			 , NEO_TASK.CONT_FL_PATH
+			 , NEO_TASK.SEND_UNIT_COST
+			 , NEO_TASK.STATUS
+			 , RECO_STATUS
+			 , NEO_TASK.MAIL_TITLE
+			 , NEO_TASK.SURVEYNO
+			 , NEO_TASK.REG_ID
+			 , NEO_TASK.REG_DT
+			 , NEO_TASK.TASK_NM
+			 , NEO_TASK.RESP_YN
+			 , NEO_TASK.LINK_YN
+			 , NEO_TASK.TARGET_GRP_TY			 
+			 , NEO_SUBTASK.SUB_TASK_NO
+			 , NEO_SUBTASK.SEND_DT
+			 , NEO_SUBTASK.END_DT
+			 , NEO_SUBTASK.RESP_END_DT
+			 , NEO_SUBTASK.WORK_STATUS
+			 , NEO_SUBTASK.SEND_TEST_YN
+			 , SEND_IP
+			 , (SELECT SND_TPE_GB FROM NEO_EMAIL_CLINIC WHERE TASK_NO = NEO_TASK.TASK_NO) SND_TPE_GB
+			 , (SELECT MAIL_MKT_GB FROM NEO_MAILMKT_CHK WHERE TASK_NO = NEO_TASK.TASK_NO) MAIL_MKT_GB
+			 , (SELECT NEO_CD.CD_NM FROM NEO_MAILMKT_CHK, NEO_CD WHERE NEO_CD.CD_GRP ='C114' AND NEO_MAILMKT_CHK.MAIL_MKT_GB = NEO_CD.CD AND NEO_MAILMKT_CHK.TASK_NO = NEO_TASK.TASK_NO) MAIL_MKT_NM
+			 , CASE WHEN (SELECT COUNT(1) FROM NEO_SECUAPPROVAL_LINE WHERE TASK_NO = NEO_TASK.TASK_NO) = 0 THEN 'N' ELSE 'Y' END APPROVAL_LINE_YN
+			 , CASE WHEN (SELECT COUNT(1) FROM NEO_SECUAPPROVAL_LINE WHERE TASK_NO = NEO_TASK.TASK_NO AND RSLT_CD &gt;= '002') = 0 THEN 'N' ELSE 'Y' END APPROVAL_PROC_YN
+			 , CASE WHEN (SELECT COUNT(1) FROM NEO_SECUAPPROVAL_LINE WHERE TASK_NO = NEO_TASK.TASK_NO AND RSLT_CD = '002') = 0 THEN 'N' ELSE 'Y' END APPROVAL_PROC_APP_YN
+			 , (SELECT COUNT(TASK_NO) FROM NEO_SUBTASK WHERE SEND_TEST_YN = 'Y' AND SEND_TEST_TASK_NO =#{taskNo} AND SEND_TEST_SUB_TASK_NO = #{subTaskNo}) TEST_CNT
+			 , NEO_SEGMENT.CREATE_TY SEG_CREATE_TY
+			 , (SELECT SEG_NM FROM NEO_SEGMENT WHERE SEG_NO = NEO_TASK.SEG_NO) SEG_NM
+			 , (SELECT CAMP_NM FROM NEO_CAMPAIGN WHERE CAMP_NO = NEO_TASK.CAMP_NO) CAMP_NM
+			 , (SELECT USER_NM FROM NEO_USER WHERE USER_ID = NEO_TASK.USER_ID) USER_NM
+			 , (SELECT DEPT_NM FROM NEO_DEPT WHERE DEPT_NO = NEO_TASK.DEPT_NO) DEPT_NM			 
+		  FROM NEO_TASK
+			 , NEO_SUBTASK
+			 , NEO_SEGMENT 			 
+		 WHERE NEO_TASK.TASK_NO        = #{taskNo}
+		   AND NEO_SUBTASK.SUB_TASK_NO = #{subTaskNo}
+		   AND NEO_TASK.TASK_NO = NEO_SUBTASK.TASK_NO
+		   AND NEO_TASK.SEG_NO = NEO_SEGMENT.SEG_NO
+	</select>
+	
+	<update id="updateTaskInfo" parameterType="taskVO">
+		UPDATE NEO_TASK
+		   SET PLAN_USER_ID = #{planUserId}
+			 , USER_ID           = #{userId}
+			 , MAIL_FROM_NM      = #{mailFromNm}
+			 , MAIL_FROM_EM      = #{mailFromEm}
+			 , REPLY_TO_EM       = #{replyToEm}
+			 , RETURN_EM         = #{returnEm}
+			 , NM_MERGE          = #{nmMerge}
+			 , ATT_CNT           = #{attCnt}
+			 , SEND_REPEAT       = #{sendRepeat}
+			 , CHANNEL           = #{channel}
+			 , RESP_LOG          = #{respLog}
+			 , CONT_TY           = #{contTy}
+			 , SEND_TERM_END_DT  = #{sendTermEndDt}
+			 , SEND_TERM_LOOP    = #{sendTermLoop}
+			 , SEND_TERM_LOOP_TY = #{sendTermLoopTy}
+			 , SOCKET_TIMEOUT    = #{socketTimeout}
+			 , CONN_PER_CNT      = #{connPerCnt}
+			 , RETRY_CNT         = #{retryCnt}
+			 , SEND_MODE         = #{sendMode}
+			 , HEADER_ENC        = #{headerEnc}
+			 , BODY_ENC          = #{bodyEnc}
+			 , CHARSET           = #{charset}
+			 , SEG_NO            = #{segNo}
+			 , CAMP_TY           = #{campTy}
+			 , CAMP_NO           = #{campNo}
+			 , DEPT_NO           = #{deptNo}
+			 , CONT_FL_PATH      = #{contFlPath}
+			 , SEND_UNIT_COST    = #{sendUnitCost}
+			 , STATUS            = #{status}
+			 , RECO_STATUS       = #{recoStatus}
+			 , MAIL_TITLE        = #{mailTitle}
+			 , SURVEYNO          = #{surveyno}
+			 , UP_ID             = #{upId}
+			 , UP_DT             = #{upDt}
+			 , TASK_NM           = #{taskNm}
+			 , RESP_YN           = #{respYn}
+			 , LINK_YN           = #{linkYn}
+		 WHERE TASK_NO           = #{taskNo}
+	</update>
+	
+	<update id="updateTaskInfoDate" parameterType="taskVO">
+		UPDATE NEO_TASK
+		   SET SEND_TERM_END_DT  = #{sendTermEndDt}
+			 , SEND_TERM_LOOP    = #{sendTermLoop}
+			 , SEND_TERM_LOOP_TY = #{sendTermLoopTy}
+			 , UP_ID             = #{upId}
+			 , UP_DT             = #{upDt}
+			 , LINK_YN           = #{linkYn}
+		 WHERE TASK_NO           = #{taskNo}
+	</update>
+	
+	<update id="updateSubTaskInfo" parameterType="taskVO">
+		UPDATE NEO_SUBTASK
+		   SET SEND_DT      = #{sendDt}
+			 , RESP_END_DT  = #{respEndDt}
+			 , WORK_STATUS  = #{workStatus}
+			 , RETRY_CNT    = #{retryCnt}
+			 , SEND_TEST_YN = #{sendTestYn}
+			 , SEND_TEST_EM = #{sendTestEm}
+			 , SEND_IP      = #{sendIp}
+			 , CHANNEL      = #{channel}
+		 WHERE TASK_NO      = #{taskNo}
+		   AND SUB_TASK_NO  = #{subTaskNo}
+	</update>
+	
+	<update id="updateSubTaskInfoDate" parameterType="taskVO">
+		UPDATE NEO_SUBTASK
+		   SET SEND_DT      = #{sendDt}
+		 WHERE TASK_NO      = #{taskNo}
+		   AND SUB_TASK_NO  = #{subTaskNo}
+	</update>
+	
+	<delete id="deleteAttachInfo" parameterType="_int">
+		DELETE FROM NEO_ATTACH
+		 WHERE TASK_NO = #{taskNo}
+	</delete>
+	
+	<select id="getMailTestTaskList" parameterType="taskVO" resultType="taskVO">
+		SELECT A.SUB_TASK_NO
+			 , A.TASK_NO
+			 , A.SEND_DT
+			 , A.WORK_STATUS
+			 , B.CD_DTL WORK_STATUS_DTL
+			 , (SELECT COUNT(CUST_ID) FROM NEO_SENDTESTLOG
+			 	 WHERE TASK_NO = A.TASK_NO
+				   AND SUB_TASK_NO = A.SUB_TASK_NO
+				   AND SEND_RCODE = '000'
+				) SUC_CNT
+			 , (SELECT COUNT(CUST_ID) FROM NEO_SENDTESTLOG
+				 WHERE TASK_NO = A.TASK_NO
+				   AND SUB_TASK_NO = A.SUB_TASK_NO
+				   AND SEND_RCODE IN ('001','002','003','004','005','006','007','008','009')
+				) FAIL_CNT
+		  FROM NEO_SUBTASK A
+			 , (SELECT CD, CD_NM, CD_DTL FROM NEO_CD
+				 WHERE CD_GRP = 'C101'
+				   AND USE_YN = 'Y'
+				   AND UILANG = #{uilang}) B
+		 WHERE A.WORK_STATUS = B.CD
+		   AND A.SEND_TEST_TASK_NO = #{sendTestTaskNo}
+		   AND A.SEND_TEST_SUB_TASK_NO = #{sendTestSubTaskNo}
+		 ORDER BY A.TASK_NO DESC, A.SUB_TASK_NO DESC
+	</select>
+	
+	<select id="getMailSendHist" parameterType="taskVO" resultType="taskVO">
+	SELECT *
+		  FROM (
+				SELECT RTY_TASK_NO
+					 , TASK_NO
+					 , TASK_NM
+					 , SEND_DT
+					 , WORK_STATUS_DTL
+					 , ROW_NUMBER() OVER (ORDER BY RTY_TASK_NO ASC, SEND_DT DESC) SEQ
+					 , COUNT(1) OVER() TOTAL_COUNT
+				  FROM (
+						SELECT NVL(L.RTY_TASK_NO, 0 ) RTY_TASK_NO
+						     , L.TASK_NO
+						     , M.TASK_NM
+						     , L.SEND_DT
+						     , (SELECT CD_DTL CD_DTL FROM NEO_CD WHERE CD_GRP = 'C101' AND UILANG = #{uilang} AND CD= L.WORK_STATUS) WORK_STATUS_DTL
+						  FROM NEO_SUBTASK L
+						     , NEO_TASK M
+						     , (SELECT TASK_NO
+									 , SUB_TASK_NO
+								  FROM (
+										SELECT TASK_NO, SUB_TASK_NO
+										  FROM NEO_SUBTASK
+										 WHERE TASK_NO = #{taskNo} AND SUB_TASK_NO = #{subTaskNo}
+										 UNION ALL 
+										SELECT TASK_NO 
+											 , SUB_TASK_NO
+										  FROM NEO_SUBTASK
+										 WHERE RTY_TASK_NO = #{taskNo} AND RTY_SUB_TASK_NO =  #{subTaskNo}
+										 UNION ALL
+										SELECT TASK_NO, SUB_TASK_NO
+										  FROM NEO_SUBTASK A
+										     , (SELECT Y.RTY_TASK_NO, Y.RTY_SUB_TASK_NO 
+										          FROM NEO_TASK X,NEO_SUBTASK Y 
+										         WHERE X.TASK_NO =Y.TASK_NO 
+										           AND Y.TASK_NO = #{taskNo} 
+										           AND Y.SUB_TASK_NO =  #{subTaskNo} ) B
+										 WHERE A.RTY_TASK_NO = B.RTY_TASK_NO
+										   AND A.RTY_SUB_TASK_NO = B.RTY_SUB_TASK_NO
+										 UNION ALL
+										SELECT TASK_NO, SUB_TASK_NO
+										  FROM NEO_SUBTASK A
+										     , (SELECT Y.RTY_TASK_NO, Y.RTY_SUB_TASK_NO 
+										          FROM NEO_TASK X,NEO_SUBTASK Y 
+										         WHERE X.TASK_NO =Y.TASK_NO 
+										           AND Y.TASK_NO = #{taskNo} 
+										           AND Y.SUB_TASK_NO =  #{subTaskNo} ) B
+										 WHERE A.TASK_NO = B.RTY_TASK_NO
+										   AND A.SUB_TASK_NO = B.RTY_SUB_TASK_NO
+								  	   )
+								 GROUP BY TASK_NO, SUB_TASK_NO
+						       ) N
+						 WHERE L.TASK_NO = M.TASK_NO
+						   AND L.TASK_NO = N.TASK_NO
+						   AND L.SUB_TASK_NO = N.SUB_TASK_NO 
+					   )
+				)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	
+	<select id="getMailTestSendLogList" parameterType="taskVO" resultType="sendTestLogVO">
+		SELECT A.RETRY_CNT
+			 , A.SEND_DT
+			 , A.SEND_RCODE
+			 , A.SEND_MSG
+			 , A.CUST_EM
+			 , (SELECT CD_DESC FROM NEO_RCODE
+				 WHERE RCODE = A.SEND_RCODE
+				   AND STEP1 = '000'
+				   AND UILANG = #{uilang}) SEND_RCODE_DTL
+		  FROM NEO_SENDTESTLOG A
+		 WHERE A.TASK_NO = #{taskNo}
+		   AND A.SUB_TASK_NO = #{subTaskNo}
+	</select>
+	
+	<select id="getCampMailList" parameterType="taskVO" resultType="taskVO">
+		SELECT *
+		  FROM (
+				SELECT T1.TASK_NO
+					 , T2.SUB_TASK_NO
+					 , T2.SEND_DT
+					 , T1.TASK_NM
+					 , T1.SEG_NO
+					 , T3.SEG_NM
+					 , T1.SEND_REPEAT
+					 , (SELECT CD_NM FROM NEO_CD WHERE UILANG='000' AND CD_GRP='C017' AND CD = T1.SEND_REPEAT) SEND_REPEAT_NM
+					 , T1.CAMP_NO
+					 , T4.CAMP_NM
+					 , T1.USER_ID
+					 , T5.USER_NM
+					 , T1.STATUS
+					 , (SELECT CD_NM FROM NEO_CD WHERE UILANG='000' AND CD_GRP='C023' AND CD = T1.STATUS) STATUS_NM
+					 , T2.WORK_STATUS
+					 , T6.CD_NM WORK_STATUS_NM
+					 , T6.CD_DTL WORK_STATUS_DTL
+					 , CASE WHEN (SELECT COUNT(1) FROM NEO_SECUAPPROVAL_LINE WHERE TASK_NO = T1.TASK_NO) = 0 THEN 'N' ELSE 'Y' END APPROVAL_LINE_YN
+					 , CASE WHEN (SELECT COUNT(1) FROM NEO_SECUAPPROVAL_LINE WHERE TASK_NO = T1.TASK_NO AND RSLT_CD &gt;= '002') = 0 THEN 'N' ELSE 'Y' END APPROVAL_PROC_YN
+					 , CASE WHEN (SELECT COUNT(1) FROM NEO_SECUAPPROVAL_LINE WHERE TASK_NO = T1.TASK_NO AND RSLT_CD = '002') = 0 THEN 'N' ELSE 'Y' END APPROVAL_PROC_APP_YN
+					 , ROW_NUMBER() OVER (ORDER BY T2.SEND_DT DESC, T1.TASK_NO DESC) SEQ 
+					 , COUNT(1) OVER() TOTAL_COUNT
+				  FROM NEO_TASK T1, NEO_SUBTASK T2, NEO_SEGMENT T3, NEO_CAMPAIGN T4, NEO_USER T5, NEO_CD T6
+				 WHERE T1.TASK_NO = T2.TASK_NO
+				   AND T2.SUB_TASK_NO = (SELECT MAX(SUB_TASK_NO) FROM NEO_SUBTASK WHERE TASK_NO = T1.TASK_NO)
+				   AND T2.SEND_TEST_YN = 'N'
+				   AND T2.RTY_TYP = '000'
+				   AND T1.SEG_NO = T3.SEG_NO
+				   AND T1.CAMP_NO = T4.CAMP_NO
+				   AND T1.USER_ID = T5.USER_ID
+				   AND T2.WORK_STATUS = T6.CD
+				   AND T6.UILANG = #{uilang}
+				   AND T6.CD_GRP = 'C101'
+				   <if test='adminYn == "N"'>
+				   AND T1.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchCampNo != 0">
+				   AND T1.CAMP_NO = #{searchCampNo}
+				   </if>
+				   <if test="searchTaskNm != null and searchTaskNm != ''">
+				   AND T1.TASK_NM LIKE '%' || #{searchTaskNm} || '%'
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND T1.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchSendRepeat != null and searchSendRepeat != ''">
+				   AND T1.SEND_REPEAT = #{searchSendRepeat}
+				   </if>
+				   <if test='searchStatus != null and searchStatus != "ALL"'>
+				   AND T1.STATUS = #{searchStatus}
+				   </if>
+				   <if test="searchWorkStatus != null and searchWorkStatus != ''">
+				   		<if test='searchWorkStatus == "004"'>
+				   		AND T2.WORK_STATUS NOT IN ('000', '001', '002', '003','201','202','203')
+				   		</if>
+				   		<if test='searchWorkStatus != "004"'>
+				   			AND T2.WORK_STATUS = #{searchWorkStatus}
+				   		</if>
+				   </if>
+				   <if test="searchStartDt != null and searchStartDt != ''">
+				   AND T2.SEND_DT &gt;= #{searchStartDt} || '000000'
+				   </if>
+				   <if test="searchEndDt != null and searchEndDt != ''">
+				   AND T2.SEND_DT &lt; #{searchEndDt} || '240000'
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND T1.USER_ID = #{searchUserId}
+				   </if>
+				)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	
+	<select id="getWebAgentInfo" parameterType="_int" resultType="webAgentVO">
+		SELECT TASK_NO
+			 , ATT_NO
+			 , SOURCE_URL
+			 , SECU_ATT_YN
+			 , SECU_ATT_TYP
+			 , REG_ID
+			 , REG_DT
+			 , UP_ID
+			 , UP_DT
+		  FROM NEO_WEBAGENT
+		 WHERE TASK_NO = #{taskNo}
+	</select>
+	
+	<insert id="insertWebAgent" parameterType="webAgentVO">
+		INSERT INTO NEO_WEBAGENT
+		(
+			  TASK_NO
+			, ATT_NO
+			, SOURCE_URL
+			, SECU_ATT_YN
+			, SECU_ATT_TYP
+			, REG_ID
+			, REG_DT
+		)
+		VALUES
+		(
+			  #{taskNo}
+			, #{attNo}
+			, #{sourceUrl}
+			, #{secuAttYn}
+			, #{secuAttTyp}
+			, #{regId}
+			, #{regDt}
+		)
+	</insert>
+	
+	<update id="updateWebAgent" parameterType="webAgentVO">
+		UPDATE NEO_WEBAGENT
+		   SET SOURCE_URL = #{sourceUrl}
+			 , SECU_ATT_YN = #{secuAttYn}
+			 , SECU_ATT_TYP = #{secuAttTyp}
+			 , UP_ID       = #{upId}
+			 , UP_DT       = #{upDt}
+		 WHERE TASK_NO     = #{taskNo}
+		   AND ATT_NO      = #{attNo}
+	</update>
+	
+	<delete id="deleteWebAgent" parameterType="webAgentVO">
+		DELETE FROM NEO_WEBAGENT
+		 WHERE TASK_NO = #{taskNo}
+		   AND ATT_NO      = #{attNo}
+	</delete>
+	
+	<select id="getEmailClinicInfo" parameterType="_int" resultType="emailClinicVO">
+		SELECT TASK_NO
+			 , SND_TPE_GB
+		  FROM NEO_EMAIL_CLINIC
+		 WHERE TASK_NO = #{taskNo}
+	</select>
+	
+	<insert id="insertEmailClinic" parameterType="emailClinicVO">
+		INSERT INTO NEO_EMAIL_CLINIC
+		(
+			  TASK_NO
+			, SND_TPE_GB
+			, REG_ID
+			, REG_DT
+		)
+		VALUES
+		(
+			  #{taskNo}
+			, #{sndTpeGb}
+			, #{regId}
+			, #{regDt}
+		)
+	</insert>
+	
+	<update id="updateEmailClinic" parameterType="emailClinicVO">
+		UPDATE NEO_EMAIL_CLINIC
+		   SET SND_TPE_GB = #{sndTpeGb}
+			 , UP_ID      = #{upId}
+			 , UP_DT      = #{upDt}
+		 WHERE TASK_NO    = #{taskNo}
+	</update>
+	
+	<delete id="deleteEmailClinic" parameterType="emailClinicVO">
+		DELETE NEO_EMAIL_CLINIC
+		 WHERE TASK_NO    = #{taskNo}
+	</delete>
+	
+	<select id="getApprovalLineList" parameterType="_int" resultType="approvalLineVO">
+		SELECT TASK_NO
+			 , APPR_STEP
+			 , APPR_USER_ID
+			 , (SELECT USER_NM FROM NEO_USER WHERE USER_ID = T1.APPR_USER_ID) APPR_USER_NM
+			 , ORG_CD
+			 , (SELECT ORG_KOR_NM FROM V_NEO_ORGANIZATION WHERE ORG_CD = T1.ORG_CD) ORG_NM
+			 , POSITION_GB
+			 , JOB_GB
+			 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C105' AND CD = T1.JOB_GB) JOB_NM
+			 , APPR_DT
+			 , RSLT_CD
+			 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C103' AND CD = T1.RSLT_CD) RSLT_NM
+			 , REJECT_CD
+			 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C104' AND CD = T1.REJECT_CD) REJECT_NM
+			 , REG_ID
+			 , REG_DT
+			 , UP_DT 
+		  FROM NEO_SECUAPPROVAL_LINE T1
+		 WHERE TASK_NO = #{taskNo}
+		 ORDER BY APPR_STEP
+	</select>
+	
+	<insert id="insertApprovalLine" parameterType="approvalLineVO">
+		INSERT INTO NEO_SECUAPPROVAL_LINE
+		(
+			  TASK_NO
+			, APPR_STEP
+			, APPR_USER_ID
+			, ORG_CD
+			, POSITION_GB
+			, JOB_GB
+			, APPR_DT
+			, RSLT_CD
+			, REJECT_CD
+			, REG_ID
+			, REG_DT
+		)
+		VALUES
+		(
+			  #{taskNo}
+			, #{apprStep}
+			, #{apprUserId}
+			, #{orgCd}
+			, #{positionGb}
+			, #{jobGb}
+			, #{apprDt}
+			, #{rsltCd}
+			, #{rejectCd}
+			, #{regId}
+			, #{regDt}
+		)
+	</insert>
+	
+	<update id="updateApprovalLine" parameterType="approvalLineVO">
+		UPDATE NEO_SECUAPPROVAL_LINE
+		   SET
+			   APPR_DT   = #{apprDt}
+			 , RSLT_CD   = #{rsltCd}
+			 , REJECT_CD = #{rejectCd}
+			 , UP_ID     = #{upId}
+			 , UP_DT     = #{upDt}
+		 WHERE TASK_NO    = #{taskNo}
+		   AND APPR_STEP  = #{apprStep}
+	</update>
+	
+	<delete id="deleteApprovalLine" parameterType="_int">
+		DELETE FROM NEO_SECUAPPROVAL_LINE
+		 WHERE TASK_NO    = #{taskNo}
+	</delete>
+	
+	<!-- 발송결재팝업창 구성을 위한 쿼리 목록 -->
+	<!-- 1단계 조직 목록 -->
+	<select id="getOrgListLvl1" resultType="approvalOrgVO">
+		SELECT ORG_CD
+			 , ORG_KOR_NM ORG_NM
+			 , UP_ORG_CD
+			 , LVL_VAL
+			 , (SELECT COUNT(1) FROM V_NEO_ORGANIZATION WHERE UP_ORG_CD = A.ORG_CD) CHILD_CNT
+		  FROM V_NEO_ORGANIZATION A
+		 WHERE LVL_VAL = 1
+		   AND USE_YN = 'Y'
+		 ORDER BY ORG_CD
+	</select>
+	
+	<select id="getOrgListChild" parameterType="string" resultType="approvalOrgVO">
+		SELECT ORG_CD
+			 , ORG_KOR_NM ORG_NM
+			 , UP_ORG_CD
+			 , LVL_VAL
+			 , (SELECT COUNT(1) FROM V_NEO_ORGANIZATION WHERE UP_ORG_CD = A.ORG_CD) CHILD_CNT
+		  FROM V_NEO_ORGANIZATION A
+		 WHERE USE_YN = 'Y'
+		   AND UP_ORG_CD = #{upOrgCd}
+		 ORDER BY ORG_CD
+	</select>
+	
+	<select id="getUserListOrg" parameterType="string" resultType="UserVO">
+		SELECT T1.USER_ID
+			 , T1.USER_NM
+			 , T2.ORG_CD
+			 , T3.ORG_KOR_NM
+			 , T2.POSITION_GB
+			 , T2.JOB_GB
+			 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C105' AND CD = T2.JOB_GB) JOB_NM
+		  FROM NEO_USER T1, NEO_USERORG_MAPP T2, V_NEO_ORGANIZATION T3
+		 WHERE T1.USER_ID = T2.USER_ID
+		   AND T2.ORG_CD = T3.ORG_CD
+		   AND T1.STATUS = '000'
+		   AND T1.USE_YN = 'Y'
+		   AND T2.ORG_CD = #{orgCd}
+	</select>
+	
+	<select id="getUserListSearch" parameterType="string" resultType="UserVO">
+		SELECT T1.USER_ID
+			 , T1.USER_NM
+			 , T2.ORG_CD
+			 , T3.ORG_KOR_NM
+			 , T2.POSITION_GB
+			 , T2.JOB_GB
+			 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C105' AND CD = T2.JOB_GB) JOB_NM
+		  FROM NEO_USER T1, NEO_USERORG_MAPP T2, V_NEO_ORGANIZATION T3
+		 WHERE T1.USER_ID = T2.USER_ID
+		   AND T2.ORG_CD = T3.ORG_CD
+		   AND T1.STATUS = '000'
+		   AND T1.USE_YN = 'Y'
+		   AND T1.USER_NM LIKE '%' || #{searchUserNm} || '%'
+	</select>
+	
+	<select id="getMailTestList" parameterType="taskVO" resultType="taskVO">
+		SELECT *
+		  FROM (
+				SELECT T1.TASK_NO
+					 , T2.SUB_TASK_NO
+					 , T2.SEND_DT
+					 , T1.TASK_NM
+					 , T1.EXE_USER_ID
+					 , T3.USER_NM
+					 , T1.SEND_REPEAT
+					 , (SELECT CD_NM FROM NEO_CD WHERE CD_GRP = 'C017' AND UILANG = '000' AND CD = T1.SEND_REPEAT) SEND_REPEAT_NM
+					 , (SELECT COUNT(1) FROM NEO_SENDTESTLOG WHERE TASK_NO = T2.TASK_NO AND SUB_TASK_NO = T2.SUB_TASK_NO AND SEND_RCODE = '000') SUC_CNT
+					 , (SELECT COUNT(1) FROM NEO_SENDTESTLOG WHERE TASK_NO = T2.TASK_NO AND SUB_TASK_NO = T2.SUB_TASK_NO AND SEND_RCODE != '000') FAIL_CNT
+					 , ROW_NUMBER() OVER (ORDER BY T2.SEND_DT DESC) SEQ
+					 , COUNT(1) OVER () TOTAL_COUNT
+				  FROM NEO_TASK T1, NEO_SUBTASK T2, NEO_USER T3
+				 WHERE T1.TASK_NO = T2.TASK_NO
+				   AND T1.EXE_USER_ID = T3.USER_ID
+				   AND T2.SEND_TEST_YN = 'Y'
+				   <if test='adminYn == "N"'>
+				   AND T1.DEPT_NO = #{deptNo}
+				   </if>
+				   <if test="searchStartDt != null and searchStartDt != ''">
+				   AND T2.SEND_DT &gt;= #{searchStartDt} || '000000'
+				   </if>
+				   <if test="searchEndDt != null and searchEndDt != ''">
+				   AND T2.SEND_DT &lt; #{searchEndDt} || '240000'
+				   </if>
+				   <if test="searchTaskNm != null and searchTaskNm != ''">
+				   AND T1.TASK_NM LIKE '%' || #{searchTaskNm} || '%'
+				   </if>
+				   <if test="searchSendRepeat != null and searchSendRepeat != ''">
+				   AND T1.SEND_REPEAT = #{searchSendRepeat}
+				   </if>
+				)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	
+	<select id="getSubTaskList" parameterType="taskVO" resultType="taskVO">
+		SELECT *
+		  FROM (
+				SELECT T1.TASK_NO
+					 , T2.SUB_TASK_NO
+					 , T2.SEND_DT
+					 , T2.END_DT
+					 , T1.TASK_NM
+					 , T1.CAMP_NO
+					 , T3.CAMP_NM
+					 , T1.SEG_NO
+					 , T4.SEG_NM
+					 , T1.USER_ID
+					 , T5.USER_NM
+					 , T2.WORK_STATUS
+					 , T6.CD_NM WORK_STATUS_NM
+					 , T6.CD_DTL WORK_STATUS_DTL
+					 , CASE WHEN (SELECT COUNT(1) FROM NEO_SECUAPPROVAL_LINE WHERE TASK_NO = T1.TASK_NO AND RSLT_CD = '002') = 0 THEN 'N' ELSE 'Y' END APPROVAL_PROC_APP_YN
+					 , ROW_NUMBER() OVER (ORDER BY T2.SEND_DT DESC, T2.SUB_TASK_NO DESC) SEQ
+					 , COUNT(1) OVER () TOTAL_COUNT
+				  FROM NEO_TASK T1, NEO_SUBTASK T2, NEO_CAMPAIGN T3, NEO_SEGMENT T4, NEO_USER T5, NEO_CD T6
+				 WHERE T1.TASK_NO = T2.TASK_NO
+				   AND T1.CAMP_NO = T3.CAMP_NO
+				   AND T1.SEG_NO = T4.SEG_NO
+				   AND T1.USER_ID = T5.USER_ID
+				   AND T1.TASK_NO = #{taskNo}
+				   AND T2.WORK_STATUS = T6.CD
+				   AND T6.UILANG = #{uilang}
+				   AND T6.CD_GRP = 'C101'
+				   <if test="searchStartDt != null and searchStartDt != ''">
+				   AND T2.SEND_DT &gt;= #{searchStartDt} || '000000'
+				   </if>
+				   <if test="searchEndDt != null and searchEndDt != ''">
+				   AND T2.SEND_DT &lt; #{searchEndDt} || '240000'
+				   </if>
+				)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	
+	<select id="getMailTestResultList" parameterType="taskVO" resultType="sendLogVO">
+		SELECT *
+		  FROM (
+				SELECT CUST_NM
+					 , CUST_ID
+					 , CUST_EM
+					 , CASE WHEN SEND_RCODE = '000' THEN 1 ELSE 0 END SUCC_CNT
+					 , CASE WHEN SEND_RCODE = '000' THEN 0 ELSE 1 END FAIL_CNT					 
+					 , (SELECT CD_DESC FROM NEO_RCODE WHERE RCODE = X.SEND_RCODE AND STEP1='000' AND STEP2='000' AND STEP3='000' AND KIND='000' AND UILANG ='000' ) FAIL_DESC 
+					 , ROW_NUMBER() OVER (ORDER BY CUST_NM, CUST_ID) SEQ
+					 , COUNT(1) OVER () TOTAL_COUNT
+				  FROM NEO_SENDTESTLOG X
+				 WHERE TASK_NO     = #{taskNo}
+				   AND SUB_TASK_NO = #{subTaskNo}
+				)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	
+	<select id="getMailPeriod" parameterType="_int" resultType="taskVO">
+		SELECT MIN(SEND_DT) SEARCH_START_DT
+			 , MAX(SEND_DT) SEARCH_END_DT
+		  FROM NEO_SUBTASK X
+		 WHERE TASK_NO = #{taskNo} 
+	</select>
+		
+	<select id="getMailMktChkInfo" parameterType="_int" resultType="mailMktChkVO">
+		SELECT TASK_NO
+			 , MAIL_MKT_GB
+		  FROM NEO_MAILMKT_CHK
+		 WHERE TASK_NO = #{taskNo}
+	</select>
+	<insert id="insertMailMktChkInfo" parameterType="mailMktChkVO">
+		INSERT INTO NEO_MAILMKT_CHK
+		(
+			  TASK_NO
+			, MAIL_MKT_GB
+			, REG_ID
+			, REG_DT
+		)
+		VALUES
+		(
+			  #{taskNo}
+			, #{mailMktGb}
+			, #{regId}
+			, #{regDt}
+		)
+	</insert>
+	
+	<update id="updateMailMktChkInfo" parameterType="mailMktChkVO">
+		UPDATE NEO_MAILMKT_CHK
+		   SET MAIL_MKT_GB = #{mailMktGb}
+			 , UP_ID       = #{upId}
+			 , UP_DT       = #{upDt}
+		 WHERE TASK_NO     = #{taskNo}
+	</update>
+	
+	<delete id="deleteMailMktChkInfo" parameterType="_int">
+		DELETE FROM NEO_MAILMKT_CHK
+		 WHERE TASK_NO     = #{taskNo}
+	</delete>
+
+</mapper>

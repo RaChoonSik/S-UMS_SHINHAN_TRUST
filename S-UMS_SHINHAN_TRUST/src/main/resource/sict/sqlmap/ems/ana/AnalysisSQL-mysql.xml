@@ -1,0 +1,4523 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.sict.ums.ems.ana.dao.AnalysisMapper">
+
+	<select id="getMailList" parameterType="taskVO" resultType="taskVO">
+		SELECT *
+		  FROM (
+				SELECT SUB_TASK_NO
+					 , SEND_DT
+					 , END_DT
+					 , WORK_STATUS
+					 , TASK_NO
+					 , TASK_NM
+					 , CHANNEL
+					 , SEND_REPEAT
+					 , STATUS
+					 , SEG_NO
+					 , SEND_TERM_END_DT
+					 , SEND_TERM_LOOP
+					 , REG_DT
+					 , CONT_FL_PATH
+					 , SURVEYNO
+					 , SEG_NM
+					 , USER_NM
+					 , CAMP_NM
+					 , CHANNEL_NM
+					 , SEND_REPEAT_NM
+					 , STATUS_NM
+					 , TOTAL_COUNT
+				  FROM (
+						SELECT 'X' JOIN_COL
+							 , A.SUB_TASK_NO
+							 , A.SEND_DT
+							 , A.END_DT
+							 , A.WORK_STATUS
+							 , B.TASK_NO
+							 , B.TASK_NM
+							 , B.CHANNEL
+							 , B.SEND_REPEAT
+							 , B.STATUS
+							 , B.SEG_NO
+							 , B.SEND_TERM_END_DT
+							 , B.SEND_TERM_LOOP
+							 , B.REG_DT
+							 , B.CONT_FL_PATH
+							 , B.SURVEYNO
+							 , C.SEG_NM
+							 , D.USER_NM
+							 , E.CAMP_NM
+							 , F.CD_NM CHANNEL_NM
+							 , G.CD_NM SEND_REPEAT_NM
+							 , H.CD_NM STATUS_NM 
+						  FROM NEO_SUBTASK A
+							 , NEO_TASK B
+							 , NEO_SEGMENT C
+							 , NEO_USER D
+							 , NEO_CAMPAIGN E
+							 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C002' AND UILANG = '000') F
+							 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C017' AND UILANG = '000') G
+							 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C101' AND UILANG = '000') H
+						 WHERE A.SEND_TEST_YN != 'Y'
+						   AND A.WORK_STATUS IN ('002','003')
+						   AND A.TASK_NO = B.TASK_NO
+						   AND B.SEG_NO = C.SEG_NO
+						   AND B.USER_ID = D.USER_ID
+						   AND B.CAMP_NO = E.CAMP_NO
+						   AND B.CHANNEL = F.CD
+						   AND B.SEND_REPEAT = G.CD
+						   AND A.WORK_STATUS = H.CD
+						   AND B.SEND_REPEAT = '000'	<!-- 일회성 메일 제한 -->
+						   <if test="searchTaskNm != null and searchTaskNm != ''">
+						   AND UPPER(B.TASK_NM) LIKE CONCAT('%',#{searchTaskNm},'%')
+						   </if>
+						   <if test='adminYn == "N"'>
+						   AND B.DEPT_NO = #{searchDeptNo}
+						   </if>
+						   <if test="searchDeptNo != 0">
+						   AND B.DEPT_NO = #{searchDeptNo}
+						   </if>
+						   <if test="searchUserId != null and searchUserId != ''">
+						   AND B.USER_ID = #{searchUserId}
+						   </if>
+						   <if test="searchCampNo != 0">
+						   AND B.CAMP_NO = #{searchCampNo}
+						   </if>
+						   <if test="searchSegNo != 0">
+						   AND B.SEG_NO = #{searchSegNo}
+						   </if>
+						   <if test="searchStartDt != null and searchStartDt != ''">
+						   AND A.SEND_DT &gt;= CONCAT(#{searchStartDt},'000000')
+						   </if>
+						   <if test="searchEndDt != null and searchEndDt != ''">
+						   AND A.SEND_DT &lt; CONCAT(#{searchEndDt},'240000')
+						   </if>
+						   <if test="taskNo != 0">
+						   AND B.TASK_NO = #{taskNo}
+						   </if>
+						) TT1,
+						(
+						SELECT 'X' JOIN_COL
+							 , COUNT(*) TOTAL_COUNT
+						  FROM NEO_SUBTASK A
+							 , NEO_TASK B
+							 , NEO_SEGMENT C
+							 , NEO_USER D
+							 , NEO_CAMPAIGN E
+							 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C002' AND UILANG = '000') F
+							 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C017' AND UILANG = '000') G
+							 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C101' AND UILANG = '000') H
+						 WHERE A.SEND_TEST_YN != 'Y'
+						   AND A.WORK_STATUS IN ('002','003')
+						   AND A.TASK_NO = B.TASK_NO
+						   AND B.SEG_NO = C.SEG_NO
+						   AND B.USER_ID = D.USER_ID
+						   AND B.CAMP_NO = E.CAMP_NO
+						   AND B.CHANNEL = F.CD
+						   AND B.SEND_REPEAT = G.CD
+						   AND A.WORK_STATUS = H.CD
+						   AND B.SEND_REPEAT = '000'	<!-- 일회성 메일 제한 -->
+						   <if test="searchTaskNm != null and searchTaskNm != ''">
+						   AND UPPER(B.TASK_NM) LIKE CONCAT('%',#{searchTaskNm},'%')
+						   </if>
+						   <if test='adminYn == "N"'>
+						   AND B.DEPT_NO = #{searchDeptNo}
+						   </if>
+						   <if test="searchDeptNo != 0">
+						   AND B.DEPT_NO = #{searchDeptNo}
+						   </if>
+						   <if test="searchUserId != null and searchUserId != ''">
+						   AND B.USER_ID = #{searchUserId}
+						   </if>
+						   <if test="searchCampNo != 0">
+						   AND B.CAMP_NO = #{searchCampNo}
+						   </if>
+						   <if test="searchSegNo != 0">
+						   AND B.SEG_NO = #{searchSegNo}
+						   </if>
+						   <if test="searchStartDt != null and searchStartDt != ''">
+						   AND A.SEND_DT &gt;= CONCAT(#{searchStartDt},'000000')
+						   </if>
+						   <if test="searchEndDt != null and searchEndDt != ''">
+						   AND A.SEND_DT &lt; CONCAT(#{searchEndDt},'240000')
+						   </if>
+						   <if test="taskNo != 0">
+						   AND B.TASK_NO = #{taskNo}
+						   </if>
+						) TT2
+				 WHERE TT1.JOIN_COL = TT2.JOIN_COL
+				 ORDER BY TT1.SEND_DT DESC, TT1.TASK_NO DESC, TT1.SUB_TASK_NO DESC
+			) TTT
+		 LIMIT #{startRow}, #{rows}
+	</select>
+	
+	<select id="getMailInfo" parameterType="taskVO" resultType="taskVO">
+		SELECT A.TASK_NO
+			 , D.SUB_TASK_NO
+			 , A.MAIL_TITLE
+			 , A.TASK_NM
+			 , A.MAIL_TITLE
+			 , B.CAMP_NM
+			 , C.SEG_NM
+			 , D.SEND_DT
+			 , D.END_DT
+			 , E.CD_NM CAMP_TY
+			 , A.SEND_REPEAT
+		  FROM NEO_TASK A
+			 , NEO_CAMPAIGN B
+			 , NEO_SEGMENT C
+			 , NEO_SUBTASK D
+			 , (SELECT CD, CD_NM FROM NEO_CD
+				 WHERE CD_GRP = 'C004' AND UILANG = #{uilang} AND USE_YN = 'Y') E
+		 WHERE A.CAMP_NO = B.CAMP_NO
+		   AND A.SEG_NO = C.SEG_NO
+		   AND A.TASK_NO = D.TASK_NO
+		   AND A.TASK_NO = #{taskNo}
+		   AND D.SUB_TASK_NO = #{subTaskNo}
+		   AND A.CAMP_TY = E.CD
+	</select>
+	
+	<select id="getMailSummResult" parameterType="taskVO" resultType="mailSummVO">
+		SELECT SEND_CNT
+			 , SUCC_CNT
+			 , (SEND_CNT - SUCC_CNT) AS FAIL_CNT
+			 , OPEN_CNT
+			 , VALID_CNT
+			 , CLICK_CNT
+			 , BLOCK_CNT
+		FROM	(
+					SELECT IFNULL(SUM(SEND_AR_AMT),0) SEND_CNT
+						 , IFNULL(SUM(CASE WHEN SEND_RCODE = '000' THEN SEND_AR_AMT ELSE 0 END),0) SUCC_CNT
+					  FROM NEO_AR_SENDLOG
+					 WHERE TASK_NO = #{taskNo}
+					   AND SUB_TASK_NO = #{subTaskNo}
+				) A,
+				(
+					SELECT IFNULL(SUM(RESP_AR_AMT),0) OPEN_CNT
+						 , IFNULL(SUM(CASE WHEN BLOCKED_YN = 'Y' THEN RESP_AR_AMT ELSE 0 END),0) BLOCK_CNT
+					  FROM NEO_AR_RESPLOG
+					 WHERE TASK_NO = #{taskNo}
+					   AND SUB_TASK_NO = #{subTaskNo}
+				) B,
+				(
+					SELECT IFNULL(SUM(CLICK_AR_AMT),0) CLICK_CNT
+						 , IFNULL(SUM(VALID_AR_AMT),0) VALID_CNT
+					  FROM NEO_AR_LINKLOG
+					 WHERE TASK_NO = #{taskNo}
+					   AND SUB_TASK_NO = #{subTaskNo}
+				) D
+	</select>
+	
+	<select id="getMailSummDetail" parameterType="taskVO" resultType="mailErrorVO">
+		SELECT A.STEP1
+			 , A.STEP2
+			 , IFNULL(B.SEND_AR_AMT,0) AS CNT_STEP2
+			 , A.CD_DESC AS NM_STEP2
+		  FROM	(
+					SELECT STEP1, STEP2, CD_DESC 
+					  FROM NEO_RCODE WHERE KIND = '002' AND UILANG = #{uilang}
+				) A
+				LEFT OUTER JOIN
+				(
+					SELECT RCODE_STEP1, RCODE_STEP2, SUM(SEND_AR_AMT) AS SEND_AR_AMT
+					  FROM NEO_AR_SENDLOG
+					 WHERE SEND_RCODE != '000'
+					   AND TASK_NO = #{taskNo}
+					   AND SUB_TASK_NO = #{subTaskNo}
+					 GROUP BY RCODE_STEP1, RCODE_STEP2
+				) B
+				ON A.STEP1 = B.RCODE_STEP1
+				AND A.STEP2 = B.RCODE_STEP2
+		 ORDER BY A.STEP1, A.STEP2
+	</select>
+	
+	<select id="getFailList" parameterType="sendLogVO" resultType="sendLogVO">
+		SELECT *
+		  FROM (
+				SELECT CUST_ID
+					 , CUST_EM
+					 , CUST_NM
+					 , RETRY_CNT
+					 , SEND_DT
+					 , SEND_MSG
+					 , TOTAL_COUNT
+				  FROM (
+						SELECT 'X' JOIN_COL
+							 , A.CUST_ID
+							 , A.CUST_EM
+							 , A.CUST_NM
+							 , A.RETRY_CNT
+							 , A.SEND_DT
+							 , A.SEND_MSG 
+						  FROM (
+						  		SELECT SUB_TASK_NO, CUST_ID, CUST_EM, CUST_NM, RETRY_CNT, SEND_DT, SEND_MSG
+								  FROM NEO_SENDLOG
+								 WHERE TASK_NO = #{taskNo}
+								   AND SEND_RCODE != '000'
+								   <if test="subTaskNo != 0">
+								   AND SUB_TASK_NO = #{subTaskNo}
+								   </if>
+								   <if test="step1 != null and step1 != ''">
+								   AND RCODE_STEP1 = #{step1}
+								   </if>
+								   <if test="step2 != null and step2 != ''">
+								   AND RCODE_STEP2 = #{step2}
+								   </if>
+								   <if test="step3 != null and step3 != ''">
+								   AND RCODE_STEP3 = #{step3}
+								   </if>
+								   <if test="domain != null and domain != ''">
+								   AND CUST_DOMAIN = #{domain}
+								   </if>
+								) A
+								JOIN
+								(
+								SELECT SUB_TASK_NO, CUST_ID, CUST_EM, CUST_NM, MAX(RETRY_CNT) AS MAX_RETRY_CNT
+								  FROM NEO_SENDLOG
+								 WHERE TASK_NO = #{taskNo}
+								   AND SEND_RCODE != '000'
+								   <if test="subTaskNo != 0">
+								   AND SUB_TASK_NO = #{subTaskNo}
+								   </if>
+								   <if test="step1 != null and step1 != ''">
+								   AND RCODE_STEP1 = #{step1}
+								   </if>
+								   <if test="step2 != null and step2 != ''">
+								   AND RCODE_STEP2 = #{step2}
+								   </if>
+								   <if test="step3 != null and step3 != ''">
+								   AND RCODE_STEP3 = #{step3}
+								   </if>
+								   <if test="domain != null and domain != ''">
+								   AND CUST_DOMAIN = #{domain}
+								   </if>
+								 GROUP BY SUB_TASK_NO, CUST_ID, CUST_EM, CUST_NM
+								) B
+							 ON A.CUST_ID = B.CUST_ID
+							AND A.CUST_EM = B.CUST_EM
+							AND A.CUST_NM = B.CUST_NM
+							AND A.RETRY_CNT = B.MAX_RETRY_CNT
+						) TT1,
+						(
+						SELECT 'X' JOIN_COL
+							 , COUNT(*) TOTAL_COUNT  
+						  FROM (
+						  		SELECT SUB_TASK_NO, CUST_ID, CUST_EM, CUST_NM, RETRY_CNT, SEND_DT, SEND_MSG
+								  FROM NEO_SENDLOG
+								 WHERE TASK_NO = #{taskNo}
+								   AND SEND_RCODE != '000'
+								   <if test="subTaskNo != 0">
+								   AND SUB_TASK_NO = #{subTaskNo}
+								   </if>
+								   <if test="step1 != null and step1 != ''">
+								   AND RCODE_STEP1 = #{step1}
+								   </if>
+								   <if test="step2 != null and step2 != ''">
+								   AND RCODE_STEP2 = #{step2}
+								   </if>
+								   <if test="step3 != null and step3 != ''">
+								   AND RCODE_STEP3 = #{step3}
+								   </if>
+								   <if test="domain != null and domain != ''">
+								   AND CUST_DOMAIN = #{domain}
+								   </if>
+								) C
+								JOIN
+								(
+								SELECT SUB_TASK_NO, CUST_ID, CUST_EM, CUST_NM, MAX(RETRY_CNT) AS MAX_RETRY_CNT
+								  FROM NEO_SENDLOG
+								 WHERE TASK_NO = #{taskNo}
+								   AND SEND_RCODE != '000'
+								   <if test="subTaskNo != 0">
+								   AND SUB_TASK_NO = #{subTaskNo}
+								   </if>
+								   <if test="step1 != null and step1 != ''">
+								   AND RCODE_STEP1 = #{step1}
+								   </if>
+								   <if test="step2 != null and step2 != ''">
+								   AND RCODE_STEP2 = #{step2}
+								   </if>
+								   <if test="step3 != null and step3 != ''">
+								   AND RCODE_STEP3 = #{step3}
+								   </if>
+								   <if test="domain != null and domain != ''">
+								   AND CUST_DOMAIN = #{domain}
+								   </if>
+								 GROUP BY SUB_TASK_NO, CUST_ID, CUST_EM, CUST_NM
+								) D
+							 ON A.CUST_ID = B.CUST_ID
+							AND A.CUST_EM = B.CUST_EM
+							AND A.CUST_NM = B.CUST_NM
+							AND A.RETRY_CNT = B.MAX_RETRY_CNT
+						) TT2
+				 WHERE TT1.JOIN_COL = TT2.JOIN_COL
+				 ORDER BY TT1.CUST_ID, TT1.CUST_EM, TT1.CUST_NM
+			) TTT
+		 LIMIT #{startRow}, #{rows}
+	</select>
+	
+	<select id="getMailErrorList" parameterType="taskVO" resultType="mailErrorVO">
+		SELECT AA.STEP1
+			 , AA.NM_STEP1
+			 , AA.CNT_STEP1
+			 , CASE WHEN AA.STEP1 = '001' THEN 6 ELSE 8 END <!-- COUNT(1) OVER (PARTITION BY AA.STEP1) --> STEP1_ROWSPAN
+			 , BB.STEP2
+			 , BB.NM_STEP2
+			 , BB.CNT_STEP2
+			 , 1 <!-- COUNT(1) OVER (PARTITION BY AA.STEP1, BB.STEP2) --> STEP2_ROWSPAN
+			 , CC.RCODE_STEP3 AS STEP3
+			 , IFNULL(CC.NM_STEP3,'') AS NM_STEP3
+			 , IFNULL(CC.CNT_STEP3,0) AS CNT_STEP3
+		  FROM (
+				SELECT A.STEP1, IFNULL(B.SEND_AR_AMT,0) AS CNT_STEP1, A.CD_DESC AS NM_STEP1
+				  FROM (SELECT STEP1, CD_DESC FROM NEO_RCODE WHERE KIND = '001' AND UILANG = #{uilang}) A
+				  		LEFT OUTER JOIN
+						(
+						SELECT RCODE_STEP1, SUM(SEND_AR_AMT) AS SEND_AR_AMT FROM NEO_AR_SENDLOG
+						 WHERE SEND_RCODE != '000'
+						   AND TASK_NO = #{taskNo}
+						   AND SUB_TASK_NO = #{subTaskNo}
+						 GROUP BY RCODE_STEP1
+						) B
+				 		ON A.STEP1 = B.RCODE_STEP1
+				) AA
+				INNER JOIN
+				(
+				SELECT A.STEP1, A.STEP2, IFNULL(B.SEND_AR_AMT,0) AS CNT_STEP2, A.CD_DESC AS NM_STEP2
+				  FROM (SELECT STEP1, STEP2, CD_DESC FROM NEO_RCODE WHERE KIND = '002' AND UILANG = #{uilang}) A
+				  		LEFT OUTER JOIN
+						(
+						SELECT RCODE_STEP1, RCODE_STEP2, SUM(SEND_AR_AMT) AS SEND_AR_AMT FROM NEO_AR_SENDLOG
+						 WHERE SEND_RCODE != '000'
+						   AND TASK_NO = #{taskNo}
+						   AND SUB_TASK_NO = #{subTaskNo}
+						 GROUP BY RCODE_STEP1, RCODE_STEP2
+						) B
+				 		ON A.STEP1 = B.RCODE_STEP1 AND A.STEP2 = B.RCODE_STEP2
+				) BB
+				ON AA.STEP1 = BB.STEP1
+				LEFT OUTER JOIN
+				(
+				SELECT RCODE_STEP1, RCODE_STEP2, RCODE_STEP3, SUM(CNT_STEP3) AS CNT_STEP3, NM_STEP3
+				  FROM (
+				  		SELECT A.RCODE_STEP1, A.RCODE_STEP2, A.RCODE_STEP3, IFNULL(A.SEND_AR_AMT,0) AS CNT_STEP3, IFNULL(B.CD_DESC, 'Etc') AS NM_STEP3
+						  FROM (
+								SELECT RCODE_STEP1, RCODE_STEP2, RCODE_STEP3, SUM(SEND_AR_AMT) AS SEND_AR_AMT FROM NEO_AR_SENDLOG
+								 WHERE SEND_RCODE != '000'
+								   AND TASK_NO = #{taskNo}
+								   AND SUB_TASK_NO = #{subTaskNo}
+								 GROUP BY RCODE_STEP1, RCODE_STEP2, RCODE_STEP3
+								) A
+								LEFT OUTER JOIN
+								(SELECT STEP1, STEP2, STEP3, CD_DESC FROM NEO_RCODE WHERE KIND = '003' AND UILANG = #{uilang}) B
+						 		ON A.RCODE_STEP1 = B.STEP1 AND A.RCODE_STEP2 = B.STEP2 AND A.RCODE_STEP3 = B.STEP3
+						) C
+				 GROUP BY RCODE_STEP1, RCODE_STEP2, RCODE_STEP3, NM_STEP3
+				 ) CC
+				 ON BB.STEP1 = CC.RCODE_STEP1
+				 AND BB.STEP2 = CC.RCODE_STEP2
+		 ORDER BY AA.STEP1, BB.STEP2, CC.RCODE_STEP3
+	</select>
+	
+	<select id="getMailDomainList" parameterType="taskVO" resultType="mailDomainVO">
+		SELECT CUST_DOMAIN DOMAIN_NM
+			 , SUM(SEND_AR_AMT) AS SEND_CNT
+			 , SUM(CASE WHEN SEND_RCODE = '000' THEN SEND_AR_AMT ELSE 0 END) AS SUCC_CNT
+			 , SUM(CASE WHEN (SEND_RCODE != '000' AND RCODE_STEP1 = '002') THEN SEND_AR_AMT ELSE 0 END) AS ERROR_CNT
+		  FROM NEO_AR_DOMAINLOG
+		 WHERE TASK_NO = #{taskNo}
+		   AND SUB_TASK_NO = #{subTaskNo}
+		 GROUP BY CUST_DOMAIN
+		 ORDER BY SUM(SEND_AR_AMT) DESC
+	</select>
+	
+	<select id="getMailSendHourList" parameterType="taskVO" resultType="sendLogVO">
+		SELECT *
+		  FROM (
+				SELECT SEND_TIME
+					 , SEND_CNT
+					 , SUCC_CNT
+					 , TOTAL_COUNT
+				  FROM (
+						SELECT 'X' JOIN_COL
+							 , SUBSTRING(A.SEND_DT,1,10) AS SEND_TIME
+							 , IFNULL(SUM(SEND_AR_AMT), 0) AS SEND_CNT
+							 , IFNULL(SUM((CASE WHEN A.SEND_RCODE = '000' THEN A.SEND_AR_AMT END)), 0) AS SUCC_CNT
+						  FROM NEO_AR_SENDLOG A
+						 WHERE A.TASK_NO = #{taskNo}
+						   AND A.SUB_TASK_NO = #{subTaskNo}
+						 GROUP BY SUBSTRING(A.SEND_DT,1,10)
+						) TT1,
+						(
+						SELECT 'X' JOIN_COL
+							 , COUNT(*) TOTAL_COUNT
+						  FROM NEO_AR_SENDLOG A
+						 WHERE A.TASK_NO = #{taskNo}
+						   AND A.SUB_TASK_NO = #{subTaskNo}
+						 GROUP BY SUBSTRING(A.SEND_DT,1,10)
+						) TT2
+				 WHERE TT1.JOIN_COL = TT2.JOIN_COL
+				 ORDER BY TT1.SEND_TIME
+			) TTT
+		 LIMIT #{startRow}, #{rows}
+	</select>
+	
+	<select id="getMailSendHourSum" parameterType="taskVO" resultType="sendLogVO">
+		SELECT CASE WHEN SUM(SEND_AR_AMT) IS NULL THEN 0 ELSE SUM(SEND_AR_AMT) END AS SEND_CNT
+			 , CASE WHEN SUM((CASE WHEN A.SEND_RCODE = '000' THEN A.SEND_AR_AMT END)) IS NULL THEN 0 ELSE SUM((CASE WHEN A.SEND_RCODE = '000' THEN A.SEND_AR_AMT END)) END AS SUCC_CNT
+		  FROM NEO_AR_SENDLOG A
+		 WHERE A.TASK_NO = #{taskNo}
+		   AND A.SUB_TASK_NO = #{subTaskNo}
+	</select>
+	
+	<select id="getMailRespHourList" parameterType="taskVO" resultType="respLogVO">
+		SELECT *
+		  FROM (
+				SELECT RESP_TIME
+					 , SUCC_CNT
+					 , OPEN_CNT
+					 , CLICK_CNT
+					 , VALID_CNT
+					 , BLOCK_CNT
+					 , TOTAL_COUNT
+				  FROM (
+						SELECT 'X' JOIN_COL
+							 , RESP_TIME
+							 , SUCC_CNT
+							 , OPEN_CNT
+							 , CLICK_CNT
+							 , VALID_CNT
+							 , BLOCK_CNT
+						  FROM (
+								SELECT IFNULL(SUM(SEND_AR_AMT),0) AS SUCC_CNT FROM NEO_AR_SENDLOG
+								 WHERE TASK_NO = #{taskNo}
+								   AND SUB_TASK_NO = #{subTaskNo}
+								   AND SEND_RCODE = '000'
+							   ) T2, 
+							   (
+								SELECT RESP_TIME, IFNULL(SUM(OPEN_CNT),0) AS OPEN_CNT, IFNULL(SUM(CLICK_CNT),0) AS CLICK_CNT, IFNULL(SUM(VALID_CNT),0) AS VALID_CNT, IFNULL(SUM(BLOCK_CNT),0) AS BLOCK_CNT
+								  FROM (
+										SELECT SUBSTRING(AA.OPEN_DT,1,10) RESP_TIME
+											 , IFNULL(SUM(AA.RESP_AR_AMT),0) AS OPEN_CNT, 0 AS CLICK_CNT, 0 AS VALID_CNT
+											 , IFNULL(SUM(CASE WHEN AA.BLOCKED_YN = 'Y' THEN AA.RESP_AR_AMT ELSE 0 END),0) AS BLOCK_CNT
+										  FROM NEO_AR_RESPLOG AA
+										 WHERE AA.TASK_NO = #{taskNo}
+										   AND AA.SUB_TASK_NO = #{subTaskNo}
+										 GROUP BY SUBSTRING(AA.OPEN_DT,1,10)
+										 UNION ALL
+										SELECT SUBSTRING(AA.CLICK_DT,1,10) RESP_TIME
+											 , 0 AS OPEN_CNT
+											 , IFNULL(SUM(AA.CLICK_AR_AMT),0) AS CLICK_CNT
+											 , IFNULL(SUM(AA.VALID_AR_AMT),0) AS VALID_CNT, 0 AS BLOCK_CNT
+										  FROM NEO_AR_LINKLOG AA
+										 WHERE AA.TASK_NO = #{taskNo}
+										   AND AA.SUB_TASK_NO = #{subTaskNo}
+										 GROUP BY SUBSTRING(AA.CLICK_DT,1,10)
+									   ) T
+								 GROUP BY RESP_TIME
+							   ) T1 
+					   ) TT1,
+					   (
+						SELECT 'X' JOIN_COL
+							 , COUNT(*) TOTAL_COUNT
+						  FROM (
+								SELECT RESP_TIME, IFNULL(SUM(OPEN_CNT),0) AS OPEN_CNT, IFNULL(SUM(CLICK_CNT),0) AS CLICK_CNT, IFNULL(SUM(VALID_CNT),0) AS VALID_CNT, IFNULL(SUM(BLOCK_CNT),0) AS BLOCK_CNT
+								  FROM (
+										SELECT SUBSTRING(AA.OPEN_DT,1,10) RESP_TIME
+											 , IFNULL(SUM(AA.RESP_AR_AMT),0) AS OPEN_CNT, 0 AS CLICK_CNT, 0 AS VALID_CNT
+											 , IFNULL(SUM(CASE WHEN AA.BLOCKED_YN = 'Y' THEN AA.RESP_AR_AMT ELSE 0 END),0) AS BLOCK_CNT
+										  FROM NEO_AR_RESPLOG AA
+										 WHERE AA.TASK_NO = #{taskNo}
+										   AND AA.SUB_TASK_NO = #{subTaskNo}
+										 GROUP BY SUBSTRING(AA.OPEN_DT,1,10)
+										 UNION ALL
+										SELECT SUBSTRING(AA.CLICK_DT,1,10) RESP_TIME
+											 , 0 AS OPEN_CNT
+											 ,  IFNULL(SUM(AA.CLICK_AR_AMT),0) AS CLICK_CNT
+											 ,  IFNULL(SUM(AA.VALID_AR_AMT),0) AS VALID_CNT
+											 ,  0 AS BLOCK_CNT
+										  FROM NEO_AR_LINKLOG AA
+										 WHERE AA.TASK_NO = #{taskNo}
+										   AND AA.SUB_TASK_NO = #{subTaskNo}
+										 GROUP BY SUBSTRING(AA.CLICK_DT,1,10)
+									   ) T
+								GROUP BY RESP_TIME
+							   ) T1
+					   ) TT2
+				 WHERE TT1.JOIN_COL = TT2.JOIN_COL
+			   ) TTT
+		 LIMIT #{startRow}, #{rows}
+	</select>
+	
+	<select id="getMailRespHourSum" parameterType="taskVO" resultType="respLogVO">
+		SELECT SUCC_CNT, OPEN_CNT, CLICK_CNT, VALID_CNT, BLOCK_CNT
+		  FROM (
+				SELECT SUM(SEND_AR_AMT) AS SUCC_CNT FROM NEO_AR_SENDLOG
+				 WHERE TASK_NO = #{taskNo}
+				   AND SUB_TASK_NO = #{subTaskNo}
+				   AND SEND_RCODE = '000'
+				) X,
+				(
+				SELECT SUM(OPEN_CNT) AS OPEN_CNT, SUM(CLICK_CNT) AS CLICK_CNT, SUM(VALID_CNT) AS VALID_CNT, SUM(BLOCK_CNT) AS BLOCK_CNT
+				  FROM (
+						SELECT SUM(AA.RESP_AR_AMT) AS OPEN_CNT, 0 AS CLICK_CNT, 0 AS VALID_CNT
+							 , SUM(CASE WHEN AA.BLOCKED_YN = 'Y' THEN AA.RESP_AR_AMT ELSE 0 END) AS BLOCK_CNT
+						  FROM NEO_AR_RESPLOG AA
+						 WHERE AA.TASK_NO = #{taskNo}
+						   AND AA.SUB_TASK_NO = #{subTaskNo}
+						 UNION ALL
+						SELECT 0 AS OPEN_CNT, SUM(AA.CLICK_AR_AMT) AS CLICK_CNT, SUM(AA.VALID_AR_AMT) AS VALID_CNT, 0 AS BLOCK_CNT
+						  FROM NEO_AR_LINKLOG AA
+						 WHERE AA.TASK_NO = #{taskNo}
+						   AND AA.SUB_TASK_NO = #{subTaskNo}
+						) YY
+				 ) Y
+	</select>
+	
+	<select id="getTaskCustLogList" parameterType="sendLogVO" resultType="sendLogVO">
+		SELECT *
+		  FROM (
+				SELECT CUST_ID
+					 , SUB_TASK_NO
+					 , CUST_EM
+					 , CUST_NM
+					 , SEND_DT
+					 , SEND_RCODE
+					 , SEND_MSG
+					 , OPEN_DT
+					 , DENIED_TYPE
+					 , TOTAL_COUNT
+				<if test='searchKind == "001"'>
+				FROM (
+						SELECT CUST_ID
+							 , SUB_TASK_NO
+							 , CUST_EM
+							 , CUST_NM
+							 , SEND_DT
+							 , SEND_RCODE
+							 , SEND_MSG
+							 , OPEN_DT
+							 , DENIED_TYPE
+							 , TOTAL_COUNT
+						  FROM (
+								SELECT 'X' JOIN_COL
+									 , A.CUST_ID
+									 , A.SUB_TASK_NO
+									 , A.CUST_EM
+									 , A.CUST_NM
+									 , A.SEND_DT
+									 , A.SEND_RCODE
+									 , A.SEND_MSG
+									 , IFNULL(B.OPEN_DT, '') OPEN_DT
+									 , DENIED_TYPE
+								  FROM NEO_SENDLOG A LEFT OUTER JOIN NEO_RESPLOG B
+									   ON (A.TASK_NO = B.TASK_NO AND A.SUB_TASK_NO = B.SUB_TASK_NO AND A.CUST_ID = B.CUST_ID)
+								 WHERE A.TASK_NO = #{taskNo} 
+								   AND A.SUB_TASK_NO = #{subTaskNo} 
+								   AND A.SEND_RCODE = '000'
+								   <if test="searchCustId != null and searchCustId != ''">
+								   AND A.CUST_ID LIKE CONCAT('%', #{searchCustId}, '%')
+								   </if>
+								   <if test="searchCustEm != null and searchCustEm != ''">
+								   AND A.CUST_EM = #{searchCustEm}
+								   </if>
+								   <if test="searchCustNm != null and searchCustNm != ''">
+								   AND A.CUST_NM LIKE CONCAT('%', #{searchCustNm}, '%')
+								   </if>
+							   ) T1,
+							   (
+								SELECT 'X' JOIN_COL
+									  , COUNT(*) TOTAL_COUNT
+								  FROM NEO_SENDLOG A LEFT OUTER JOIN NEO_RESPLOG B
+									   ON (A.TASK_NO = B.TASK_NO AND A.SUB_TASK_NO = B.SUB_TASK_NO AND A.CUST_ID = B.CUST_ID)
+								 WHERE TASK_NO = #{taskNo} AND SUB_TASK_NO = #{subTaskNo} 
+								   AND A.SEND_RCODE = '000'
+								   <if test="searchCustId != null and searchCustId != ''">
+								   AND A.CUST_ID LIKE CONCAT('%', #{searchCustId}, '%')
+								   </if>
+								   <if test="searchCustEm != null and searchCustEm != ''">
+								   AND A.CUST_EM = #{searchCustEm}
+								   </if>
+								   <if test="searchCustNm != null and searchCustNm != ''">
+								   AND A.CUST_NM LIKE CONCAT('%', #{searchCustNm}, '%')
+								   </if> 
+							   ) T2
+							WHERE T1.JOIN_COL = T2.JOIN_COL 
+					 ) TT1
+				</if>
+				
+				<if test='searchKind == "002"'>
+				FROM (
+						SELECT CUST_ID
+							 , SUB_TASK_NO
+							 , CUST_EM
+							 , CUST_NM
+							 , SEND_DT
+							 , SEND_RCODE
+							 , SEND_MSG
+							 , OPEN_DT
+							 , DENIED_TYPE
+							 , TOTAL_COUNT
+						  FROM (
+								SELECT 'X' JOIN_COL
+									 , A.CUST_ID
+									 , A.SUB_TASK_NO
+									 , A.CUST_EM
+									 , A.CUST_NM
+									 , A.SEND_RCODE
+									 , A.SEND_DT
+									 , A.SEND_MSG
+									 , A.DENIED_TYPE
+									 , '' AS OPEN_DT
+								  FROM (
+										SELECT SUB_TASK_NO, CUST_ID, CUST_EM, CUST_NM, SEND_RCODE, RETRY_CNT, SEND_DT, SEND_MSG, DENIED_TYPE
+										  FROM NEO_SENDLOG
+										 WHERE TASK_NO = #{taskNo} AND SUB_TASK_NO = #{subTaskNo} 
+										) A,
+										(
+										SELECT SUB_TASK_NO, CUST_ID, CUST_EM, CUST_NM, MAX(RETRY_CNT) AS MAX_RETRY_CNT
+										  FROM NEO_SENDLOG
+										 WHERE TASK_NO = #{taskNo} AND SUB_TASK_NO = #{subTaskNo} 
+										 GROUP BY SUB_TASK_NO, CUST_ID, CUST_EM, CUST_NM
+										) B
+								 WHERE A.SUB_TASK_NO = B.SUB_TASK_NO
+								   AND A.CUST_ID = B.CUST_ID
+								   AND A.CUST_EM = B.CUST_EM
+								   AND A.CUST_NM = B.CUST_NM
+								   AND A.RETRY_CNT = B.MAX_RETRY_CNT
+								   AND SEND_RCODE != '000'
+								   <if test="searchCustId != null and searchCustId != ''">
+								   AND A.CUST_ID LIKE CONCAT('%', #{searchCustId}, '%')
+								   </if>
+								   <if test="searchCustEm != null and searchCustEm != ''">
+								   AND A.CUST_EM = #{searchCustEm}
+								   </if>
+								   <if test="searchCustNm != null and searchCustNm != ''">
+								   AND A.CUST_NM LIKE CONCAT('%', #{searchCustNm}, '%')
+								   </if>
+							   ) T1,
+							   (
+								SELECT 'X' JOIN_COL
+									  , COUNT(*) TOTAL_COUNT
+								  FROM (
+										SELECT SUB_TASK_NO, CUST_ID, CUST_EM, CUST_NM, SEND_RCODE, RETRY_CNT, SEND_DT, SEND_MSG, DENIED_TYPE
+										  FROM NEO_SENDLOG
+										 WHERE TASK_NO = #{taskNo} AND SUB_TASK_NO = #{subTaskNo} 
+										) A,
+										(
+										SELECT SUB_TASK_NO, CUST_ID, CUST_EM, CUST_NM, MAX(RETRY_CNT) AS MAX_RETRY_CNT
+										  FROM NEO_SENDLOG
+										 WHERE TASK_NO = #{taskNo} AND SUB_TASK_NO = #{subTaskNo}  
+										 GROUP BY SUB_TASK_NO, CUST_ID, CUST_EM, CUST_NM
+										) B
+								 WHERE A.SUB_TASK_NO = B.SUB_TASK_NO
+								   AND A.CUST_ID = B.CUST_ID
+								   AND A.CUST_EM = B.CUST_EM
+								   AND A.CUST_NM = B.CUST_NM
+								   AND A.RETRY_CNT = B.MAX_RETRY_CNT
+								   AND SEND_RCODE != '000'
+								   <if test="searchCustId != null and searchCustId != ''">
+								   AND A.CUST_ID LIKE CONCAT('%', #{searchCustId}, '%')
+								   </if>
+								   <if test="searchCustEm != null and searchCustEm != ''">
+								   AND A.CUST_EM = #{searchCustEm}
+								   </if>
+								   <if test="searchCustNm != null and searchCustNm != ''">
+								   AND A.CUST_NM LIKE CONCAT('%', #{searchCustNm}, '%')
+								   </if>
+							   ) T2
+							WHERE T1.JOIN_COL = T2.JOIN_COL
+					 ) TT1
+				</if>
+				<if test='searchKind == "003"'>
+				FROM (
+						SELECT CUST_ID
+							 , SUB_TASK_NO
+							 , CUST_EM
+							 , CUST_NM
+							 , SEND_DT
+							 , SEND_RCODE
+							 , SEND_MSG
+							 , OPEN_DT
+							 , DENIED_TYPE
+							 , TOTAL_COUNT
+						  FROM (
+								SELECT 'X' JOIN_COL
+									 , A.CUST_ID
+									 , A.SUB_TASK_NO
+									 , A.CUST_EM
+									 , A.CUST_NM
+									 , A.SEND_RCODE
+									 , A.SEND_DT
+									 , A.SEND_MSG
+									 , A.DENIED_TYPE
+									 , B.OPEN_DT
+								  FROM NEO_SENDLOG A, NEO_RESPLOG B
+								 WHERE A.TASK_NO = B.TASK_NO
+								   AND A.SUB_TASK_NO = B.SUB_TASK_NO
+								   AND A.CUST_ID = B.CUST_ID
+								   AND A.TASK_NO = #{taskNo}
+								   AND A.SEND_RCODE = '000'
+								   <if test="searchCustId != null and searchCustId != ''">
+								   AND A.CUST_ID LIKE CONCAT('%', #{searchCustId}, '%')
+								   </if>
+								   <if test="searchCustEm != null and searchCustEm != ''">
+								   AND A.CUST_EM = #{searchCustEm}
+								   </if>
+								   <if test="searchCustNm != null and searchCustNm != ''">
+								   AND A.CUST_NM LIKE CONCAT('%', #{searchCustNm}, '%')
+								   </if>
+							   ) T1,
+							   (
+								SELECT 'X' JOIN_COL
+									  , COUNT(*) TOTAL_COUNT
+								  FROM NEO_SENDLOG A, NEO_RESPLOG B
+								 WHERE A.TASK_NO = B.TASK_NO
+								   AND A.SUB_TASK_NO = B.SUB_TASK_NO
+								   AND A.CUST_ID = B.CUST_ID
+								   AND A.TASK_NO = #{taskNo}
+								   AND A.SEND_RCODE = '000'
+								   <if test="searchCustId != null and searchCustId != ''">
+								   AND A.CUST_ID LIKE CONCAT('%', #{searchCustId}, '%')
+								   </if>
+								   <if test="searchCustEm != null and searchCustEm != ''">
+								   AND A.CUST_EM = #{searchCustEm}
+								   </if>
+								   <if test="searchCustNm != null and searchCustNm != ''">
+								   AND A.CUST_NM LIKE CONCAT('%', #{searchCustNm}, '%')
+								   </if>
+							   ) T2
+							WHERE T1.JOIN_COL = T2.JOIN_COL 
+					 ) TT1
+				</if>
+				
+				<if test='searchKind == "004"'>
+				FROM (
+						SELECT CUST_ID
+							 , SUB_TASK_NO
+							 , CUST_EM
+							 , CUST_NM
+							 , SEND_DT
+							 , SEND_RCODE
+							 , SEND_MSG
+							 , OPEN_DT
+							 , DENIED_TYPE
+							 , TOTAL_COUNT
+						  FROM (
+								SELECT 'X' JOIN_COL
+									 , A.CUST_ID
+									 , A.SUB_TASK_NO
+									 , A.CUST_EM
+									 , A.CUST_NM
+									 , A.SEND_DT
+									 , A.DENIED_TYPE
+									 , A.SEND_RCODE
+									 , '' AS OPEN_DT
+									 , A.SEND_MSG
+								  FROM NEO_SENDLOG A
+								 WHERE A.TASK_NO = #{taskNo} 
+								   AND A.SUB_TASK_NO = #{subTaskNo}
+								   AND A.SEND_RCODE = '000'
+								   AND NOT EXISTS (
+													SELECT '1' FROM NEO_RESPLOG B
+													 WHERE B.TASK_NO = A.TASK_NO
+													   AND B.SUB_TASK_NO = A.SUB_TASK_NO
+													   AND B.CUST_ID = A.CUST_ID
+												)
+								   <if test="searchCustId != null and searchCustId != ''">
+								   AND A.CUST_ID LIKE CONCAT('%', #{searchCustId}, '%')
+								   </if>
+								   <if test="searchCustEm != null and searchCustEm != ''">
+								   AND A.CUST_EM = #{searchCustEm}
+								   </if>
+								   <if test="searchCustNm != null and searchCustNm != ''">
+								   AND A.CUST_NM LIKE CONCAT('%', #{searchCustNm}, '%')
+								   </if>
+							   ) T1,
+							   (
+								SELECT 'X' JOIN_COL
+									  , COUNT(*) TOTAL_COUNT
+								  FROM NEO_SENDLOG A
+								 WHERE A.TASK_NO = #{taskNo}
+								   AND A.SUB_TASK_NO = #{subTaskNo}
+								   AND A.SEND_RCODE = '000'
+								   AND NOT EXISTS (
+													SELECT '1' FROM NEO_RESPLOG B
+													 WHERE B.TASK_NO = A.TASK_NO
+													   AND B.SUB_TASK_NO = A.SUB_TASK_NO
+													   AND B.CUST_ID = A.CUST_ID
+												)
+								   <if test="searchCustId != null and searchCustId != ''">
+								   AND A.CUST_ID LIKE CONCAT('%', #{searchCustId}, '%')
+								   </if>
+								   <if test="searchCustEm != null and searchCustEm != ''">
+								   AND A.CUST_EM = #{searchCustEm}
+								   </if>
+								   <if test="searchCustNm != null and searchCustNm != ''">
+								   AND A.CUST_NM LIKE CONCAT('%', #{searchCustNm}, '%')
+								   </if>
+							   ) T2
+							WHERE T1.JOIN_COL = T2.JOIN_COL 
+					 ) TT1
+				</if>
+				
+				<if test='searchKind == "005"'>
+				FROM (
+						SELECT CUST_ID
+							 , SUB_TASK_NO
+							 , CUST_EM
+							 , CUST_NM
+							 , SEND_DT
+							 , SEND_RCODE
+							 , SEND_MSG
+							 , OPEN_DT
+							 , DENIED_TYPE
+							 , TOTAL_COUNT
+						  FROM (
+								SELECT 'X' JOIN_COL
+									 , A.CUST_ID
+									 , A.SUB_TASK_NO
+									 , A.CUST_EM
+									 , A.CUST_NM
+									 , A.SEND_DT
+									 , A.SEND_RCODE
+									 , A.SEND_MSG
+									 , IFNULL(B.OPEN_DT, '' ) OPEN_DT
+									 , DENIED_TYPE
+								  FROM NEO_SENDLOG A LEFT OUTER JOIN NEO_RESPLOG B  
+								      ON (A.TASK_NO = B.TASK_NO AND A.SUB_TASK_NO = B.SUB_TASK_NO AND A.CUST_ID = B.CUST_ID)
+								 WHERE A.TASK_NO = #{taskNo}
+								   AND A.SUB_TASK_NO = #{subTaskNo} 
+								   AND A.SEND_RCODE = '000'
+								   AND A.DENIED_TYPE ='Y'
+								   <if test="searchCustId != null and searchCustId != ''">
+								   AND A.CUST_ID LIKE CONCAT('%', #{searchCustId}, '%')
+								   </if>
+								   <if test="searchCustEm != null and searchCustEm != ''">
+								   AND A.CUST_EM = #{searchCustEm}
+								   </if>
+								   <if test="searchCustNm != null and searchCustNm != ''">
+								   AND A.CUST_NM LIKE CONCAT('%', #{searchCustNm}, '%')
+								   </if>
+							   ) T1,
+							   (
+								SELECT 'X' JOIN_COL
+									  , COUNT(*) TOTAL_COUNT
+								  FROM NEO_SENDLOG A LEFT OUTER JOIN NEO_RESPLOG B  
+								      ON (A.TASK_NO = B.TASK_NO AND A.SUB_TASK_NO = B.SUB_TASK_NO AND A.CUST_ID = B.CUST_ID)
+								 WHERE A.TASK_NO = #{taskNo} 
+								   AND A.SEND_RCODE = '000'
+								   AND A.DENIED_TYPE ='Y'
+								   <if test="searchCustId != null and searchCustId != ''">
+								   AND A.CUST_ID LIKE CONCAT('%', #{searchCustId}, '%')
+								   </if>
+								   <if test="searchCustEm != null and searchCustEm != ''">
+								   AND A.CUST_EM = #{searchCustEm}
+								   </if>
+								   <if test="searchCustNm != null and searchCustNm != ''">
+								   AND A.CUST_NM LIKE CONCAT('%', #{searchCustNm}, '%')
+								   </if>
+							   ) T2
+							WHERE T1.JOIN_COL = T2.JOIN_COL 
+					 ) TT1
+				</if>
+				
+				<if test='searchKind == "006"'>
+				FROM (
+						SELECT CUST_ID
+							 , SUB_TASK_NO
+							 , CUST_EM
+							 , CUST_NM
+							 , SEND_DT
+							 , SEND_RCODE
+							 , SEND_MSG
+							 , OPEN_DT
+							 , DENIED_TYPE
+							 , TOTAL_COUNT
+						  FROM (
+								SELECT 'X' JOIN_COL
+									 , A.CUST_ID
+									 , A.SUB_TASK_NO
+									 , A.CUST_EM
+									 , A.CUST_NM
+									 , A.SEND_DT
+									 , A.SEND_RCODE
+									 , A.SEND_MSG
+									 , IFNULL(B.OPEN_DT, '' ) OPEN_DT
+									 , DENIED_TYPE
+								  FROM NEO_SENDLOG A LEFT OUTER JOIN NEO_RESPLOG B  
+								      ON (A.TASK_NO = B.TASK_NO AND A.SUB_TASK_NO = B.SUB_TASK_NO AND A.CUST_ID = B.CUST_ID)
+								 WHERE A.TASK_NO = #{taskNo}
+								  AND A.SUB_TASK_NO = #{subTaskNo}
+								  AND A.SEND_RCODE = '000'
+								  AND A.DENIED_TYPE ='N'
+								   <if test="searchCustId != null and searchCustId != ''">
+								   AND A.CUST_ID LIKE CONCAT('%', #{searchCustId}, '%')
+								   </if>
+								   <if test="searchCustEm != null and searchCustEm != ''">
+								   AND A.CUST_EM = #{searchCustEm}
+								   </if>
+								   <if test="searchCustNm != null and searchCustNm != ''">
+								   AND A.CUST_NM LIKE CONCAT('%', #{searchCustNm}, '%')
+								   </if>
+							   ) T1,
+							   (
+								SELECT 'X' JOIN_COL
+									  , COUNT(*) TOTAL_COUNT
+								  FROM NEO_SENDLOG A LEFT OUTER JOIN NEO_RESPLOG B  
+								      ON (A.TASK_NO = B.TASK_NO AND A.SUB_TASK_NO = B.SUB_TASK_NO AND A.CUST_ID = B.CUST_ID)
+								 WHERE A.TASK_NO = #{taskNo}
+								  AND A.SUB_TASK_NO = #{subTaskNo}
+								  AND A.SEND_RCODE = '000'
+								  AND A.DENIED_TYPE ='N'
+								   <if test="searchCustId != null and searchCustId != ''">
+								   AND A.CUST_ID LIKE CONCAT('%', #{searchCustId}, '%')
+								   </if>
+								   <if test="searchCustEm != null and searchCustEm != ''">
+								   AND A.CUST_EM = #{searchCustEm}
+								   </if>
+								   <if test="searchCustNm != null and searchCustNm != ''">
+								   AND A.CUST_NM LIKE CONCAT('%', #{searchCustNm}, '%')
+								   </if>
+							   ) T2
+							WHERE T1.JOIN_COL = T2.JOIN_COL 
+					 ) TT1
+				</if>
+				
+				<if test='searchKind == "000"'>
+				FROM (
+						SELECT CUST_ID
+							 , SUB_TASK_NO
+							 , CUST_EM
+							 , CUST_NM
+							 , SEND_DT
+							 , SEND_RCODE
+							 , SEND_MSG
+							 , OPEN_DT
+							 , DENIED_TYPE
+							 , TOTAL_COUNT
+						  FROM (
+								SELECT 'X' JOIN_COL
+									 , A.CUST_ID
+									 , A.SUB_TASK_NO
+									 , A.CUST_EM
+									 , A.CUST_NM
+									 , A.SEND_DT
+									 , A.SEND_RCODE
+									 , A.SEND_MSG
+									 , IFNULL(B.OPEN_DT, '' ) OPEN_DT
+									 , DENIED_TYPE
+								  FROM NEO_SENDLOG A LEFT OUTER JOIN NEO_RESPLOG B  
+								      ON (A.TASK_NO = B.TASK_NO AND A.SUB_TASK_NO = B.SUB_TASK_NO AND A.CUST_ID = B.CUST_ID)
+								 WHERE A.TASK_NO = #{taskNo}
+								   AND A.SUB_TASK_NO = #{subTaskNo}
+								   AND A.RETRY_CNT = A.MAX_RETRY_CNT
+								   <if test="searchCustId != null and searchCustId != ''">
+								   AND A.CUST_ID LIKE CONCAT('%', #{searchCustId}, '%')
+								   </if>
+								   <if test="searchCustEm != null and searchCustEm != ''">
+								   AND A.CUST_EM = #{searchCustEm}
+								   </if>
+								   <if test="searchCustNm != null and searchCustNm != ''">
+								   AND A.CUST_NM LIKE CONCAT('%', #{searchCustNm}, '%')
+								   </if>
+							   ) T1,
+							   (
+								SELECT 'X' JOIN_COL
+									  , COUNT(*) TOTAL_COUNT
+								  FROM NEO_SENDLOG A LEFT OUTER JOIN NEO_RESPLOG B  
+								      ON (A.TASK_NO = B.TASK_NO AND A.SUB_TASK_NO = B.SUB_TASK_NO AND A.CUST_ID = B.CUST_ID)
+								 WHERE A.TASK_NO = #{taskNo}
+								   AND A.SUB_TASK_NO = #{subTaskNo}
+								   <if test="searchCustId != null and searchCustId != ''">
+								   AND A.CUST_ID LIKE CONCAT('%', #{searchCustId}, '%')
+								   </if>
+								   <if test="searchCustEm != null and searchCustEm != ''">
+								   AND A.CUST_EM = #{searchCustEm}
+								   </if>
+								   <if test="searchCustNm != null and searchCustNm != ''">
+								   AND A.CUST_NM LIKE CONCAT('%', #{searchCustNm}, '%')
+								   </if>
+							   ) T2
+							WHERE T1.JOIN_COL = T2.JOIN_COL 
+					 ) TT1
+				</if>
+		  		) TTT
+		 LIMIT #{startRow}, #{rows} 
+	</select>
+	
+	<select id="getCustLogList" parameterType="sendLogVO" resultType="sendLogVO">
+		SELECT *
+		  FROM (
+				SELECT CUST_ID
+					 , CUST_EM
+					 , CUST_NM
+					 , SEND_DT
+					 , SEND_RCODE
+					 , SEND_MSG
+					 , OPEN_DT
+					 , DENIED_TYPE
+					 , TOTAL_COUNT
+				  FROM (
+						<if test='searchKind == "001"'>
+						SELECT 'X' JOIN_COL
+							 , A.CUST_ID
+							 , A.CUST_EM
+							 , A.CUST_NM
+							 , A.SEND_DT
+							 , A.SEND_RCODE
+							 , A.SEND_MSG
+							 , (
+								SELECT OPEN_DT FROM NEO_RESPLOG
+								 WHERE TASK_NO = #{taskNo}
+								   AND SUB_TASK_NO = #{subTaskNo}
+								   AND CUST_ID = A.CUST_ID
+								) OPEN_DT
+							 , DENIED_TYPE
+						  FROM NEO_SENDLOG A
+						 WHERE A.TASK_NO = #{taskNo}
+						   AND A.SUB_TASK_NO = #{subTaskNo}
+						   AND A.SEND_RCODE = '000'
+						   <if test="searchCustId != null and searchCustId != ''">
+						   AND A.CUST_ID LIKE CONCAT('%', #{searchCustId}, '%')
+						   </if>
+						   <if test="searchCustEm != null and searchCustEm != ''">
+						   AND A.CUST_EM = #{searchCustEm}
+						   </if>
+						   <if test="searchCustNm != null and searchCustNm != ''">
+						   AND A.CUST_NM LIKE CONCAT('%', #{searchCustNm}, '%')
+						   </if>
+						</if>
+		
+						<if test='searchKind == "002"'>
+						SELECT 'X' JOIN_COL
+							 , A.CUST_ID
+							 , A.CUST_EM
+							 , A.CUST_NM
+							 , A.SEND_RCODE
+							 , A.SEND_DT
+							 , A.SEND_MSG
+							 , A.DENIED_TYPE
+							 , '' AS OPEN_DT
+				             <!-- , ROW_NUMBER() OVER (ORDER BY A.CUST_ID, A.SEND_DT) SEQ -->
+				             <!-- , COUNT(1) OVER() TOTAL_COUNT -->
+						  FROM (
+								SELECT SUB_TASK_NO, CUST_ID, CUST_EM, CUST_NM, SEND_RCODE, RETRY_CNT, SEND_DT, SEND_MSG, DENIED_TYPE
+								  FROM NEO_SENDLOG
+								 WHERE TASK_NO = #{taskNo}
+								   AND SUB_TASK_NO = #{subTaskNo}
+								) A,
+								(
+								SELECT SUB_TASK_NO, CUST_ID, CUST_EM, CUST_NM, MAX(RETRY_CNT) AS MAX_RETRY_CNT
+								  FROM NEO_SENDLOG
+								 WHERE TASK_NO = #{taskNo}
+								   AND SUB_TASK_NO = #{subTaskNo}
+								 GROUP BY SUB_TASK_NO, CUST_ID, CUST_EM, CUST_NM
+								) B
+						 WHERE A.SUB_TASK_NO = B.SUB_TASK_NO
+						   AND A.CUST_ID = B.CUST_ID
+						   AND A.CUST_EM = B.CUST_EM
+						   AND A.CUST_NM = B.CUST_NM
+						   AND A.RETRY_CNT = B.MAX_RETRY_CNT
+						   AND SEND_RCODE != '000'
+						   <if test="searchCustId != null and searchCustId != ''">
+						   AND A.CUST_ID LIKE CONCAT('%', #{searchCustId}, '%')
+						   </if>
+						   <if test="searchCustEm != null and searchCustEm != ''">
+						   AND A.CUST_EM = #{searchCustEm}
+						   </if>
+						   <if test="searchCustNm != null and searchCustNm != ''">
+						   AND A.CUST_NM LIKE CONCAT('%', #{searchCustNm}, '%')
+						   </if>
+						</if>
+		
+						<if test='searchKind == "003"'>
+						SELECT 'X' JOIN_COL
+							 , A.CUST_ID
+							 , A.CUST_EM
+							 , A.CUST_NM
+							 , A.SEND_RCODE
+							 , A.SEND_DT
+							 , A.SEND_MSG
+							 , A.DENIED_TYPE
+							 , B.OPEN_DT
+						  FROM NEO_SENDLOG A, NEO_RESPLOG B
+						 WHERE A.TASK_NO = B.TASK_NO
+						   AND A.SUB_TASK_NO = B.SUB_TASK_NO
+						   AND A.CUST_ID = B.CUST_ID
+						   AND A.TASK_NO = #{taskNo}
+						   AND A.SUB_TASK_NO = #{subTaskNo}
+						   AND A.SEND_RCODE = '000'
+						   <if test="searchCustId != null and searchCustId != ''">
+						   AND A.CUST_ID LIKE CONCAT('%', #{searchCustId}, '%')
+						   </if>
+						   <if test="searchCustEm != null and searchCustEm != ''">
+						   AND A.CUST_EM = #{searchCustEm}
+						   </if>
+						   <if test="searchCustNm != null and searchCustNm != ''">
+						   AND A.CUST_NM LIKE CONCAT('%', #{searchCustNm}, '%')
+						   </if>
+						</if>
+		
+						<if test='searchKind == "004"'>
+						SELECT 'X' JOIN_COL
+							 , A.CUST_ID
+							 , A.CUST_EM
+							 , A.CUST_NM
+							 , A.SEND_DT
+							 , A.DENIED_TYPE
+							 , A.SEND_RCODE
+							 , '' AS OPEN_DT
+							 , A.SEND_MSG
+						  FROM NEO_SENDLOG A
+						 WHERE A.TASK_NO = #{taskNo}
+						   AND A.SUB_TASK_NO = #{subTaskNo}
+						   AND A.SEND_RCODE = '000'
+						   AND NOT EXISTS (
+											SELECT '1' FROM NEO_RESPLOG B
+											 WHERE B.TASK_NO = #{taskNo}
+											   AND B.SUB_TASK_NO = #{subTaskNo}
+											   AND B.CUST_ID = A.CUST_ID
+										)
+						   <if test="searchCustId != null and searchCustId != ''">
+						   AND A.CUST_ID LIKE CONCAT('%', #{searchCustId}, '%')
+						   </if>
+						   <if test="searchCustEm != null and searchCustEm != ''">
+						   AND A.CUST_EM = #{searchCustEm}
+						   </if>
+						   <if test="searchCustNm != null and searchCustNm != ''">
+						   AND A.CUST_NM LIKE CONCAT('%', #{searchCustNm}, '%')
+						   </if>
+						</if>
+		
+						<if test='searchKind == "005"'>
+						SELECT 'X' JOIN_COL
+							 , A.CUST_ID
+							 , A.CUST_EM
+							 , A.CUST_NM
+							 , A.SEND_DT
+							 , A.SEND_RCODE
+							 , A.SEND_MSG
+							 , (
+								SELECT OPEN_DT FROM NEO_RESPLOG
+								 WHERE TASK_NO = #{taskNo}
+								   AND SUB_TASK_NO = #{subTaskNo}
+								   AND CUST_ID = A.CUST_ID
+								) OPEN_DT
+							 , DENIED_TYPE
+						  FROM NEO_SENDLOG A
+						 WHERE A.TASK_NO = #{taskNo}
+						   AND A.SUB_TASK_NO = #{subTaskNo}
+						   AND A.SEND_RCODE = '000'
+						   AND A.DENIED_TYPE ='Y'
+						   <if test="searchCustId != null and searchCustId != ''">
+						   AND A.CUST_ID LIKE CONCAT('%', #{searchCustId}, '%')
+						   </if>
+						   <if test="searchCustEm != null and searchCustEm != ''">
+						   AND A.CUST_EM = #{searchCustEm}
+						   </if>
+						   <if test="searchCustNm != null and searchCustNm != ''">
+						   AND A.CUST_NM LIKE CONCAT('%', #{searchCustNm}, '%')
+						   </if>
+						</if>
+		
+						<if test='searchKind == "006"'>
+						SELECT 'X' JOIN_COL
+							 , A.CUST_ID
+							 , A.CUST_EM
+							 , A.CUST_NM
+							 , A.SEND_DT
+							 , A.SEND_RCODE
+							 , A.SEND_MSG
+							 , (
+								SELECT OPEN_DT FROM NEO_RESPLOG
+								 WHERE TASK_NO = #{taskNo}
+								   AND SUB_TASK_NO = #{subTaskNo}
+								   AND CUST_ID = A.CUST_ID
+								) OPEN_DT
+							 , DENIED_TYPE
+						  FROM NEO_SENDLOG A
+						 WHERE A.TASK_NO = #{taskNo}
+						  AND A.SUB_TASK_NO =  #{subTaskNo}
+						  AND A.SEND_RCODE = '000'
+						  AND A.DENIED_TYPE ='N'
+						   <if test="searchCustId != null and searchCustId != ''">
+						   AND A.CUST_ID LIKE CONCAT('%', #{searchCustId}, '%')
+						   </if>
+						   <if test="searchCustEm != null and searchCustEm != ''">
+						   AND A.CUST_EM = #{searchCustEm}
+						   </if>
+						   <if test="searchCustNm != null and searchCustNm != ''">
+						   AND A.CUST_NM LIKE CONCAT('%', #{searchCustNm}, '%')
+						   </if>
+						</if>
+		
+						<if test='searchKind == "000"'>
+						SELECT 'X' JOIN_COL
+							 , A.CUST_ID
+							 , A.CUST_EM
+							 , A.CUST_NM
+							 , A.SEND_DT
+							 , A.SEND_RCODE
+							 , A.SEND_MSG
+							 , (
+								SELECT OPEN_DT FROM NEO_RESPLOG
+								 WHERE TASK_NO = #{taskNo}
+								   AND SUB_TASK_NO = #{subTaskNo}
+								   AND CUST_ID = A.CUST_ID
+								) OPEN_DT
+							 , DENIED_TYPE
+						  FROM NEO_SENDLOG A
+						 WHERE A.TASK_NO = #{taskNo}
+						   AND A.SUB_TASK_NO = #{subTaskNo}
+						   <if test="searchCustId != null and searchCustId != ''">
+						   AND A.CUST_ID LIKE CONCAT('%', #{searchCustId}, '%')
+						   </if>
+						   <if test="searchCustEm != null and searchCustEm != ''">
+						   AND A.CUST_EM = #{searchCustEm}
+						   </if>
+						   <if test="searchCustNm != null and searchCustNm != ''">
+						   AND A.CUST_NM LIKE CONCAT('%', #{searchCustNm}, '%')
+						   </if>
+						</if>
+				  		) TT1,
+						(
+						<if test='searchKind == "001"'>
+						SELECT 'X' JOIN_COL
+							 , COUNT(*) TOTAL_COUNT
+						  FROM NEO_SENDLOG A
+						 WHERE A.TASK_NO = #{taskNo}
+						   AND A.SUB_TASK_NO = #{subTaskNo}
+						   AND A.SEND_RCODE = '000'
+						   <if test="searchCustId != null and searchCustId != ''">
+						   AND A.CUST_ID LIKE CONCAT('%', #{searchCustId}, '%')
+						   </if>
+						   <if test="searchCustEm != null and searchCustEm != ''">
+						   AND A.CUST_EM = #{searchCustEm}
+						   </if>
+						   <if test="searchCustNm != null and searchCustNm != ''">
+						   AND A.CUST_NM LIKE CONCAT('%', #{searchCustNm}, '%')
+						   </if>
+						</if>
+		
+						<if test='searchKind == "002"'>
+						SELECT 'X' JOIN_COL
+							 , COUNT(*) TOTAL_COUNT
+						  FROM (
+								SELECT SUB_TASK_NO, CUST_ID, CUST_EM, CUST_NM, SEND_RCODE, RETRY_CNT, SEND_DT, SEND_MSG
+								  FROM NEO_SENDLOG
+								 WHERE TASK_NO = #{taskNo}
+								   AND SUB_TASK_NO = #{subTaskNo}
+								) A,
+								(
+								SELECT SUB_TASK_NO, CUST_ID, CUST_EM, CUST_NM, MAX(RETRY_CNT) AS MAX_RETRY_CNT
+								  FROM NEO_SENDLOG
+								 WHERE TASK_NO = #{taskNo}
+								   AND SUB_TASK_NO = #{subTaskNo}
+								 GROUP BY SUB_TASK_NO, CUST_ID, CUST_EM, CUST_NM
+								) B
+						 WHERE A.SUB_TASK_NO = B.SUB_TASK_NO
+						   AND A.CUST_ID = B.CUST_ID
+						   AND A.CUST_EM = B.CUST_EM
+						   AND A.CUST_NM = B.CUST_NM
+						   AND A.RETRY_CNT = B.MAX_RETRY_CNT
+						   AND SEND_RCODE != '000'
+						   <if test="searchCustId != null and searchCustId != ''">
+						   AND A.CUST_ID LIKE CONCAT('%', #{searchCustId}, '%')
+						   </if>
+						   <if test="searchCustEm != null and searchCustEm != ''">
+						   AND A.CUST_EM = #{searchCustEm}
+						   </if>
+						   <if test="searchCustNm != null and searchCustNm != ''">
+						   AND A.CUST_NM LIKE CONCAT('%', #{searchCustNm}, '%')
+						   </if>
+						</if>
+		
+						<if test='searchKind == "003"'>
+						SELECT 'X' JOIN_COL
+							 , COUNT(*) TOTAL_COUNT
+						  FROM NEO_SENDLOG A, NEO_RESPLOG B
+						 WHERE A.TASK_NO = B.TASK_NO
+						   AND A.SUB_TASK_NO = B.SUB_TASK_NO
+						   AND A.CUST_ID = B.CUST_ID
+						   AND A.TASK_NO = #{taskNo}
+						   AND A.SUB_TASK_NO = #{subTaskNo}
+						   AND A.SEND_RCODE = '000'
+						   <if test="searchCustId != null and searchCustId != ''">
+						   AND A.CUST_ID LIKE CONCAT('%', #{searchCustId}, '%')
+						   </if>
+						   <if test="searchCustEm != null and searchCustEm != ''">
+						   AND A.CUST_EM = #{searchCustEm}
+						   </if>
+						   <if test="searchCustNm != null and searchCustNm != ''">
+						   AND A.CUST_NM LIKE CONCAT('%', #{searchCustNm}, '%')
+						   </if>
+						</if>
+		
+						<if test='searchKind == "004"'>
+						SELECT 'X' JOIN_COL
+							 , COUNT(*) TOTAL_COUNT
+						  FROM NEO_SENDLOG A
+						 WHERE A.TASK_NO = #{taskNo}
+						   AND A.SUB_TASK_NO = #{subTaskNo}
+						   AND A.SEND_RCODE = '000'
+						   AND NOT EXISTS (
+											SELECT '1' FROM NEO_RESPLOG B
+											 WHERE B.TASK_NO = #{taskNo}
+											   AND B.SUB_TASK_NO = #{subTaskNo}
+											   AND B.CUST_ID = A.CUST_ID
+										)
+						   <if test="searchCustId != null and searchCustId != ''">
+						   AND A.CUST_ID LIKE CONCAT('%', #{searchCustId}, '%')
+						   </if>
+						   <if test="searchCustEm != null and searchCustEm != ''">
+						   AND A.CUST_EM = #{searchCustEm}
+						   </if>
+						   <if test="searchCustNm != null and searchCustNm != ''">
+						   ND A.CUST_NM LIKE CONCAT('%', #{searchCustNm}, '%')
+						   </if>
+						</if>
+		
+						<if test='searchKind == "005"'>
+						SELECT 'X' JOIN_COL
+							 , COUNT(*) TOTAL_COUNT
+						  FROM NEO_SENDLOG A
+						 WHERE A.TASK_NO = #{taskNo}
+						   AND A.SUB_TASK_NO = #{subTaskNo}
+						   AND A.SEND_RCODE = '000'
+						   AND A.DENIED_TYPE ='Y'
+						   <if test="searchCustId != null and searchCustId != ''">
+						   AND A.CUST_ID LIKE CONCAT('%', #{searchCustId}, '%')
+						   </if>
+						   <if test="searchCustEm != null and searchCustEm != ''">
+						   AND A.CUST_EM = #{searchCustEm}
+						   </if>
+						   <if test="searchCustNm != null and searchCustNm != ''">
+						   ND A.CUST_NM LIKE CONCAT('%', #{searchCustNm}, '%')
+						   </if>
+						</if>
+		
+						<if test='searchKind == "006"'>
+						SELECT 'X' JOIN_COL
+							 , COUNT(*) TOTAL_COUNT
+						  FROM NEO_SENDLOG A
+						 WHERE A.TASK_NO = #{taskNo}
+						  AND A.SUB_TASK_NO =  #{subTaskNo}
+						  AND A.SEND_RCODE = '000'
+						  AND A.DENIED_TYPE ='N'
+						   <if test="searchCustId != null and searchCustId != ''">
+						   AND A.CUST_ID LIKE CONCAT('%', #{searchCustId}, '%')
+						   </if>
+						   <if test="searchCustEm != null and searchCustEm != ''">
+						   AND A.CUST_EM = #{searchCustEm}
+						   </if>
+						   <if test="searchCustNm != null and searchCustNm != ''">
+						   AND A.CUST_NM LIKE CONCAT('%', #{searchCustNm}, '%')
+						   </if>
+						</if>
+		
+						<if test='searchKind == "000"'>
+						SELECT 'X' JOIN_COL
+							 , COUNT(*) TOTAL_COUNT
+						  FROM NEO_SENDLOG A
+						 WHERE A.TASK_NO = #{taskNo}
+						   AND A.SUB_TASK_NO = #{subTaskNo}
+						   <if test="searchCustId != null and searchCustId != ''">
+						   AND A.CUST_ID LIKE CONCAT('%', #{searchCustId}, '%')
+						   </if>
+						   <if test="searchCustEm != null and searchCustEm != ''">
+						   AND A.CUST_EM = #{searchCustEm}
+						   </if>
+						   <if test="searchCustNm != null and searchCustNm != ''">
+						   AND A.CUST_NM LIKE CONCAT('%', #{searchCustNm}, '%')
+						   </if>
+						</if>
+				  		) TT2
+				 WHERE TT1.JOIN_COL = TT2.JOIN_COL
+				 ORDER BY TT1.CUST_ID, TT1.SEND_DT
+			) TTT
+		 LIMIT #{startRow}, #{rows}
+	</select>
+	
+	<select id="getJoinMailList" parameterType="sendLogVO" resultType="taskVO">
+		SELECT NEO_AR_SENDLOG.TASK_NO
+			 , NEO_AR_SENDLOG.SUB_TASK_NO
+			 , NEO_SUBTASK.SEND_DT
+			 , NEO_TASK.TASK_NM
+			 , NEO_SEGMENT.SEG_NM
+			 , NEO_CAMPAIGN.CAMP_NM
+			 , IFNULL(SUM(SEND_AR_AMT),0) AS TOT_CNT
+			 , IFNULL(SUM((CASE WHEN NEO_AR_SENDLOG.SEND_RCODE = '000' THEN SEND_AR_AMT END)),0) AS SUC_CNT
+		  FROM NEO_AR_SENDLOG
+			 , NEO_SUBTASK
+			 , NEO_TASK
+			 , NEO_SEGMENT
+			 , NEO_CAMPAIGN
+		 WHERE NEO_AR_SENDLOG.TASK_NO = NEO_TASK.TASK_NO
+		   AND NEO_AR_SENDLOG.TASK_NO = NEO_SUBTASK.TASK_NO
+		   AND NEO_AR_SENDLOG.SUB_TASK_NO = NEO_SUBTASK.SUB_TASK_NO
+		   AND NEO_TASK.SEG_NO = NEO_SEGMENT.SEG_NO
+		   AND NEO_TASK.CAMP_NO = NEO_CAMPAIGN.CAMP_NO
+		   AND 
+				<foreach collection="joinList" item="joinKey" index="index"  open="(" close=")" separator=" OR ">
+					( NEO_AR_SENDLOG.TASK_NO = #{joinKey.taskNo} AND NEO_AR_SENDLOG.SUB_TASK_NO = #{joinKey.subTaskNo} )
+				</foreach>
+		 GROUP BY NEO_AR_SENDLOG.TASK_NO
+			 , NEO_AR_SENDLOG.SUB_TASK_NO
+			 , NEO_SUBTASK.SEND_DT
+			 , NEO_TASK.TASK_NM
+			 , NEO_SEGMENT.SEG_NM
+			 , NEO_CAMPAIGN.CAMP_NM
+		 ORDER BY NEO_AR_SENDLOG.TASK_NO DESC, NEO_AR_SENDLOG.SUB_TASK_NO DESC
+	</select>
+	
+	<select id="getJoinSendResult" parameterType="sendLogVO" resultType="respLogVO">
+		SELECT OPEN_CNT
+			 , BLOCK_CNT
+			 , VALID_CNT
+			 , CLICK_CNT
+		  FROM (
+				SELECT IFNULL(SUM((CASE WHEN BLOCKED_YN = 'N' THEN RESP_AR_AMT END)),0) AS OPEN_CNT
+					 , IFNULL(SUM((CASE WHEN BLOCKED_YN = 'Y' THEN RESP_AR_AMT END)),0) AS BLOCK_CNT
+				  FROM NEO_AR_RESPLOG
+				 WHERE 
+						<foreach collection="joinList" item="joinKey" index="index"  open="(" close=")" separator=" OR ">
+							( NEO_AR_RESPLOG.TASK_NO = #{joinKey.taskNo} AND NEO_AR_RESPLOG.SUB_TASK_NO = #{joinKey.subTaskNo} )
+						</foreach>
+				) A,
+				(
+				SELECT IFNULL(SUM(CLICK_AR_AMT),0) AS CLICK_CNT, IFNULL(SUM(VALID_AR_AMT),0) AS VALID_CNT
+				  FROM NEO_AR_LINKLOG
+				 WHERE 
+						<foreach collection="joinList" item="joinKey" index="index"  open="(" close=")" separator=" OR ">
+							( NEO_AR_LINKLOG.TASK_NO = #{joinKey.taskNo} AND NEO_AR_LINKLOG.SUB_TASK_NO = #{joinKey.subTaskNo} )
+						</foreach>
+				) C
+	</select>
+	
+	<select id="getJoinErrorList" parameterType="sendLogVO" resultType="mailErrorVO">
+		SELECT A.STEP1
+			 , A.STEP2
+			 , IFNULL(B.SEND_AR_AMT,0) AS CNT_STEP2
+			 , A.CD_DESC AS NM_STEP2
+		  FROM (
+				SELECT STEP1, STEP2, CD_DESC FROM NEO_RCODE WHERE KIND = '002' AND UILANG = #{uilang}
+				) A
+				LEFT OUTER JOIN
+				(
+				SELECT RCODE_STEP1, RCODE_STEP2, SUM(SEND_AR_AMT) AS SEND_AR_AMT FROM NEO_AR_SENDLOG
+				 WHERE SEND_RCODE != '000'
+				   AND 
+						<foreach collection="joinList" item="joinKey" index="index"  open="(" close=")" separator=" OR ">
+							( NEO_AR_SENDLOG.TASK_NO = #{joinKey.taskNo} AND NEO_AR_SENDLOG.SUB_TASK_NO = #{joinKey.subTaskNo} )
+						</foreach>
+				 GROUP BY RCODE_STEP1, RCODE_STEP2
+				) B
+				ON A.STEP1 = B.RCODE_STEP1
+				AND A.STEP2 = B.RCODE_STEP2
+		 ORDER BY A.STEP1, A.STEP2
+	</select>
+	
+	<select id="getTaskList" parameterType="taskVO" resultType="taskVO">
+		SELECT *
+		  FROM (
+				SELECT TASK_NO
+					 , SUB_TASK_NO
+					 , SEND_DT
+					 , WORK_STATUS
+					 , WORK_STATUS_NM
+					 , TASK_NM
+					 , CHANNEL
+					 , SEND_REPEAT
+					 , STATUS
+					 , SEG_NO
+					 , SEND_TERM_END_DT
+					 , SEND_TERM_LOOP
+					 , REG_DT
+					 , CONT_FL_PATH
+					 , SURVEYNO
+					 , SEG_NM
+					 , USER_NM
+					 , CAMP_NM
+					 , CHANNEL_NM
+					 , SEND_REPEAT_NM
+					 , STATUS_NM
+					 , TOTAL_COUNT
+				  FROM (
+						SELECT 'X' JOIN_COL
+							 , P.TASK_NO
+							 , Q.SUB_TASK_NO
+							 , Q.SEND_DT
+							 , Q.WORK_STATUS
+							 , R.CD_NM WORK_STATUS_NM
+							 , P.TASK_NM
+							 , P.CHANNEL
+							 , P.SEND_REPEAT
+							 , P.STATUS
+							 , P.SEG_NO
+							 , P.SEND_TERM_END_DT
+							 , P.SEND_TERM_LOOP
+							 , P.REG_DT
+							 , P.CONT_FL_PATH
+							 , P.SURVEYNO
+							 , P.SEG_NM
+							 , P.USER_NM
+							 , P.CAMP_NM
+							 , P.CHANNEL_NM
+							 , P.SEND_REPEAT_NM
+							 , P.STATUS_NM
+						 FROM (
+								SELECT A.TASK_NO
+									 , A.TASK_NM
+									 , A.CHANNEL
+									 , A.SEND_REPEAT
+									 , A.STATUS
+									 , A.SEG_NO
+									 , A.SEND_TERM_END_DT
+									 , A.SEND_TERM_LOOP
+									 , A.REG_DT
+									 , A.CONT_FL_PATH
+									 , A.SURVEYNO
+									 , C.SEG_NM
+									 , D.USER_NM
+									 , E.CAMP_NM
+									 , F.CD_NM CHANNEL_NM
+									 , G.CD_NM SEND_REPEAT_NM
+									 , H.CD_NM STATUS_NM
+									 , (SELECT MAX(SUB_TASK_NO) SUB_TASK_NO 
+									      FROM NEO_SUBTASK 
+									      WHERE TASK_NO = A.TASK_NO
+									       AND WORK_STATUS NOT IN ('000', '001', '002', '201', '202', '203', '204')
+									       <if test="searchStartDt != null and searchStartDt != ''">
+									       AND SEND_DT &gt;=CONCAT(#{searchStartDt}, '000000')
+									       </if>
+									       <if test="searchEndDt != null and searchEndDt != ''">
+									       AND SEND_DT &lt; CONCAT(#{searchEndDt}, '240000')
+									       </if>
+									 	) SUB_TASK_NO
+								  FROM NEO_TASK A
+									 , NEO_SEGMENT C
+									 , NEO_USER D
+									 , NEO_CAMPAIGN E
+									 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C002' AND UILANG = #{uilang}) F
+									 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C017' AND UILANG = #{uilang}) G
+									 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C023' AND UILANG = #{uilang}) H
+								 WHERE A.SEG_NO = C.SEG_NO
+								   AND A.USER_ID = D.USER_ID
+								   AND A.CAMP_NO = E.CAMP_NO
+								   AND A.CHANNEL = F.CD
+								   AND A.SEND_REPEAT = G.CD
+								   AND A.STATUS = H.CD
+								   <if test="searchSendRepeat != null and searchSendRepeat != ''">
+								   AND A.SEND_REPEAT = #{searchSendRepeat}
+								   </if>
+								   <if test="searchTaskNm != null and searchTaskNm != ''">
+								   AND UPPER(A.TASK_NM) LIKE CONCAT('%',#{searchTaskNm},'%')
+								   </if>
+								   <if test='adminYn == "N"'>
+								   AND A.DEPT_NO = #{searchDeptNo}
+								   </if>
+								   <if test="searchDeptNo != 0">
+								   AND A.DEPT_NO = #{searchDeptNo}
+								   </if>
+								   <if test="searchUserId != null and searchUserId != ''">
+								   AND A.USER_ID = #{searchUserId}
+								   </if>
+								   <if test="searchCampNo != 0">
+								   AND A.CAMP_NO = #{searchCampNo}
+								   </if>
+								   <if test="searchSegNo != 0">
+								   AND A.SEG_NO = #{searchSegNo}
+								   </if>
+							  ) P
+							  , NEO_SUBTASK Q
+							  , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C101' AND UILANG = #{uilang}) R
+						 WHERE P.TASK_NO = Q.TASK_NO
+						   AND P.SUB_TASK_NO = Q.SUB_TASK_NO
+						   AND Q.WORK_STATUS NOT IN ('000', '001', '002', '201', '202', '203', '204')
+						   ANd Q.SEND_TEST_YN ='N' 
+						   AND Q.WORK_STATUS = R.CD
+						) TT1,
+						(
+						SELECT 'X' JOIN_COL
+							 , COUNT(*) TOTAL_COUNT
+						 FROM (
+								SELECT A.TASK_NO
+									 , A.TASK_NM
+									 , A.CHANNEL
+									 , A.SEND_REPEAT
+									 , A.STATUS
+									 , A.SEG_NO
+									 , A.SEND_TERM_END_DT
+									 , A.SEND_TERM_LOOP
+									 , A.REG_DT
+									 , A.CONT_FL_PATH
+									 , A.SURVEYNO
+									 , C.SEG_NM
+									 , D.USER_NM
+									 , E.CAMP_NM
+									 , F.CD_NM CHANNEL_NM
+									 , G.CD_NM SEND_REPEAT_NM
+									 , H.CD_NM STATUS_NM
+									 , (SELECT MAX(SUB_TASK_NO) SUB_TASK_NO 
+									      FROM NEO_SUBTASK 
+									      WHERE TASK_NO = A.TASK_NO
+									       AND WORK_STATUS NOT IN ('000', '001', '002', '201', '202', '203', '204')
+									       <if test="searchStartDt != null and searchStartDt != ''">
+									       AND SEND_DT &gt;=CONCAT(#{searchStartDt}, '000000')
+									       </if>
+									       <if test="searchEndDt != null and searchEndDt != ''">
+									       AND SEND_DT &lt; CONCAT(#{searchEndDt}, '240000')
+									       </if>
+									 	) SUB_TASK_NO
+								  FROM NEO_TASK A
+									 , NEO_SEGMENT C
+									 , NEO_USER D
+									 , NEO_CAMPAIGN E
+									 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C002' AND UILANG = #{uilang}) F
+									 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C017' AND UILANG = #{uilang}) G
+									 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C023' AND UILANG = #{uilang}) H
+								 WHERE A.SEG_NO = C.SEG_NO
+								   AND A.USER_ID = D.USER_ID
+								   AND A.CAMP_NO = E.CAMP_NO
+								   AND A.CHANNEL = F.CD
+								   AND A.SEND_REPEAT = G.CD
+								   AND A.STATUS = H.CD
+								   <if test="searchSendRepeat != null and searchSendRepeat != ''">
+								   AND A.SEND_REPEAT = #{searchSendRepeat}
+								   </if>
+								   <if test="searchTaskNm != null and searchTaskNm != ''">
+								   AND UPPER(A.TASK_NM) LIKE CONCAT('%',#{searchTaskNm},'%')
+								   </if>
+								   <if test='adminYn == "N"'>
+								   AND A.DEPT_NO = #{searchDeptNo}
+								   </if>
+								   <if test="searchDeptNo != 0">
+								   AND A.DEPT_NO = #{searchDeptNo}
+								   </if>
+								   <if test="searchUserId != null and searchUserId != ''">
+								   AND A.USER_ID = #{searchUserId}
+								   </if>
+								   <if test="searchCampNo != 0">
+								   AND A.CAMP_NO = #{searchCampNo}
+								   </if>
+								   <if test="searchSegNo != 0">
+								   AND A.SEG_NO = #{searchSegNo}
+								   </if>
+							  ) P
+							  , NEO_SUBTASK Q
+							  , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C101' AND UILANG = #{uilang}) R
+						 WHERE P.TASK_NO = Q.TASK_NO
+						   AND P.SUB_TASK_NO = Q.SUB_TASK_NO
+						   AND Q.WORK_STATUS NOT IN ('000', '001', '002', '201', '202', '203', '204')
+						   ANd Q.SEND_TEST_YN ='N' 
+						   AND Q.WORK_STATUS = R.CD
+						) TT2
+				 WHERE TT1.JOIN_COL = TT2.JOIN_COL
+			) TTT
+		 LIMIT #{startRow}, #{rows}
+	</select>
+	
+	<select id="getTaskStepList" parameterType="taskVO" resultType="taskVO">
+		SELECT *
+		  FROM (
+				SELECT SUB_TASK_NO
+					 , SEND_DT
+					 , END_DT
+					 , WORK_STATUS
+					 , TASK_NO
+					 , TASK_NM
+					 , CHANNEL
+					 , SEND_REPEAT
+					 , STATUS
+					 , SEG_NO
+					 , SEND_TERM_END_DT
+					 , SEND_TERM_LOOP
+					 , REG_DT
+					 , CONT_FL_PATH
+					 , SURVEYNO
+					 , SEG_NM
+					 , USER_NM
+					 , CAMP_NM
+					 , CHANNEL_NM
+					 , SEND_REPEAT_NM
+					 , STATUS_NM
+					 , TOTAL_COUNT
+				  FROM (
+						SELECT 'X' JOIN_COL
+							 , A.SUB_TASK_NO
+							 , A.SEND_DT
+							 , A.END_DT
+							 , A.WORK_STATUS
+							 , B.TASK_NO
+							 , B.TASK_NM
+							 , B.CHANNEL
+							 , B.SEND_REPEAT
+							 , B.STATUS
+							 , B.SEG_NO
+							 , B.SEND_TERM_END_DT
+							 , B.SEND_TERM_LOOP
+							 , B.REG_DT
+							 , B.CONT_FL_PATH
+							 , B.SURVEYNO
+							 , C.SEG_NM
+							 , D.USER_NM
+							 , E.CAMP_NM
+							 , F.CD_NM CHANNEL_NM
+							 , G.CD_NM SEND_REPEAT_NM
+							 , H.CD_NM STATUS_NM
+							 <!-- , ROW_NUMBER() OVER (ORDER BY A.SEND_DT DESC, A.TASK_NO DESC, A.SUB_TASK_NO DESC) SEQ -->
+							 <!-- , COUNT(1) OVER() TOTAL_COUNT -->
+						  FROM NEO_SUBTASK A
+							 , NEO_TASK B
+							 , NEO_SEGMENT C
+							 , NEO_USER D
+							 , NEO_CAMPAIGN E
+							 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C002' AND UILANG = '000') F
+							 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C017' AND UILANG = '000') G
+							 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C101' AND UILANG = '000') H
+						 WHERE A.SEND_TEST_YN != 'Y'
+						   AND A.WORK_STATUS IN ('002','003')
+						   AND A.TASK_NO = B.TASK_NO
+						   AND B.SEG_NO = C.SEG_NO
+						   AND B.USER_ID = D.USER_ID
+						   AND B.CAMP_NO = E.CAMP_NO
+						   AND B.CHANNEL = F.CD
+						   AND B.SEND_REPEAT = G.CD
+						   AND A.WORK_STATUS = H.CD
+						   AND B.SEND_REPEAT = '001'	<!-- 정기메일 메일 제한 -->
+						   <if test="searchTaskNm != null and searchTaskNm != ''">
+						   AND UPPER(B.TASK_NM) LIKE CONCAT('%',#{searchTaskNm},'%')
+						   </if>
+						   <if test='adminYn == "N"'>
+						   AND B.DEPT_NO = #{searchDeptNo}
+						   </if>
+						   <if test="searchDeptNo != 0">
+						   AND B.DEPT_NO = #{searchDeptNo}
+						   </if>
+						   <if test="searchUserId != null and searchUserId != ''">
+						   AND B.USER_ID = #{searchUserId}
+						   </if>
+						   <if test="searchCampNo != 0">
+						   AND B.CAMP_NO = #{searchCampNo}
+						   </if>
+						   <if test="searchStartDt != null and searchStartDt != ''">
+						   AND A.SEND_DT &gt;= CONCAT(#{searchStartDt},'000000')
+						   </if>
+						   <if test="searchEndDt != null and searchEndDt != ''">
+						   AND A.SEND_DT &lt; CONCAT(#{searchEndDt},'240000')
+						   </if>
+						   <if test="taskNo != 0">
+						   AND B.TASK_NO = #{taskNo}
+						   </if>
+						) TT1,
+						(
+						SELECT 'X' JOIN_COL
+							 , COUNT(*) TOTAL_COUNT
+						  FROM NEO_SUBTASK A
+							 , NEO_TASK B
+							 , NEO_SEGMENT C
+							 , NEO_USER D
+							 , NEO_CAMPAIGN E
+							 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C002' AND UILANG = '000') F
+							 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C017' AND UILANG = '000') G
+							 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C101' AND UILANG = '000') H
+						 WHERE A.SEND_TEST_YN != 'Y'
+						   AND A.WORK_STATUS IN ('002','003')
+						   AND A.TASK_NO = B.TASK_NO
+						   AND B.SEG_NO = C.SEG_NO
+						   AND B.USER_ID = D.USER_ID
+						   AND B.CAMP_NO = E.CAMP_NO
+						   AND B.CHANNEL = F.CD
+						   AND B.SEND_REPEAT = G.CD
+						   AND A.WORK_STATUS = H.CD
+						   AND B.SEND_REPEAT = '001'	<!-- 정기메일 메일 제한 -->
+						   <if test="searchTaskNm != null and searchTaskNm != ''">
+						   AND UPPER(B.TASK_NM) LIKE CONCAT('%',#{searchTaskNm},'%')
+						   </if>
+						   <if test='adminYn == "N"'>
+						   AND B.DEPT_NO = #{searchDeptNo}
+						   </if>
+						   <if test="searchDeptNo != 0">
+						   AND B.DEPT_NO = #{searchDeptNo}
+						   </if>
+						   <if test="searchUserId != null and searchUserId != ''">
+						   AND B.USER_ID = #{searchUserId}
+						   </if>
+						   <if test="searchCampNo != 0">
+						   AND B.CAMP_NO = #{searchCampNo}
+						   </if>
+						   <if test="searchStartDt != null and searchStartDt != ''">
+						   AND A.SEND_DT &gt;= CONCAT(#{searchStartDt},'000000')
+						   </if>
+						   <if test="searchEndDt != null and searchEndDt != ''">
+						   AND A.SEND_DT &lt; CONCAT(#{searchEndDt},'240000')
+						   </if>
+						   <if test="taskNo != 0">
+						   AND B.TASK_NO = #{taskNo}
+						   </if>
+						) TT2
+				 WHERE TT1.JOIN_COL = TT2.JOIN_COL
+				 ORDER BY TT1.SEND_DT DESC, TT1.TASK_NO DESC, TT1.SUB_TASK_NO DESC
+			) TTT
+		 LIMIT #{startRow}, #{rows}
+	</select>
+	
+	<select id="getTaskInfo" parameterType="taskVO" resultType="taskVO">
+		SELECT A.TASK_NO
+			 , A.TASK_NM
+			 , B.CAMP_NM
+			 , C.SEG_NM
+			 , D.SEND_DT
+			 , D.END_DT
+			 , E.CD_NM CAMP_TY
+		  FROM NEO_TASK A
+			 , NEO_CAMPAIGN B
+			 , NEO_SEGMENT C
+			 , (SELECT TASK_NO, MIN(SEND_DT) AS SEND_DT, MAX(END_DT) AS END_DT FROM NEO_SUBTASK GROUP BY TASK_NO) D
+			 , (SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C004' AND UILANG = #{uilang} AND USE_YN = 'Y') E
+		 WHERE A.CAMP_NO = B.CAMP_NO
+		   AND A.SEG_NO = C.SEG_NO
+		   AND A.TASK_NO = #{taskNo}
+		   AND A.TASK_NO = D.TASK_NO
+		   AND A.CAMP_TY = E.CD
+	</select>
+	
+	<select id="getTaskSummResult" parameterType="taskVO" resultType="mailSummVO">
+		SELECT SEND_CNT
+			 , SUCC_CNT
+			 , (SEND_CNT - SUCC_CNT) AS FAIL_CNT
+			 , OPEN_CNT
+			 , VALID_CNT
+			 , CLICK_CNT
+			 , BLOCK_CNT
+		  FROM (
+				SELECT IFNULL(SUM(SEND_AR_AMT),0) SEND_CNT
+					 , IFNULL(SUM(CASE WHEN SEND_RCODE = '000' THEN SEND_AR_AMT ELSE 0 END),0) SUCC_CNT
+				  FROM NEO_AR_SENDLOG
+				 WHERE TASK_NO = #{taskNo} AND SUB_TASK_NO = #{subTaskNo}
+				) A,
+				(
+				SELECT IFNULL(SUM(RESP_AR_AMT),0) OPEN_CNT
+					 , IFNULL(SUM(CASE WHEN BLOCKED_YN = 'Y' THEN RESP_AR_AMT ELSE 0 END),0) BLOCK_CNT
+				  FROM NEO_AR_RESPLOG
+				 WHERE TASK_NO = #{taskNo} AND SUB_TASK_NO = #{subTaskNo}
+				) B,
+				(
+				SELECT IFNULL(SUM(CLICK_AR_AMT),0) CLICK_CNT
+					 , IFNULL(SUM(VALID_AR_AMT),0) VALID_CNT
+				  FROM NEO_AR_LINKLOG
+				 WHERE TASK_NO = #{taskNo} AND SUB_TASK_NO = #{subTaskNo}
+				) D
+	</select>
+	
+	<select id="getTaskSummDetail" parameterType="taskVO" resultType="mailErrorVO">
+		SELECT A.STEP1
+			 , A.STEP2
+			 , IFNULL(B.SEND_AR_AMT,0) AS CNT_STEP2
+			 , A.CD_DESC AS NM_STEP2
+		  FROM (
+		  		SELECT STEP1, STEP2, CD_DESC FROM NEO_RCODE WHERE KIND = '002' AND UILANG = #{uilang}
+		  		) A
+		  		LEFT OUTER JOIN
+				(
+				SELECT RCODE_STEP1, RCODE_STEP2, SUM(SEND_AR_AMT) AS SEND_AR_AMT FROM NEO_AR_SENDLOG
+				 WHERE SEND_RCODE != '000' AND TASK_NO = #{taskNo} AND SUB_TASK_NO = #{subTaskNo}
+				 GROUP BY RCODE_STEP1, RCODE_STEP2
+				) B
+		 		ON A.STEP1 = B.RCODE_STEP1
+		 		AND A.STEP2 = B.RCODE_STEP2
+		 ORDER BY A.STEP1, A.STEP2
+	</select>
+	
+	<select id="getTaskErrorList" parameterType="taskVO" resultType="mailErrorVO">
+		SELECT AA.STEP1
+			 , AA.NM_STEP1
+			 , AA.CNT_STEP1
+			 , CASE WHEN AA.STEP1 = '001' THEN 6 ELSE 8 END <!-- COUNT(1) OVER (PARTITION BY AA.STEP1) --> STEP1_ROWSPAN
+			 , BB.STEP2
+			 , BB.NM_STEP2
+			 , BB.CNT_STEP2
+			 , 1 <!-- COUNT(1) OVER (PARTITION BY AA.STEP1, BB.STEP2) --> STEP2_ROWSPAN
+			 , CC.RCODE_STEP3 AS STEP3
+			 , IFNULL(CC.NM_STEP3,'') AS NM_STEP3
+			 , IFNULL(CC.CNT_STEP3,0) AS CNT_STEP3
+		  FROM (
+				SELECT A.STEP1, IFNULL(B.SEND_AR_AMT,0) AS CNT_STEP1, A.CD_DESC AS NM_STEP1
+				  FROM (
+						SELECT STEP1, CD_DESC FROM NEO_RCODE WHERE KIND = '001' AND UILANG = #{uilang}
+						) A
+						LEFT OUTER JOIN
+						(
+						SELECT RCODE_STEP1, SUM(SEND_AR_AMT) AS SEND_AR_AMT FROM NEO_AR_SENDLOG
+						 WHERE SEND_RCODE != '000' AND TASK_NO = #{taskNo} AND SUB_TASK_NO = #{subTaskNo} GROUP BY RCODE_STEP1
+						) B
+						ON A.STEP1 = B.RCODE_STEP1
+				) AA
+				INNER JOIN
+				(
+				SELECT A.STEP1, A.STEP2, IFNULL(B.SEND_AR_AMT,0) AS CNT_STEP2, A.CD_DESC AS NM_STEP2
+				  FROM (
+						SELECT STEP1, STEP2, CD_DESC FROM NEO_RCODE WHERE KIND = '002' AND UILANG = #{uilang}
+						) A
+						LEFT OUTER JOIN
+						(
+						SELECT RCODE_STEP1, RCODE_STEP2, SUM(SEND_AR_AMT) AS SEND_AR_AMT FROM NEO_AR_SENDLOG
+						 WHERE SEND_RCODE != '000' AND TASK_NO = #{taskNo} AND SUB_TASK_NO = #{subTaskNo} GROUP BY RCODE_STEP1, RCODE_STEP2
+						) B
+						ON A.STEP1 = B.RCODE_STEP1
+						AND A.STEP2 = B.RCODE_STEP2
+				) BB
+				ON AA.STEP1 = BB.STEP1
+				LEFT OUTER JOIN
+				(
+				SELECT RCODE_STEP1, RCODE_STEP2, RCODE_STEP3, SUM(CNT_STEP3) AS CNT_STEP3, NM_STEP3
+				  FROM (
+						SELECT A.RCODE_STEP1, A.RCODE_STEP2, A.RCODE_STEP3, IFNULL(A.SEND_AR_AMT,0) AS CNT_STEP3, IFNULL(B.CD_DESC, 'Etc') AS NM_STEP3
+						  FROM (
+								SELECT RCODE_STEP1, RCODE_STEP2, RCODE_STEP3, SUM(SEND_AR_AMT) AS SEND_AR_AMT FROM NEO_AR_SENDLOG
+								 WHERE SEND_RCODE != '000' AND TASK_NO = #{taskNo} AND SUB_TASK_NO = #{subTaskNo} GROUP BY RCODE_STEP1, RCODE_STEP2, RCODE_STEP3
+								) A
+								LEFT OUTER JOIN
+								(
+								SELECT STEP1, STEP2, STEP3, CD_DESC FROM NEO_RCODE WHERE KIND = '003' AND UILANG = #{uilang}
+								) B
+								ON A.RCODE_STEP1 = B.STEP1
+								AND A.RCODE_STEP2 = B.STEP2
+								AND A.RCODE_STEP3 = B.STEP3
+						) C
+				 GROUP BY RCODE_STEP1, RCODE_STEP2, RCODE_STEP3, NM_STEP3
+				) CC
+		   		ON BB.STEP1 = CC.RCODE_STEP1
+				AND BB.STEP2 = CC.RCODE_STEP2
+		 ORDER BY AA.STEP1, BB.STEP2, CC.RCODE_STEP3
+	</select>
+	
+	<select id="getTaskDomainList" parameterType="taskVO" resultType="mailDomainVO">
+		SELECT CUST_DOMAIN DOMAIN_NM
+			 , SUM(SEND_AR_AMT) AS SEND_CNT
+			 , SUM(CASE WHEN SEND_RCODE = '000' THEN SEND_AR_AMT ELSE 0 END) AS SUCC_CNT
+			 , SUM(CASE WHEN (SEND_RCODE != '000' AND RCODE_STEP1 = '002') THEN SEND_AR_AMT ELSE 0 END) AS ERROR_CNT
+		  FROM NEO_AR_DOMAINLOG
+		 WHERE TASK_NO = #{taskNo} AND SUB_TASK_NO = #{subTaskNo}
+		 GROUP BY CUST_DOMAIN
+		 ORDER BY SUM(SEND_AR_AMT) DESC
+	</select>
+	
+	<select id="getTaskSendHourList" parameterType="taskVO" resultType="sendLogVO">
+		SELECT *
+		  FROM (
+				SELECT SEND_TIME
+					 , SEND_CNT
+					 , SUCC_CNT
+					 , TOTAL_COUNT
+				  FROM (
+						SELECT 'X' JOIN_COL
+							, SUBSTRING(A.SEND_DT,1,10) AS SEND_TIME
+							 , IFNULL(SUM(SEND_AR_AMT), 0) AS SEND_CNT
+							 , IFNULL(SUM((CASE WHEN A.SEND_RCODE = '000' THEN A.SEND_AR_AMT END)), 0) AS SUCC_CNT 
+						  FROM NEO_AR_SENDLOG A
+						 WHERE A.TASK_NO = #{taskNo}
+						   AND A.SUB_TASK_NO = #{subTaskNo}
+						 GROUP BY SUBSTRING(A.SEND_DT,1,10)
+						) TT1,
+						(
+						SELECT 'X' JOIN_COL
+							 , COUNT(*) TOTAL_COUNT
+						  FROM NEO_AR_SENDLOG A
+						 WHERE A.TASK_NO = #{taskNo}
+						   AND A.SUB_TASK_NO = #{subTaskNo}
+						 GROUP BY SUBSTRING(A.SEND_DT,1,10)
+						) TT2
+				 WHERE TT1.JOIN_COL = TT2.JOIN_COL
+				 ORDER BY TT1.SEND_TIME
+			) TTT
+		 LIMIT #{startRow}, #{rows}
+	</select>
+	
+	<select id="getTaskSendHourSum" parameterType="taskVO" resultType="sendLogVO">
+		SELECT CASE WHEN SUM(SEND_AR_AMT) IS NULL THEN 0 ELSE SUM(SEND_AR_AMT) END AS SEND_CNT
+			 , CASE WHEN SUM((CASE WHEN A.SEND_RCODE = '000' THEN A.SEND_AR_AMT END)) IS NULL THEN 0 ELSE SUM((CASE WHEN A.SEND_RCODE = '000' THEN A.SEND_AR_AMT END)) END AS SUCC_CNT
+		  FROM NEO_AR_SENDLOG A
+			 , (
+				SELECT USER_ID, TZ_TERM
+				  FROM NEO_USER A, NEO_TIMEZONE B
+				 WHERE A.TZ_CD = B.TZ_CD
+				) B
+		 WHERE A.TASK_NO = #{taskNo}
+		   AND A.USER_ID = B.USER_ID
+	</select>
+	
+	<select id="getTaskRespHourList" parameterType="taskVO" resultType="respLogVO">
+		SELECT *
+		  FROM (
+				SELECT RESP_TIME
+					 , SUCC_CNT
+					 , OPEN_CNT
+					 , CLICK_CNT
+					 , VALID_CNT
+					 , BLOCK_CNT
+					 , TOTAL_COUNT
+				  FROM (
+						SELECT 'X' JOIN_COL
+							 , RESP_TIME
+							 , SUCC_CNT
+							 , OPEN_CNT
+							 , CLICK_CNT
+							 , VALID_CNT
+							 , BLOCK_CNT 
+						  FROM (
+								SELECT IFNULL(SUM(SEND_AR_AMT),0) AS SUCC_CNT FROM NEO_AR_SENDLOG
+								 WHERE TASK_NO = #{taskNo} AND SUB_TASK_NO = #{subTaskNo}
+								   AND SEND_RCODE = '000'
+								) X,
+								(
+								SELECT RESP_TIME, IFNULL(SUM(OPEN_CNT),0) AS OPEN_CNT, IFNULL(SUM(CLICK_CNT),0) AS CLICK_CNT, IFNULL(SUM(VALID_CNT),0) AS VALID_CNT, IFNULL(SUM(BLOCK_CNT),0) AS BLOCK_CNT
+								  FROM (
+										SELECT DATE_FORMAT((STR_TO_DATE(AA.OPEN_DT, '%Y%m%d%H%i%s') + (BB.TZ_TERM/60)/24), '%Y%m%d%H') RESP_TIME
+											 , IFNULL(SUM(AA.RESP_AR_AMT),0) AS OPEN_CNT, 0 AS CLICK_CNT, 0 AS VALID_CNT
+											 , IFNULL(SUM(CASE WHEN AA.BLOCKED_YN = 'Y' THEN AA.RESP_AR_AMT ELSE 0 END),0) AS BLOCK_CNT
+										  FROM NEO_AR_RESPLOG AA,
+												(
+												SELECT USER_ID, TZ_TERM
+												  FROM NEO_USER A, NEO_TIMEZONE B
+												 WHERE A.TZ_CD = B.TZ_CD
+												 ) BB
+										 WHERE AA.TASK_NO = #{taskNo}
+										   AND AA.SUB_TASK_NO = #{subTaskNo}
+										   AND AA.USER_ID = BB.USER_ID
+										 GROUP BY DATE_FORMAT((STR_TO_DATE(AA.OPEN_DT,'%Y%m%d%H%i%s') + (BB.TZ_TERM/60)/24), '%Y%m%d%H')
+										 UNION ALL
+										SELECT DATE_FORMAT((STR_TO_DATE(AA.CLICK_DT, '%Y%m%d%H%i%s') + (BB.TZ_TERM/60)/24), '%Y%m%d%H') RESP_TIME
+											 , 0 AS OPEN_CNT, IFNULL(SUM(AA.CLICK_AR_AMT),0) AS CLICK_CNT, IFNULL(SUM(AA.VALID_AR_AMT),0) AS VALID_CNT, 0 AS BLOCK_CNT
+										  FROM NEO_AR_LINKLOG AA,
+												(
+												SELECT USER_ID, TZ_TERM
+												  FROM NEO_USER A, NEO_TIMEZONE B
+												 WHERE A.TZ_CD = B.TZ_CD
+												) BB
+										 WHERE AA.TASK_NO = #{taskNo}
+										   AND AA.SUB_TASK_NO = #{subTaskNo}
+										   AND AA.USER_ID = BB.USER_ID
+										 GROUP BY DATE_FORMAT((STR_TO_DATE(AA.CLICK_DT, '%Y%m%d%H%i%s') + (BB.TZ_TERM/60)/24), '%Y%m%d%H')
+										) CC
+								 GROUP BY RESP_TIME
+								) Y
+						) TT1, 
+						(
+						SELECT 'X' JOIN_COL
+							 , COUNT(*) TOTAL_COUNT
+						  FROM (
+								SELECT RESP_TIME, IFNULL(SUM(OPEN_CNT),0) AS OPEN_CNT, IFNULL(SUM(CLICK_CNT),0) AS CLICK_CNT, IFNULL(SUM(VALID_CNT),0) AS VALID_CNT, IFNULL(SUM(BLOCK_CNT),0) AS BLOCK_CNT
+								  FROM (
+										SELECT DATE_FORMAT((STR_TO_DATE(AA.OPEN_DT, '%Y%m%d%H%i%s') + (BB.TZ_TERM/60)/24), '%Y%m%d%H') RESP_TIME
+											 , IFNULL(SUM(AA.RESP_AR_AMT),0) AS OPEN_CNT, 0 AS CLICK_CNT, 0 AS VALID_CNT
+											 , IFNULL(SUM(CASE WHEN AA.BLOCKED_YN = 'Y' THEN AA.RESP_AR_AMT ELSE 0 END),0) AS BLOCK_CNT
+										  FROM NEO_AR_RESPLOG AA,
+												(
+												SELECT USER_ID, TZ_TERM
+												  FROM NEO_USER A, NEO_TIMEZONE B
+												 WHERE A.TZ_CD = B.TZ_CD
+												 ) BB
+										 WHERE AA.TASK_NO = #{taskNo}
+										   AND AA.SUB_TASK_NO = #{subTaskNo}
+										   AND AA.USER_ID = BB.USER_ID
+										 GROUP BY DATE_FORMAT((STR_TO_DATE(AA.OPEN_DT, '%Y%m%d%H%i%s') + (BB.TZ_TERM/60)/24), '%Y%m%d%H')
+										 UNION ALL
+										SELECT DATE_FORMAT((STR_TO_DATE(AA.CLICK_DT, '%Y%m%d%H%i%s') + (BB.TZ_TERM/60)/24), '%Y%m%d%H') RESP_TIME
+											 , 0 AS OPEN_CNT, IFNULL(SUM(AA.CLICK_AR_AMT),0) AS CLICK_CNT, IFNULL(SUM(AA.VALID_AR_AMT),0) AS VALID_CNT, 0 AS BLOCK_CNT
+										  FROM NEO_AR_LINKLOG AA,
+												(
+												SELECT USER_ID, TZ_TERM
+												  FROM NEO_USER A, NEO_TIMEZONE B
+												 WHERE A.TZ_CD = B.TZ_CD
+												) BB
+										 WHERE AA.TASK_NO = #{taskNo}
+										   AND AA.SUB_TASK_NO = #{subTaskNo}
+										   AND AA.USER_ID = BB.USER_ID
+										 GROUP BY DATE_FORMAT((STR_TO_DATE(AA.CLICK_DT, '%Y%m%d%H%i%s') + (BB.TZ_TERM/60)/24), '%Y%m%d%H')
+										) CC
+								 GROUP BY RESP_TIME
+								) Y
+						) TT2
+				 WHERE TT1.JOIN_COL = TT2.JOIN_COL 
+				 ORDER BY TT1.RESP_TIME
+			) TTT
+		 LIMIT #{startRow}, #{rows}
+	</select>
+	
+	<select id="getTaskRespHourSum" parameterType="taskVO" resultType="respLogVO">
+		SELECT SUCC_CNT, OPEN_CNT, CLICK_CNT, VALID_CNT, BLOCK_CNT
+		  FROM (
+				SELECT SUM(SEND_AR_AMT) AS SUCC_CNT FROM NEO_AR_SENDLOG
+				 WHERE TASK_NO = #{taskNo}
+				   AND SEND_RCODE = '000'
+				) X,
+				(
+				SELECT SUM(OPEN_CNT) AS OPEN_CNT, SUM(CLICK_CNT) AS CLICK_CNT, SUM(VALID_CNT) AS VALID_CNT, SUM(BLOCK_CNT) AS BLOCK_CNT
+				  FROM (
+						SELECT SUM(AA.RESP_AR_AMT) AS OPEN_CNT, 0 AS CLICK_CNT, 0 AS VALID_CNT
+							 , SUM(CASE WHEN AA.BLOCKED_YN = 'Y' THEN AA.RESP_AR_AMT ELSE 0 END) AS BLOCK_CNT
+						  FROM NEO_AR_RESPLOG AA,
+								(
+								SELECT USER_ID, TZ_TERM
+								  FROM NEO_USER A, NEO_TIMEZONE B
+								 WHERE A.TZ_CD = B.TZ_CD
+								) BB
+						 WHERE AA.TASK_NO = #{taskNo}
+						   AND AA.USER_ID = BB.USER_ID
+						 UNION ALL
+						SELECT 0 AS OPEN_CNT, SUM(AA.CLICK_AR_AMT) AS CLICK_CNT, SUM(AA.VALID_AR_AMT) AS VALID_CNT, 0 AS BLOCK_CNT
+						  FROM NEO_AR_LINKLOG AA,
+								(
+								SELECT USER_ID, TZ_TERM
+								  FROM NEO_USER A, NEO_TIMEZONE B
+								 WHERE A.TZ_CD = B.TZ_CD
+								) BB
+						 WHERE AA.TASK_NO = #{taskNo}
+						   AND AA.USER_ID = BB.USER_ID
+						) YY
+				) Y
+	</select>
+	<!-- 
+	<select id="getJoinTaskList" parameterType="sendLogVO" resultType="taskVO">
+		SELECT NEO_AR_SENDLOG.TASK_NO
+			 , NEO_TASK.TASK_NM
+			 , NEO_SEGMENT.SEG_NM
+			 , NEO_CAMPAIGN.CAMP_NM
+			 , IFNULL(SUM(SEND_AR_AMT),0) AS TOT_CNT
+			 , IFNULL(SUM((CASE WHEN NEO_AR_SENDLOG.SEND_RCODE = '000' THEN SEND_AR_AMT END)),0) AS SUC_CNT
+		  FROM NEO_AR_SENDLOG
+			 , NEO_TASK
+			 , NEO_SEGMENT
+			 , NEO_CAMPAIGN
+		 WHERE NEO_AR_SENDLOG.TASK_NO = NEO_TASK.TASK_NO
+		   AND NEO_TASK.SEG_NO = NEO_SEGMENT.SEG_NO
+		   AND NEO_TASK.CAMP_NO = NEO_CAMPAIGN.CAMP_NO
+		   AND 
+				<foreach collection="joinList" item="joinKey" index="index"  open="(" close=")" separator=" OR ">
+				NEO_AR_SENDLOG.TASK_NO = #{joinKey.taskNo}
+				</foreach>
+		 GROUP BY NEO_AR_SENDLOG.TASK_NO, NEO_TASK.TASK_NM, NEO_SEGMENT.SEG_NM, NEO_CAMPAIGN.CAMP_NM
+		 ORDER BY NEO_AR_SENDLOG.TASK_NO DESC
+	</select>
+	 -->
+	 
+	<select id="getJoinTaskList" parameterType="sendLogVO" resultType="taskVO">
+		SELECT NEO_AR_SENDLOG.TASK_NO
+			 , NEO_TASK.TASK_NM
+			 , (SELECT CD_NM FROM NEO_CD WHERE CD_GRP = 'C017' AND UILANG = '000' AND CD = NEO_TASK.SEND_REPEAT) SEND_REPEAT_NM
+			 , NEO_SEGMENT.SEG_NM
+			 , NEO_CAMPAIGN.CAMP_NM
+			 , IFNULL(SUM(SEND_AR_AMT),0) AS TOT_CNT
+			 , IFNULL(SUM((CASE WHEN NEO_AR_SENDLOG.SEND_RCODE = '000' THEN SEND_AR_AMT END)),0) AS SUC_CNT
+		  FROM NEO_AR_SENDLOG
+			 , NEO_TASK
+			 , NEO_SUBTASK 
+			 , NEO_SEGMENT
+			 , NEO_CAMPAIGN
+		 WHERE NEO_AR_SENDLOG.TASK_NO = NEO_TASK.TASK_NO
+		   AND NEO_AR_SENDLOG.TASK_NO = NEO_SUBTASK.TASK_NO
+		   AND NEO_AR_SENDLOG.SUB_TASK_NO = NEO_SUBTASK.SUB_TASK_NO
+		   AND NEO_TASK.SEG_NO = NEO_SEGMENT.SEG_NO
+		   AND NEO_TASK.CAMP_NO = NEO_CAMPAIGN.CAMP_NO
+		   AND NEO_SUBTASK.WORK_STATUS NOT IN ('000','001','002','201','202','203','204' )
+		   AND 
+				<foreach collection="joinList" item="joinKey" index="index"  open="(" close=")" separator=" OR ">
+				NEO_AR_SENDLOG.TASK_NO = #{joinKey.taskNo}
+				</foreach>
+		 GROUP BY NEO_AR_SENDLOG.TASK_NO, NEO_TASK.TASK_NM, NEO_SEGMENT.SEG_NM, NEO_CAMPAIGN.CAMP_NM, NEO_TASK.SEND_REPEAT
+		 ORDER BY NEO_AR_SENDLOG.TASK_NO DESC
+	</select>
+	
+	<select id="getJoinSendResultTask" parameterType="sendLogVO" resultType="respLogVO">
+		SELECT OPEN_CNT
+			 , BLOCK_CNT
+			 , VALID_CNT
+			 , CLICK_CNT
+		  FROM (
+				SELECT IFNULL(SUM((CASE WHEN BLOCKED_YN = 'N' THEN RESP_AR_AMT END)),0) AS OPEN_CNT,
+						IFNULL(SUM((CASE WHEN BLOCKED_YN = 'Y' THEN RESP_AR_AMT END)),0) AS BLOCK_CNT
+				  FROM NEO_AR_RESPLOG
+				 WHERE 
+						<foreach collection="joinList" item="joinKey" index="index"  open="(" close=")" separator=" OR ">
+						NEO_AR_RESPLOG.TASK_NO = #{joinKey.taskNo}
+						</foreach>
+				) A,
+				(
+				SELECT IFNULL(SUM(CLICK_AR_AMT),0) AS CLICK_CNT, IFNULL(SUM(VALID_AR_AMT),0) AS VALID_CNT
+				  FROM NEO_AR_LINKLOG
+				 WHERE 
+						<foreach collection="joinList" item="joinKey" index="index"  open="(" close=")" separator=" OR ">
+						NEO_AR_LINKLOG.TASK_NO = #{joinKey.taskNo}
+						</foreach>
+				) C
+	</select>
+	
+	<select id="getJoinErrorListTask" parameterType="sendLogVO" resultType="mailErrorVO">
+		SELECT A.STEP1
+			 , A.STEP2
+			 , IFNULL(B.SEND_AR_AMT,0) AS CNT_STEP2
+			 , A.CD_DESC AS NM_STEP2
+		  FROM (
+				SELECT STEP1, STEP2, CD_DESC FROM NEO_RCODE WHERE KIND = '002' AND UILANG = #{uilang}
+				) A
+				LEFT OUTER JOIN
+				(
+				SELECT RCODE_STEP1, RCODE_STEP2, SUM(SEND_AR_AMT) AS SEND_AR_AMT
+				  FROM NEO_AR_SENDLOG
+				 WHERE SEND_RCODE != '000'
+				   AND 
+						<foreach collection="joinList" item="joinKey" index="index"  open="(" close=")" separator=" OR ">
+						NEO_AR_SENDLOG.TASK_NO = #{joinKey.taskNo}
+						</foreach>
+				 GROUP BY RCODE_STEP1, RCODE_STEP2
+				) B
+				ON A.STEP1 = B.RCODE_STEP1
+				AND A.STEP2 = B.RCODE_STEP2
+		 ORDER BY A.STEP1, A.STEP2
+	</select>
+	
+	<select id="getCampaignInfo" parameterType="campaignVO" resultType="campaignVO">
+		SELECT A.CAMP_NM
+			 , A.REG_DT
+			 , B.DEPT_NM
+			 , C.USER_NM
+			 , D.CD_NM AS CAMP_TY
+		  FROM NEO_CAMPAIGN A, NEO_DEPT B, NEO_USER C,
+				(SELECT CD, CD_NM FROM NEO_CD WHERE CD_GRP = 'C004' AND UILANG = #{uilang}) D
+		 WHERE A.CAMP_NO = #{campNo}
+		   AND A.DEPT_NO = B.DEPT_NO
+		   AND A.USER_ID = C.USER_ID
+		   AND A.CAMP_TY = D.CD
+	</select>
+	
+	<select id="getCampMailList" parameterType="campaignVO" resultType="mailSummVO">
+		SELECT *
+		  FROM (
+				SELECT TASK_NO
+					 , SEND_CNT
+					 , SUCC_CNT
+					 , OPEN_CNT
+					 , VALID_CNT
+					 , CLICK_CNT
+					 , BLOCK_CNT
+					 , SEND_REPEAT
+					 , TASK_NM
+					 , TOTAL_COUNT
+				  FROM (
+						SELECT 'X' JOIN_COL
+							 , A.TASK_NO
+							 , IFNULL(SEND_CNT,0) AS SEND_CNT
+							 , IFNULL(SUCC_CNT,0) AS SUCC_CNT
+							 , IFNULL(OPEN_CNT,0) AS OPEN_CNT
+							 , IFNULL(VALID_CNT,0) AS VALID_CNT
+							 , IFNULL(CLICK_CNT,0) AS CLICK_CNT
+							 , IFNULL(BLOCK_CNT,0) AS BLOCK_CNT
+							 , IFNULL(E.SEND_REPEAT,'000') AS SEND_REPEAT
+							 , E.TASK_NM
+				             <!-- , ROW_NUMBER() OVER (ORDER BY A.TASK_NO DESC) SEQ -->
+				             <!-- , COUNT(1) OVER() TOTAL_COUNT -->
+						  FROM (
+								SELECT TASK_NO, IFNULL(SUM(SEND_AR_AMT),0) SEND_CNT,
+										IFNULL(SUM(CASE WHEN SEND_RCODE = '000' THEN SEND_AR_AMT ELSE 0 END),0) SUCC_CNT
+								  FROM NEO_AR_SENDLOG
+								 WHERE CAMP_NO = #{campNo}
+								 GROUP BY TASK_NO
+								) A
+								LEFT OUTER JOIN
+								(
+								SELECT TASK_NO, IFNULL(SUM(RESP_AR_AMT),0) OPEN_CNT,
+										IFNULL(SUM(CASE WHEN BLOCKED_YN = 'Y' THEN RESP_AR_AMT ELSE 0 END),0) BLOCK_CNT
+								  FROM NEO_AR_RESPLOG
+								 WHERE CAMP_NO = #{campNo}
+								 GROUP BY TASK_NO
+								) B
+								ON A.TASK_NO = B.TASK_NO
+								LEFT OUTER JOIN
+								(
+								SELECT TASK_NO, IFNULL(SUM(CLICK_AR_AMT),0) CLICK_CNT, IFNULL(SUM(VALID_AR_AMT),0) VALID_CNT
+								  FROM NEO_AR_LINKLOG
+								 WHERE CAMP_NO = #{campNo}
+								 GROUP BY TASK_NO
+								) D
+								ON A.TASK_NO = D.TASK_NO
+								INNER JOIN NEO_TASK E
+								ON A.TASK_NO = E.TASK_NO
+						) TT1,
+						(
+						SELECT 'X' JOIN_COL
+							 , COUNT(*) TOTAL_COUNT
+						  FROM (
+								SELECT TASK_NO, IFNULL(SUM(SEND_AR_AMT),0) SEND_CNT,
+										IFNULL(SUM(CASE WHEN SEND_RCODE = '000' THEN SEND_AR_AMT ELSE 0 END),0) SUCC_CNT
+								  FROM NEO_AR_SENDLOG
+								 WHERE CAMP_NO = #{campNo}
+								 GROUP BY TASK_NO
+								) A
+								LEFT OUTER JOIN
+								(
+								SELECT TASK_NO, IFNULL(SUM(RESP_AR_AMT),0) OPEN_CNT,
+										IFNULL(SUM(CASE WHEN BLOCKED_YN = 'Y' THEN RESP_AR_AMT ELSE 0 END),0) BLOCK_CNT
+								  FROM NEO_AR_RESPLOG
+								 WHERE CAMP_NO = #{campNo}
+								 GROUP BY TASK_NO
+								) B
+								ON A.TASK_NO = B.TASK_NO
+								LEFT OUTER JOIN
+								(
+								SELECT TASK_NO, IFNULL(SUM(CLICK_AR_AMT),0) CLICK_CNT, IFNULL(SUM(VALID_AR_AMT),0) VALID_CNT
+								  FROM NEO_AR_LINKLOG
+								 WHERE CAMP_NO = #{campNo}
+								 GROUP BY TASK_NO
+								) D
+								ON A.TASK_NO = D.TASK_NO
+								INNER JOIN NEO_TASK E
+								ON A.TASK_NO = E.TASK_NO
+						) TT2
+				 WHERE TT1.JOIN_COL = TT2.JOIN_COL
+				 ORDER BY TT1.TASK_NO DESC
+			) TTT
+		 LIMIT #{startRow}, #{rows}
+	</select>
+	
+	<select id="getCampMailTotal" parameterType="campaignVO" resultType="mailSummVO">
+		SELECT SUM(SEND_CNT) AS SEND_CNT
+			 , SUM(SUCC_CNT) AS SUCC_CNT
+			 , SUM(OPEN_CNT) AS OPEN_CNT
+			 , SUM(VALID_CNT) AS VALID_CNT
+			 , SUM(CLICK_CNT) AS CLICK_CNT
+			 , SUM(BLOCK_CNT) AS BLOCK_CNT
+		  FROM (
+		  		SELECT TASK_NO, IFNULL(SUM(SEND_AR_AMT),0) SEND_CNT,
+						IFNULL(SUM(CASE WHEN SEND_RCODE = '000' THEN SEND_AR_AMT ELSE 0 END),0) SUCC_CNT
+				  FROM NEO_AR_SENDLOG
+				 WHERE CAMP_NO = #{campNo}
+				 GROUP BY TASK_NO
+				) A
+				LEFT OUTER JOIN
+				(
+				SELECT TASK_NO, IFNULL(SUM(RESP_AR_AMT),0) OPEN_CNT,
+						IFNULL(SUM(CASE WHEN BLOCKED_YN = 'Y' THEN RESP_AR_AMT ELSE 0 END),0) BLOCK_CNT
+				  FROM NEO_AR_RESPLOG
+				 WHERE CAMP_NO = #{campNo}
+				 GROUP BY TASK_NO
+				) B
+				ON A.TASK_NO = B.TASK_NO
+				LEFT OUTER JOIN
+				(
+				SELECT TASK_NO, IFNULL(SUM(CLICK_AR_AMT),0) CLICK_CNT, IFNULL(SUM(VALID_AR_AMT),0) VALID_CNT
+				  FROM NEO_AR_LINKLOG
+				 WHERE CAMP_NO = #{campNo}
+				 GROUP BY TASK_NO
+				) D
+				ON A.TASK_NO = D.TASK_NO
+				INNER JOIN NEO_TASK E
+				ON A.TASK_NO = E.TASK_NO
+	</select>
+	
+	<select id="getJoinCampList" parameterType="sendLogVO" resultType="taskVO">
+		SELECT NEO_AR_SENDLOG.CAMP_NO
+			 , NEO_CAMPAIGN.CAMP_NM
+			 , IFNULL(SUM(SEND_AR_AMT),0) AS TOT_CNT
+			 , IFNULL(SUM((CASE WHEN NEO_AR_SENDLOG.SEND_RCODE = '000' THEN SEND_AR_AMT END)),0) AS SUC_CNT
+		  FROM NEO_AR_SENDLOG
+			 , NEO_CAMPAIGN
+		 WHERE NEO_AR_SENDLOG.CAMP_NO = NEO_CAMPAIGN.CAMP_NO
+		   AND 
+				<foreach collection="campList" item="campNo" index="index"  open="(" close=")" separator=" OR ">
+				NEO_AR_SENDLOG.CAMP_NO = #{campNo}
+				</foreach>
+		 GROUP BY NEO_AR_SENDLOG.CAMP_NO, NEO_CAMPAIGN.CAMP_NM
+		 ORDER BY NEO_AR_SENDLOG.CAMP_NO DESC
+	</select>
+	
+	<select id="getJoinSendResultCamp" parameterType="sendLogVO" resultType="respLogVO">
+		SELECT OPEN_CNT
+			 , BLOCK_CNT
+			 , VALID_CNT
+			 , CLICK_CNT
+		  FROM (
+		  		SELECT IFNULL(SUM((CASE WHEN BLOCKED_YN = 'N' THEN RESP_AR_AMT END)),0) AS OPEN_CNT,
+						IFNULL(SUM((CASE WHEN BLOCKED_YN = 'Y' THEN RESP_AR_AMT END)),0) AS BLOCK_CNT
+				  FROM NEO_AR_RESPLOG
+				 WHERE 
+				 		<foreach collection="campList" item="campNo" index="index"  open="(" close=")" separator=" OR ">
+						NEO_AR_RESPLOG.CAMP_NO = #{campNo}
+						</foreach>
+				) A,
+				(
+				SELECT IFNULL(SUM(CLICK_AR_AMT),0) AS CLICK_CNT, IFNULL(SUM(VALID_AR_AMT),0) AS VALID_CNT
+				  FROM NEO_AR_LINKLOG
+				 WHERE 
+				 		<foreach collection="campList" item="campNo" index="index"  open="(" close=")" separator=" OR ">
+						NEO_AR_LINKLOG.CAMP_NO = #{campNo}
+						</foreach>
+				) C
+	</select>
+	
+	<select id="getJoinErrorListCamp" parameterType="sendLogVO" resultType="mailErrorVO">
+		SELECT A.STEP1
+			 , A.STEP2
+			 , IFNULL(B.SEND_AR_AMT,0) AS CNT_STEP2
+			 , A.CD_DESC AS NM_STEP2
+		  FROM (
+		  		SELECT STEP1, STEP2, CD_DESC FROM NEO_RCODE WHERE KIND = '002' AND UILANG = #{uilang}
+		  		) A
+		  		LEFT OUTER JOIN
+				(
+				SELECT RCODE_STEP1, RCODE_STEP2, SUM(SEND_AR_AMT) AS SEND_AR_AMT FROM NEO_AR_SENDLOG
+				 WHERE SEND_RCODE != '000'
+				   AND 
+				 		<foreach collection="campList" item="campNo" index="index"  open="(" close=")" separator=" OR ">
+						NEO_AR_SENDLOG.CAMP_NO = #{campNo}
+						</foreach>
+				 GROUP BY RCODE_STEP1, RCODE_STEP2
+				) B
+				ON A.STEP1 = B.RCODE_STEP1
+				AND A.STEP2 = B.RCODE_STEP2
+		 ORDER BY A.STEP1, A.STEP2
+	</select>
+	
+	<select id="getPeriodSummMonthList" parameterType="periodSummVO" resultType="periodSummVO">
+		SELECT AA.YMD
+			 , SEND_CNT
+			 , IFNULL(SUCC_CNT,0) SUCC_CNT
+			 , IFNULL(OPEN_CNT,0) OPEN_CNT
+			 , IFNULL(VALID_CNT,0) VALID_CNT
+			 , IFNULL(CLICK_CNT,0) CLICK_CNT
+			 , IFNULL(BLOCK_CNT,0) BLOCK_CNT
+		  FROM (
+		  		SELECT SUBSTRING(A.SEND_DT,1,6) YMD,
+						IFNULL(SUM(SEND_AR_AMT),0) SEND_CNT, IFNULL(SUM(CASE WHEN SEND_RCODE = '000' THEN SEND_AR_AMT ELSE 0 END),0) SUCC_CNT
+				  FROM NEO_AR_SENDLOG A
+				 WHERE A.SEND_DT &gt;= CONCAT(#{searchStartDt},'0000')
+				   AND A.SEND_DT &lt; CONCAT(#{searchEndDt},'2400')
+				   <if test="searchCampNo != null and searchCampNo != ''">
+				   AND A.CAMP_NO = #{searchCampNo}
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND A.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND A.USER_ID = #{searchUserId}
+				   </if>
+				 GROUP BY SUBSTRING(A.SEND_DT,1,6)
+				) AA
+				LEFT OUTER JOIN
+				(
+				SELECT SUBSTRING(A.OPEN_DT,1,6) YMD,
+						IFNULL(SUM(RESP_AR_AMT),0) OPEN_CNT, IFNULL(SUM(CASE WHEN BLOCKED_YN = 'Y' THEN RESP_AR_AMT ELSE 0 END),0) BLOCK_CNT
+				  FROM NEO_AR_RESPLOG A
+				 WHERE A.OPEN_DT &gt;= CONCAT(#{searchStartDt},'0000')
+				   AND A.OPEN_DT &lt; CONCAT(#{searchEndDt},'2400')
+				   <if test="searchCampNo != null and searchCampNo != ''">
+				   AND A.CAMP_NO = #{searchCampNo}
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND A.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND A.USER_ID = #{searchUserId}
+				   </if>
+				 GROUP BY SUBSTRING(A.OPEN_DT,1,6)
+				) BB
+				ON AA.YMD = BB.YMD
+				LEFT OUTER JOIN
+				(
+				SELECT SUBSTRING(A.CLICK_DT,1,6) YMD,
+						IFNULL(SUM(CLICK_AR_AMT),0) CLICK_CNT, IFNULL(SUM(VALID_AR_AMT),0) VALID_CNT
+				  FROM NEO_AR_LINKLOG A
+				 WHERE A.CLICK_DT &gt;= CONCAT(#{searchStartDt},'0000')
+				   AND A.CLICK_DT &lt; CONCAT(#{searchEndDt},'2400')
+				   <if test="searchCampNo != null and searchCampNo != ''">
+				   AND A.CAMP_NO = #{searchCampNo}
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND A.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND A.USER_ID = #{searchUserId}
+				   </if>
+				 GROUP BY SUBSTRING(A.CLICK_DT,1,6)
+				) DD
+				ON AA.YMD = DD.YMD
+		  ORDER BY AA.YMD
+	</select>
+	
+	<select id="getPeriodSummWeekList" parameterType="periodSummVO" resultType="periodSummVO">
+		SELECT EE.WEEK_NM AS WEEK_NM
+			 , IFNULL(SEND_CNT,0) SEND_CNT
+			 , IFNULL(SUCC_CNT,0) SUCC_CNT
+			 , IFNULL(OPEN_CNT,0) OPEN_CNT
+			 , IFNULL(VALID_CNT,0) VALID_CNT
+			 , IFNULL(CLICK_CNT,0) CLICK_CNT
+			 , IFNULL(BLOCK_CNT,0) BLOCK_CNT
+		  FROM (
+				SELECT CD, CD_NM AS WEEK_NM FROM NEO_CD
+				 WHERE CD_GRP = 'C005' AND UILANG = #{uilang}
+				) EE
+				LEFT OUTER JOIN
+				(
+				SELECT DAYOFWEEK, IFNULL(SUM(SEND_AR_AMT),0) SEND_CNT,
+						IFNULL(SUM(CASE WHEN SEND_RCODE = '000' THEN SEND_AR_AMT ELSE 0 END),0) SUCC_CNT
+				  FROM NEO_AR_SENDLOG A
+				 WHERE A.SEND_DT &gt;= CONCAT(#{searchStartDt},'0000')
+				   AND A.SEND_DT &lt; CONCAT(#{searchEndDt},'2400')
+				   <if test="searchCampNo != null and searchCampNo != ''">
+				   AND A.CAMP_NO = #{searchCampNo}
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND A.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND A.USER_ID = #{searchUserId}
+				   </if>
+				 GROUP BY DAYOFWEEK
+				) AA
+				ON EE.CD = AA.DAYOFWEEK
+				LEFT OUTER JOIN
+				(
+				SELECT DAYOFWEEK, IFNULL(SUM(RESP_AR_AMT),0) OPEN_CNT,
+						IFNULL(SUM(CASE WHEN BLOCKED_YN = 'Y' THEN RESP_AR_AMT ELSE 0 END),0) BLOCK_CNT
+				  FROM NEO_AR_RESPLOG A
+				 WHERE A.OPEN_DT &gt;= CONCAT(#{searchStartDt},'0000')
+				   AND A.OPEN_DT &lt; CONCAT(#{searchEndDt},'2400')
+				   <if test="searchCampNo != null and searchCampNo != ''">
+				   AND A.CAMP_NO = #{searchCampNo}
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND A.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND A.USER_ID = #{searchUserId}
+				   </if>
+				 GROUP BY DAYOFWEEK
+				) BB
+				ON EE.CD = BB.DAYOFWEEK
+				LEFT OUTER JOIN
+				(
+				SELECT DAYOFWEEK, IFNULL(SUM(CLICK_AR_AMT),0) CLICK_CNT, IFNULL(SUM(VALID_AR_AMT),0) VALID_CNT
+				  FROM NEO_AR_LINKLOG A
+				 WHERE A.CLICK_DT &gt;= CONCAT(#{searchStartDt},'0000')
+				   AND A.CLICK_DT &lt; CONCAT(#{searchEndDt},'2400')
+				   <if test="searchCampNo != null and searchCampNo != ''">
+				   AND A.CAMP_NO = #{searchCampNo}
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND A.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND A.USER_ID = #{searchUserId}
+				   </if>
+				 GROUP BY DAYOFWEEK
+				) DD
+				ON EE.CD = DD.DAYOFWEEK
+		 ORDER BY EE.CD
+	</select>
+	
+	<select id="getPeriodSummDateList" parameterType="periodSummVO" resultType="periodSummVO">
+		SELECT AA.YMD
+			 , SEND_CNT
+			 , IFNULL(SUCC_CNT,0) SUCC_CNT
+			 , IFNULL(OPEN_CNT,0) OPEN_CNT
+			 , IFNULL(VALID_CNT,0) VALID_CNT
+			 , IFNULL(CLICK_CNT,0) CLICK_CNT
+			 , IFNULL(BLOCK_CNT,0) BLOCK_CNT
+		  FROM (
+				SELECT SUBSTRING(A.SEND_DT,1,8) YMD,
+						IFNULL(SUM(SEND_AR_AMT),0) SEND_CNT, IFNULL(SUM(CASE WHEN SEND_RCODE = '000' THEN SEND_AR_AMT ELSE 0 END),0) SUCC_CNT
+				  FROM NEO_AR_SENDLOG A
+				 WHERE A.SEND_DT &gt;= CONCAT(#{searchStartDt},'0000')
+				   AND A.SEND_DT &lt; CONCAT(#{searchEndDt},'2400')
+				   <if test="searchCampNo != null and searchCampNo != ''">
+				   AND A.CAMP_NO = #{searchCampNo}
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND A.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND A.USER_ID = #{searchUserId}
+				   </if>
+				 GROUP BY SUBSTRING(A.SEND_DT,1,8)
+				) AA
+				LEFT OUTER JOIN
+				(
+				SELECT SUBSTRING(A.OPEN_DT,1,8) YMD,
+						IFNULL(SUM(RESP_AR_AMT),0) OPEN_CNT, IFNULL(SUM(CASE WHEN BLOCKED_YN = 'Y' THEN RESP_AR_AMT ELSE 0 END),0) BLOCK_CNT
+				  FROM NEO_AR_RESPLOG A
+				 WHERE A.OPEN_DT &gt;= CONCAT(#{searchStartDt},'0000')
+				   AND A.OPEN_DT &lt; CONCAT(#{searchEndDt},'2400')
+				   <if test="searchCampNo != null and searchCampNo != ''">
+				   AND A.CAMP_NO = #{searchCampNo}
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND A.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND A.USER_ID = #{searchUserId}
+				   </if>
+				 GROUP BY SUBSTRING(A.OPEN_DT,1,8)
+				) BB
+				ON AA.YMD = BB.YMD
+				LEFT OUTER JOIN
+				(
+				SELECT SUBSTRING(A.CLICK_DT,1,8) YMD,
+						IFNULL(SUM(CLICK_AR_AMT),0) CLICK_CNT, IFNULL(SUM(VALID_AR_AMT),0) VALID_CNT
+				  FROM NEO_AR_LINKLOG A
+				 WHERE A.CLICK_DT &gt;= CONCAT(#{searchStartDt},'0000')
+				   AND A.CLICK_DT &lt; CONCAT(#{searchEndDt},'2400')
+				   <if test="searchCampNo != null and searchCampNo != ''">
+				   AND A.CAMP_NO = #{searchCampNo}
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND A.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND A.USER_ID = #{searchUserId}
+				   </if>
+				 GROUP BY SUBSTRING(A.CLICK_DT,1,8)
+				) DD
+				ON AA.YMD = DD.YMD
+		 ORDER BY AA.YMD
+	</select>
+	
+	<select id="getPeriodSummDomainList" parameterType="periodSummVO" resultType="periodSummVO">
+		SELECT DOMAIN_NM
+			 , SEND_CNT
+			 , SUCC_CNT
+			 , ERR_CNT
+		  FROM (
+				SELECT CUST_DOMAIN DOMAIN_NM
+					 , SUM(SEND_AR_AMT) SEND_CNT
+					 , SUM(CASE WHEN SEND_RCODE = '000' THEN SEND_AR_AMT ELSE 0 END) AS SUCC_CNT
+					 , SUM(CASE WHEN (SEND_RCODE != '000' AND RCODE_STEP1 = '002') THEN SEND_AR_AMT ELSE 0 END) AS ERR_CNT
+				  FROM NEO_AR_DOMAINLOG A, NEO_TASK B
+				 WHERE A.TASK_NO = B.TASK_NO
+				   AND CONCAT(A.SEND_DAY,'0000') &gt;= CONCAT(#{searchStartDt},'0000')
+				   AND CONCAT(A.SEND_DAY,'0000') &lt; CONCAT(#{searchEndDt},'2400')
+				   <if test="searchCampNo != null and searchCampNo != ''">
+				   AND B.CAMP_NO = #{searchCampNo}
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND B.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND B.USER_ID = #{searchUserId}
+				   </if>
+				 GROUP BY CUST_DOMAIN
+				 ORDER BY SUM(SEND_AR_AMT) DESC
+				) TT
+		 LIMIT 20
+	</select>
+	
+	<select id="getPeriodSummDeptList" parameterType="periodSummVO" resultType="periodSummVO">
+		SELECT EE.DEPT_NM AS DEPT_NM
+			 , SEND_CNT, IFNULL(SUCC_CNT,0) SUCC_CNT
+			 , IFNULL(OPEN_CNT,0) OPEN_CNT
+			 , IFNULL(VALID_CNT,0) VALID_CNT
+			 , IFNULL(CLICK_CNT,0) CLICK_CNT
+			 , IFNULL(BLOCK_CNT,0) BLOCK_CNT
+		  FROM (
+				SELECT DEPT_NO, IFNULL(SUM(SEND_AR_AMT),0) SEND_CNT
+					 , IFNULL(SUM(CASE WHEN SEND_RCODE = '000' THEN SEND_AR_AMT ELSE 0 END),0) SUCC_CNT
+				  FROM NEO_AR_SENDLOG A
+				 WHERE A.SEND_DT &gt;= CONCAT(#{searchStartDt},'0000')
+				   AND A.SEND_DT &lt; CONCAT(#{searchEndDt},'2400')
+				   <if test="searchCampNo != null and searchCampNo != ''">
+				   AND A.CAMP_NO = #{searchCampNo}
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND A.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND A.USER_ID = #{searchUserId}
+				   </if>
+				 GROUP BY DEPT_NO
+				) AA
+				LEFT OUTER JOIN
+				(
+				SELECT DEPT_NO, IFNULL(SUM(RESP_AR_AMT),0) OPEN_CNT
+					 , IFNULL(SUM(CASE WHEN BLOCKED_YN = 'Y' THEN RESP_AR_AMT ELSE 0 END),0) BLOCK_CNT
+				  FROM NEO_AR_RESPLOG A
+				 WHERE A.OPEN_DT &gt;= CONCAT(#{searchStartDt},'0000')
+				   AND A.OPEN_DT &lt; CONCAT(#{searchEndDt},'2400')
+				   <if test="searchCampNo != null and searchCampNo != ''">
+				   AND A.CAMP_NO = #{searchCampNo}
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND A.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND A.USER_ID = #{searchUserId}
+				   </if>
+				 GROUP BY DEPT_NO
+				) BB
+				ON AA.DEPT_NO = BB.DEPT_NO
+				LEFT OUTER JOIN
+				(
+				SELECT DEPT_NO, IFNULL(SUM(CLICK_AR_AMT),0) CLICK_CNT, IFNULL(SUM(VALID_AR_AMT),0) VALID_CNT
+				  FROM NEO_AR_LINKLOG A
+				 WHERE A.CLICK_DT &gt;= CONCAT(#{searchStartDt},'0000')
+				   AND A.CLICK_DT &lt; CONCAT(#{searchEndDt},'2400')
+				   <if test="searchCampNo != null and searchCampNo != ''">
+				   AND A.CAMP_NO = #{searchCampNo}
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND A.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND A.USER_ID = #{searchUserId}
+				   </if>
+				 GROUP BY DEPT_NO
+				) DD
+				ON AA.DEPT_NO = DD.DEPT_NO
+				LEFT OUTER JOIN NEO_DEPT EE
+				ON AA.DEPT_NO = EE.DEPT_NO
+		 ORDER BY EE.DEPT_NM
+	</select>
+	
+	<select id="getPeriodSummUserList" parameterType="periodSummVO" resultType="periodSummVO">
+		SELECT EE.USER_NM AS USER_NM
+			 , SEND_CNT
+			 , IFNULL(SUCC_CNT,0) SUCC_CNT
+			 , IFNULL(OPEN_CNT,0) OPEN_CNT
+			 , IFNULL(VALID_CNT,0) VALID_CNT
+			 , IFNULL(CLICK_CNT,0) CLICK_CNT
+			 , IFNULL(BLOCK_CNT,0) BLOCK_CNT
+		  FROM (
+				SELECT USER_ID, IFNULL(SUM(SEND_AR_AMT),0) SEND_CNT
+					 , IFNULL(SUM(CASE WHEN SEND_RCODE = '000' THEN SEND_AR_AMT ELSE 0 END),0) SUCC_CNT
+				  FROM NEO_AR_SENDLOG A
+				 WHERE A.SEND_DT &gt;= CONCAT(#{searchStartDt},'0000')
+				   AND A.SEND_DT &lt; CONCAT(#{searchEndDt},'2400')
+				   <if test="searchCampNo != null and searchCampNo != ''">
+				   AND A.CAMP_NO = #{searchCampNo}
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND A.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND A.USER_ID = #{searchUserId}
+				   </if>
+				 GROUP BY USER_ID
+				) AA
+				LEFT OUTER JOIN
+				(
+				SELECT USER_ID, IFNULL(SUM(RESP_AR_AMT),0) OPEN_CNT
+					 , IFNULL(SUM(CASE WHEN BLOCKED_YN = 'Y' THEN RESP_AR_AMT ELSE 0 END),0) BLOCK_CNT
+				  FROM NEO_AR_RESPLOG A
+				 WHERE A.OPEN_DT &gt;= CONCAT(#{searchStartDt},'0000')
+				   AND A.OPEN_DT &lt; CONCAT(#{searchEndDt},'2400')
+				   <if test="searchCampNo != null and searchCampNo != ''">
+				   AND A.CAMP_NO = #{searchCampNo}
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND A.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND A.USER_ID = #{searchUserId}
+				   </if>
+				 GROUP BY USER_ID
+				) BB
+				ON AA.USER_ID = BB.USER_ID
+				LEFT OUTER JOIN
+				(
+				SELECT USER_ID, IFNULL(SUM(CLICK_AR_AMT),0) CLICK_CNT, IFNULL(SUM(VALID_AR_AMT),0) VALID_CNT
+				  FROM NEO_AR_LINKLOG A
+				 WHERE A.CLICK_DT &gt;= CONCAT(#{searchStartDt},'0000')
+				   AND A.CLICK_DT &lt; CONCAT(#{searchEndDt},'2400')
+				   <if test="searchCampNo != null and searchCampNo != ''">
+				   AND A.CAMP_NO = #{searchCampNo}
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND A.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND A.USER_ID = #{searchUserId}
+				   </if>
+				 GROUP BY USER_ID
+				) DD
+				ON AA.USER_ID = DD.USER_ID
+				LEFT OUTER JOIN NEO_USER EE
+				ON AA.USER_ID = EE.USER_ID
+		 ORDER BY EE.USER_NM
+	</select>
+	
+	<select id="getPeriodSummCampList" parameterType="periodSummVO" resultType="periodSummVO">
+		SELECT EE.CAMP_NM AS CAMP_NM
+			 , SEND_CNT
+			 , IFNULL(SUCC_CNT,0) SUCC_CNT
+			 , IFNULL(OPEN_CNT,0) OPEN_CNT
+			 , IFNULL(VALID_CNT,0) VALID_CNT
+			 , IFNULL(CLICK_CNT,0) CLICK_CNT
+			 , IFNULL(BLOCK_CNT,0) BLOCK_CNT
+		  FROM (
+				SELECT CAMP_NO, IFNULL(SUM(SEND_AR_AMT),0) SEND_CNT
+					 , IFNULL(SUM(CASE WHEN SEND_RCODE = '000' THEN SEND_AR_AMT ELSE 0 END),0) SUCC_CNT
+				  FROM NEO_AR_SENDLOG A
+				 WHERE A.SEND_DT &gt;= CONCAT(#{searchStartDt},'0000')
+				   AND A.SEND_DT &lt; CONCAT(#{searchEndDt},'2400')
+				   <if test="searchCampNo != null and searchCampNo != ''">
+				   AND A.CAMP_NO = #{searchCampNo}
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND A.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND A.USER_ID = #{searchUserId}
+				   </if>
+				 GROUP BY CAMP_NO
+				) AA
+				LEFT OUTER JOIN
+				(
+				SELECT CAMP_NO, IFNULL(SUM(RESP_AR_AMT),0) OPEN_CNT
+					 , IFNULL(SUM(CASE WHEN BLOCKED_YN = 'Y' THEN RESP_AR_AMT ELSE 0 END),0) BLOCK_CNT
+				  FROM NEO_AR_RESPLOG A
+				 WHERE A.OPEN_DT &gt;= CONCAT(#{searchStartDt},'0000')
+				   AND A.OPEN_DT &lt; CONCAT(#{searchEndDt},'2400')
+				   <if test="searchCampNo != null and searchCampNo != ''">
+				   AND A.CAMP_NO = #{searchCampNo}
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND A.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND A.USER_ID = #{searchUserId}
+				   </if>
+				 GROUP BY CAMP_NO
+				) BB
+				ON AA.CAMP_NO = BB.CAMP_NO
+				LEFT OUTER JOIN
+				(
+				SELECT CAMP_NO, IFNULL(SUM(CLICK_AR_AMT),0) CLICK_CNT, IFNULL(SUM(VALID_AR_AMT),0) VALID_CNT
+				  FROM NEO_AR_LINKLOG A
+				 WHERE A.CLICK_DT &gt;= CONCAT(#{searchStartDt},'0000')
+				   AND A.CLICK_DT &lt; CONCAT(#{searchEndDt},'2400')
+				   <if test="searchCampNo != null and searchCampNo != ''">
+				   AND A.CAMP_NO = #{searchCampNo}
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND A.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND A.USER_ID = #{searchUserId}
+				   </if>
+				 GROUP BY CAMP_NO
+				) DD
+				ON AA.CAMP_NO = DD.CAMP_NO
+				LEFT OUTER JOIN NEO_CAMPAIGN EE
+				ON AA.CAMP_NO = EE.CAMP_NO
+		 ORDER BY EE.CAMP_NM
+	</select>
+	
+	<select id="getSendLogList" parameterType="sendLogVO" resultType="sendLogVO">
+		SELECT *
+		  FROM (
+				SELECT SEND_DT
+					 , MAIL_FROM_NM
+					 , MAIL_FROM_EM
+					 , DEPT_NO
+					 , DEPT_NM
+					 , USER_ID
+					 , USER_NM
+					 , SEND_REPEAT
+					 , SEND_REPEAT_NM
+					 , TASK_NO
+					 , SUB_TASK_NO
+					 , TASK_NM
+					 , MAIL_TITLE
+					 , CUST_ID
+					 , CAMP_NO
+					 , CAMP_NM
+					 , CAMP_TY
+					 , CAMP_TY_NM
+					 , TARGET_GRP_TY
+					 , CUST_EM
+					 , CUST_NM
+					 , SEND_RCODE
+					 , SEND_RCODE_NM
+					 , RCODE_STEP1
+					 , RCODE_STEP2
+					 , RCODE_STEP3
+					 , SEND_MSG
+					 , SEND_AMT
+					 , DOMAIN_CD
+					 , DOMAIN_NM
+					 , CUST_DOMAIN
+					 , TOTAL_COUNT
+				  FROM (
+						SELECT 'X' JOIN_COL
+							 , T1.SEND_DT
+							 , T3.MAIL_FROM_NM
+							 , T3.MAIL_FROM_EM
+							 , T1.DEPT_NO
+							 , T4.DEPT_NM
+							 , T1.USER_ID
+							 , T5.USER_NM
+							 , T3.SEND_REPEAT
+							 , (SELECT CD_NM FROM NEO_CD WHERE UILANG='000' AND CD_GRP='C017' AND CD=T3.SEND_REPEAT) SEND_REPEAT_NM
+							 , T1.TASK_NO
+							 , T1.SUB_TASK_NO
+							 , T3.TASK_NM
+							 , T3.MAIL_TITLE
+							 , T1.CUST_ID
+							 , T1.CAMP_NO
+							 , T6.CAMP_NM
+							 , T6.CAMP_TY
+							 , (SELECT CD_NM FROM NEO_CD WHERE UILANG='000' AND CD_GRP='C004' AND CD=T6.CAMP_TY) CAMP_TY_NM
+							 , T1.TARGET_GRP_TY
+							 , T1.CUST_EM
+							 , T1.CUST_NM
+							 , T1.SEND_RCODE
+							 , (SELECT CD_NM FROM NEO_CD WHERE UILANG='000' AND CD_GRP='C035' AND CD=T1.SEND_RCODE) SEND_RCODE_NM
+							 , T1.RCODE_STEP1
+							 , T1.RCODE_STEP2
+							 , T1.RCODE_STEP3
+							 , T1.SEND_MSG
+							 , T1.SEND_AMT
+							 , T1.DOMAIN_CD
+							 , (SELECT CD_NM FROM NEO_CD WHERE UILANG='000' AND CD_GRP='C003' AND CD=T1.DOMAIN_CD) DOMAIN_NM
+							 , T1.CUST_DOMAIN
+							 <!-- , ROW_NUMBER() OVER (ORDER BY T1.SEND_DT DESC, T1.CUST_ID, T1.CUST_NM) SEQ -->
+							 <!-- , COUNT(1) OVER() TOTAL_COUNT -->
+						  FROM NEO_SENDLOG T1
+							 , NEO_SUBTASK T2
+							 , NEO_TASK T3
+							 , NEO_DEPT T4
+							 , NEO_USER T5
+							 , NEO_CAMPAIGN T6
+						 WHERE T1.TASK_NO = T2.TASK_NO
+						   AND T1.SUB_TASK_NO = T2.SUB_TASK_NO
+						   AND T1.TASK_NO = T3.TASK_NO
+						   AND T1.DEPT_NO = T4.DEPT_NO
+						   AND T1.USER_ID = T5.USER_ID
+						   AND T1.CAMP_NO = T6.CAMP_NO
+						   <if test="searchStartDt != null and searchStartDt != ''">
+						   AND T1.SEND_DT &gt;= CONCAT(#{searchStartDt},'000000')
+						   </if>
+						   <if test="searchEndDt != null and searchEndDt != ''">
+						   AND T1.SEND_DT &lt; CONCAT(#{searchEndDt},'240000')
+						   </if>
+						   <if test="searchWorkStatus != null and searchWorkStatus != ''">
+						   		<if test='searchWorkStatus == "004"'>
+						   		AND T2.WORK_STATUS NOT IN ('000', '001', '002', '003', '201', '202', '203')
+						   		</if>
+						   		<if test='searchWorkStatus != "004"'>
+						   		AND T2.WORK_STATUS = #{searchWorkStatus}
+						   		</if>
+						   </if>
+						   <if test='adminYn == "N"'>
+						   AND T1.DEPT_NO = #{searchDeptNo}
+						   </if>
+						   <if test="searchUserId != null and searchUserId != ''">
+						   AND T1.USER_ID = #{searchUserId}
+						   </if>
+						   <if test="searchUserNm != null and searchUserNm != ''">
+						   AND T5.USER_NM LIKE CONCAT('%',#{searchUserNm},'%')
+						   </if>
+						   <if test="searchSendRepeat != null and searchSendRepeat != ''">
+						   AND T3.SEND_REPEAT = #{searchSendRepeat}
+						   </if>
+						   <if test="searchSegNo != 0">
+						   AND T3.SEG_NO = #{searchSegNo}
+						   </if>
+						) TT1,
+						(
+						SELECT 'X' JOIN_COL
+							 , COUNT(*) TOTAL_COUNT
+						  FROM NEO_SENDLOG T1
+							 , NEO_SUBTASK T2
+							 , NEO_TASK T3
+							 , NEO_DEPT T4
+							 , NEO_USER T5
+							 , NEO_CAMPAIGN T6
+						 WHERE T1.TASK_NO = T2.TASK_NO
+						   AND T1.SUB_TASK_NO = T2.SUB_TASK_NO
+						   AND T1.TASK_NO = T3.TASK_NO
+						   AND T1.DEPT_NO = T4.DEPT_NO
+						   AND T1.USER_ID = T5.USER_ID
+						   AND T1.CAMP_NO = T6.CAMP_NO
+						   <if test="searchStartDt != null and searchStartDt != ''">
+						   AND T1.SEND_DT &gt;= CONCAT(#{searchStartDt},'000000')
+						   </if>
+						   <if test="searchEndDt != null and searchEndDt != ''">
+						   AND T1.SEND_DT &lt; CONCAT(#{searchEndDt},'240000')
+						   </if>
+						   <if test="searchWorkStatus != null and searchWorkStatus != ''">
+						   		<if test='searchWorkStatus == "004"'>
+						   		AND T2.WORK_STATUS NOT IN ('000', '001', '002', '003', '201', '202', '203')
+						   		</if>
+						   		<if test='searchWorkStatus != "004"'>
+						   		AND T2.WORK_STATUS = #{searchWorkStatus}
+						   		</if>
+						   </if>
+						   <if test='adminYn == "N"'>
+						   AND T1.DEPT_NO = #{searchDeptNo}
+						   </if>
+						   <if test="searchUserId != null and searchUserId != ''">
+						   AND T1.USER_ID = #{searchUserId}
+						   </if>
+						   <if test="searchUserNm != null and searchUserNm != ''">
+						   AND T5.USER_NM LIKE CONCAT('%',#{searchUserNm},'%')
+						   </if>
+						   <if test="searchSendRepeat != null and searchSendRepeat != ''">
+						   AND T3.SEND_REPEAT = #{searchSendRepeat}
+						   </if>
+						   <if test="searchSegNo != 0">
+						   AND T3.SEG_NO = #{searchSegNo}
+						   </if>
+						) TT2
+				 WHERE TT1.JOIN_COL = TT2.JOIN_COL
+				 ORDER BY TT1.SEND_DT DESC, TT1.CUST_ID, TT1.CUST_NM
+			) TTT
+		 LIMIT #{startRow}, #{rows}
+	</select>
+	<!-- -3월11일 -->
+	<select id="getSendLogListEms" parameterType="sendLogVO" resultType="sendLogVO">
+		SELECT *
+		  FROM (
+				SELECT SEND_DT
+					 , MAIL_FROM_NM
+					 , MAIL_FROM_EM
+					 , USER_ID
+					 , USER_NM
+					 , SEND_REPEAT
+					 , SEND_REPEAT_NM
+					 , TASK_NO
+					 , SUB_TASK_NO
+					 , TASK_NM
+					 , MAIL_TITLE
+					 , CUST_ID
+					 , CAMP_NO
+					 , CAMP_NM
+					 , CUST_EM
+					 , CUST_NM
+					 , SEND_RCODE
+					 , SEND_RCODE_NM
+					 , ATT_CNT
+					 , SERVICE_GB
+					 , CONT_FL_PATH
+					 , WEB_AGENT
+					 , WEB_AGENT_TYP
+					 , RESP_AMT
+					 , OPEN_DT
+					 , BIZKEY
+					 , RTY_NO
+					 , SEG_REAL
+					 , TOTAL_COUNT
+				  FROM (
+						SELECT 'X' JOIN_COL
+							 ,  T1.SEND_DT
+							 , T3.MAIL_FROM_NM
+							 , T3.MAIL_FROM_EM
+							 , T1.USER_ID
+							 , T5.USER_NM
+							 , T3.SEND_REPEAT
+							 , (SELECT CD_NM FROM NEO_CD WHERE UILANG='000' AND CD_GRP='C017' AND CD=T3.SEND_REPEAT) SEND_REPEAT_NM
+							 , T1.TASK_NO
+							 , T1.SUB_TASK_NO
+							 , T3.TASK_NM
+							 , T3.MAIL_TITLE
+							 , T1.CUST_ID
+							 , T1.CAMP_NO
+							 , T6.CAMP_NM
+							 , T1.CUST_EM
+							 , T1.CUST_NM
+							 , T1.SEND_RCODE
+							 , (SELECT CD_NM FROM NEO_CD WHERE UILANG='000' AND CD_GRP='C035' AND CD=T1.SEND_RCODE) SEND_RCODE_NM
+							 , T3.ATT_CNT
+							 , '10' SERVICE_GB
+							 , T3.CONT_FL_PATH
+							 , IFNULL(T7.SOURCE_URL, '') WEB_AGENT
+							 , IFNULL(T7.SECU_ATT_TYP, '') WEB_AGENT_TYP
+							 , IFNULL(T8.RESP_AMT, 0) RESP_AMT
+							 , IFNULL(T8.OPEN_DT, '') OPEN_DT
+							 , T1.BIZKEY
+							 , IFNULL(T2.RTY_TASK_NO,0 ) RTY_NO
+							 , (SELECT COUNT(*) FROM NEO_SEGMENT_REAL WHERE SEG_NO = T3.SEG_NO) SEG_REAL
+				             <!-- , ROW_NUMBER() OVER (ORDER BY T1.SEND_DT DESC, T1.CUST_ID, T1.CUST_NM) SEQ -->
+				             <!-- , COUNT(1) OVER() TOTAL_COUNT -->
+						  FROM NEO_SENDLOG T1 
+						 INNER JOIN NEO_SUBTASK T2   ON (T1.TASK_NO = T2.TASK_NO AND T1.SUB_TASK_NO = T2.SUB_TASK_NO)
+						 INNER JOIN NEO_TASK T3      ON (T1.TASK_NO = T3.TASK_NO)
+						 INNER JOIN NEO_DEPT T4      ON (T1.DEPT_NO = T4.DEPT_NO)
+						 INNER JOIN NEO_USER T5      ON (T1.USER_ID = T5.USER_ID)
+						 INNER JOIN NEO_CAMPAIGN T6  ON (T1.CAMP_NO = T6.CAMP_NO)
+						  LEFT OUTER JOIN NEO_WEBAGENT T7 ON(T1.TASK_NO = T7.TASK_NO)
+						  LEFT OUTER JOIN NEO_RESPLOG  T8 ON 
+						  			(T1.TASK_NO = T8.TASK_NO AND T1.SUB_TASK_NO = T8.SUB_TASK_NO AND T1.DEPT_NO = T8.DEPT_NO AND T1.CAMP_NO = T8.CAMP_NO AND T1.CUST_ID = T8.CUST_ID AND T1.USER_ID = T8.USER_ID )
+									<!--(T1.TASK_NO = T8.TASK_NO AND T1.SUB_TASK_NO = T8.SUB_TASK_NO AND T1.DEPT_NO = T8.DEPT_NO AND T1.CAMP_NO = T8.CAMP_NO AND T1.CUST_ID = T8.CUST_ID AND T1.USER_ID = T8.USER_ID )-->
+						  WHERE 1=1
+						   <if test="searchStartDt != null and searchStartDt != ''">
+						   AND T1.SEND_DT &gt;= CONCAT(#{searchStartDt}, '000000')
+						   </if>
+						   <if test="searchEndDt != null and searchEndDt != ''">
+						   AND T1.SEND_DT &lt; CONCAT( #{searchEndDt}, '240000')
+						   </if>
+						   <if test="searchCampNo != null and searchCampNo != 0">
+						   AND T1.CAMP_NO = #{searchCampNo}
+						   </if>
+						   <if test="searchCustId != null and searchCustId != ''">
+						   AND T1.CUST_ID LIKE CONCAT('%', #{searchCustId}, '%')
+						   </if>
+						   <if test="searchCustNm != null and searchCustNm != ''">
+						   AND T1.CUST_NM LIKE CONCAT('%', #{searchCustNm}, '%')
+						   </if>
+						   <if test="searchCustEm != null and searchCustEm != ''">
+						   AND T1.CUST_EM = #{searchCustEm}
+						   </if>
+						   <if test="searchWorkStatus != null and searchWorkStatus != ''">
+						   		<if test='searchWorkStatus == "10"'>
+						   		AND T1.SEND_RCODE = '000'
+						   		</if>
+						   		<if test='searchWorkStatus != "10"'>
+						   		AND T1.SEND_RCODE != '000'
+						   		</if>
+						   </if>
+						   <if test="searchUserNm != null and searchUserNm != ''">
+						   AND T5.USER_NM LIKE CONCAT('%', #{searchUserNm},'%')
+						   </if>
+						) TT1, 
+						(
+						SELECT 'X' JOIN_COL
+							 , COUNT(*) TOTAL_COUNT
+						  FROM NEO_SENDLOG T1 
+						 INNER JOIN NEO_SUBTASK T2   ON (T1.TASK_NO = T2.TASK_NO AND T1.SUB_TASK_NO = T2.SUB_TASK_NO)
+						 INNER JOIN NEO_TASK T3      ON (T1.TASK_NO = T3.TASK_NO)
+						 INNER JOIN NEO_DEPT T4      ON (T1.DEPT_NO = T4.DEPT_NO)
+						 INNER JOIN NEO_USER T5      ON (T1.USER_ID = T5.USER_ID)
+						 INNER JOIN NEO_CAMPAIGN T6  ON (T1.CAMP_NO = T6.CAMP_NO)
+						  LEFT OUTER JOIN NEO_WEBAGENT T7 ON(T1.TASK_NO = T7.TASK_NO)
+						  LEFT OUTER JOIN NEO_RESPLOG  T8 ON 
+									(T1.TASK_NO = T8.TASK_NO AND T1.SUB_TASK_NO = T8.SUB_TASK_NO AND T1.DEPT_NO = T8.DEPT_NO AND T1.CAMP_NO = T8.CAMP_NO AND T1.CUST_ID = T8.CUST_ID AND T1.USER_ID = T8.USER_ID )
+						  WHERE 1=1
+						   <if test="searchStartDt != null and searchStartDt != ''">
+						   AND T1.SEND_DT &gt;= CONCAT(#{searchStartDt}, '000000')
+						   </if>
+						   <if test="searchEndDt != null and searchEndDt != ''">
+						   AND T1.SEND_DT &lt; CONCAT( #{searchEndDt}, '240000')
+						   </if>
+						   <if test="searchCampNo != null and searchCampNo != 0">
+						   AND T1.CAMP_NO = #{searchCampNo}
+						   </if>
+						   <if test="searchCustId != null and searchCustId != ''">
+						   AND T1.CUST_ID LIKE CONCAT('%', #{searchCustId}, '%')
+						   </if>
+						   <if test="searchCustNm != null and searchCustNm != ''">
+						   AND T1.CUST_NM LIKE CONCAT('%', #{searchCustNm}, '%')
+						   </if>
+						   <if test="searchCustEm != null and searchCustEm != ''">
+						   AND T1.CUST_EM = #{searchCustEm}
+						   </if>
+						   <if test="searchWorkStatus != null and searchWorkStatus != ''">
+						   		<if test='searchWorkStatus == "10"'>
+						   		AND T1.SEND_RCODE = '000'
+						   		</if>
+						   		<if test='searchWorkStatus != "10"'>
+						   		AND T1.SEND_RCODE != '000'
+						   		</if>
+						   </if>
+						   <if test="searchUserNm != null and searchUserNm != ''">
+						   AND T5.USER_NM LIKE CONCAT('%', #{searchUserNm},'%')
+						   </if>
+						) TT2
+				 WHERE TT1.JOIN_COL = TT2.JOIN_COL
+				 ORDER BY TT1.SEND_DT DESC, TT1.CUST_ID, TT1.CUST_NM
+			) TTT
+		 LIMIT #{startRow}, #{rows}
+	</select>
+	
+	<select id="getSendLogListRns" parameterType="sendLogVO" resultType="sendLogVO">
+		SELECT *
+		  FROM (
+				SELECT SEND_DT
+					 , MAIL_FROM_NM
+					 , MAIL_FROM_EM
+					 , USER_ID
+					 , USER_NM
+					 , SEND_REPEAT
+					 , SEND_REPEAT_NM
+					 , TASK_NO
+					 , SUB_TASK_NO
+					 , TASK_NM
+					 , MAIL_TITLE
+					 , CUST_ID
+					 , CAMP_NO
+					 , CAMP_NM
+					 , CUST_EM
+					 , CUST_NM
+					 , SEND_RCODE
+					 , SEND_RCODE_NM
+					 , ATTCH_CNT
+					 , SERVICE_GB
+					 , CONT_FL_PATH
+					 , WEB_AGENT
+					 , WEB_AGENT_TYP
+					 , RESP_AMT
+					 , OPEN_DT
+					 , BIZKEY
+					 , RTY_NO
+					 , SEG_REAL
+					 , TOTAL_COUNT
+				  FROM (
+						SELECT 'X' JOIN_COL
+							 , SEND_DT
+							 , MAIL_FROM_NM
+							 , MAIL_FROM_EM
+							 , USER_ID
+							 , USER_NM
+							 , SEND_REPEAT
+							 , SEND_REPEAT_NM
+							 , TASK_NO
+							 , SUB_TASK_NO
+							 , TASK_NM
+							 , MAIL_TITLE
+							 , CUST_ID
+							 , CAMP_NO
+							 , CAMP_NM
+							 , CUST_EM
+							 , CUST_NM
+							 , SEND_RCODE
+							 , SEND_RCODE_NM
+							 , ATTCH_CNT
+							 , SERVICE_GB
+							 , CONT_FL_PATH
+							 , WEB_AGENT
+							 , WEB_AGENT_TYP
+							 , RESP_AMT
+							 , OPEN_DT
+							 , BIZKEY
+							 , SEG_REAL
+							 , RTY_NO
+					  	  FROM
+					  		(
+								SELECT DATE_FORMAT(Y.SDATE, '%Y%m%d%H%i') SEND_DT
+									 , X.SNAME MAIL_FROM_NM
+									 , X.SMAIL MAIL_FROM_EM 
+									 , X.SID USER_ID 
+									 , X.SNAME USER_NM 
+									 , '099' SEND_REPEAT
+									 , '실시간' SEND_REPEAT_NM
+									 , X.TID TASK_NO 
+									 , X.MID SUB_TASK_NO
+									 , C.TNM TASK_NM 
+									 , Y.SUBJECT  MAIL_TITLE
+									 , X.RID CUST_ID 
+									 , X.TID CAMP_NO 
+									 , C.TNM CAMP_NM 
+									 , X.RMAIL CUST_EM
+									 , X.RNAME CUST_NM
+									 , X.RCODE SEND_RCODE
+									 , (SELECT CD_DESC FROM TS_RCODE WHERE UILANG = #{uilang} AND X.RCODE = RCODE ) SEND_RCODE_NM
+									 , C.ATTCH_CNT
+									 , '20' SERVICE_GB
+									 , C.CONTENTS_PATH CONT_FL_PATH
+									 , (SELECT IFNULL(SOURCE_URL, '') FROM TS_WEBAGENT WHERE TID = X.TID) WEB_AGENT
+									 , (SELECT IFNULL(SECU_ATT_TYP, '') FROM TS_WEBAGENT WHERE TID = X.TID) WEB_AGENT_TYP
+									 , IFNULL(L.RSID, 0 ) RESP_AMT
+									 , REPLACE(REPLACE(REPLACE(IFNULL(L.RSDATE, ''), '/', ''), ':', ''), ' ' ,'') OPEN_DT
+									 , X.BIZKEY
+									 , 0 SEG_REAL
+									 ,  IFNULL(Y.RTY_MID, 0) RTY_NO
+								  FROM TS_RESULTLOG X
+								 INNER JOIN TS_SERVICETYP C ON (X.TID = C.TID)
+								 INNER JOIN TS_MAILQUEUE Y ON (X.MID = Y.MID AND X.SUBID= Y.SUBID AND X.TID = Y.TID )
+								 INNER JOIN (SELECT MID, MAX(SUBID) SUBID FROM TS_MAILQUEUE GROUP BY MID) D ON ( X.MID = D.MID)
+								  LEFT OUTER JOIN TS_WEBAGENT T ON ( X.TID = T.TID) 
+								  LEFT OUTER JOIN TS_RESPONSELOG L ON ( X.MID = L.MID AND X.SUBID = L.SUBID AND X.RID = L.RID )
+								 WHERE 1=1
+								   <if test="searchStartDt != null and searchStartDt != ''">
+								   <!-- AND X.STIME &gt;= DATE_FORMAT(STR_TO_DATE(#{searchStartDt} , '%Y%m%d'), '%Y/%m/%d %H:%i:%s')  -->
+								   AND DATE_FORMAT(X.STIME, '%Y%m%d') &gt;= #{searchStartDt}
+								   </if>
+								   <if test="searchEndDt != null and searchEndDt != ''">
+								   <!-- AND X.STIME &lt; DATE_FORMAT(STR_TO_DATE(#{searchEndDt} , '%Y%m%d'), '%Y/%m/%d %H:%i:%s') -->
+								   AND DATE_FORMAT(X.STIME, '%Y%m%d') &lt;= #{searchEndDt}
+								   </if>
+				 				   <if test="searchCampNo != null and searchCampNo != 0">
+								   AND X.TID = #{searchCampNo}
+								   </if>
+								   <if test="searchCustId != null and searchCustId != ''">
+								   AND X.RID LIKE CONCAT('%', #{searchCustId}, '%')
+								   </if>			   
+								   <if test="searchCustNm != null and searchCustNm != ''">
+								   AND X.RNAME LIKE CONCAT('%', #{searchCustNm}, '%')
+								   </if>
+								   <if test="searchCustEm != null and searchCustEm != ''">
+								   AND X.RMAIL = #{searchCustEm}
+								   </if>
+								   <if test="searchWorkStatus != null and searchWorkStatus != ''">
+								   		<if test='searchWorkStatus == "10"'>
+								   		AND CAST(X.RCODE AS UNSIGNED) = 1
+								   		</if>
+								   		<if test='searchWorkStatus != "10"'>
+								   		AND CAST(X.RCODE AS UNSIGNED) > 1
+								   		</if>
+								   </if>
+								   <if test="searchUserNm != null and searchUserNm != ''">
+								   AND X.SNAME LIKE CONCAT('%', #{searchUserNm},'%')
+								   </if>
+								) RR
+							 WHERE NOT EXISTS (SELECT MID FROM TS_MAILQUEUE_TEST RT WHERE RR.SUB_TASK_NO = RT.MID)
+						) TT1,
+						(
+						SELECT 'X' JOIN_COL
+							 , COUNT(*) TOTAL_COUNT
+					  	  FROM
+					  		(
+								SELECT DATE_FORMAT(Y.SDATE, '%Y%m%d%H%i') SEND_DT
+									 , X.SNAME MAIL_FROM_NM
+									 , X.SMAIL MAIL_FROM_EM 
+									 , X.SID USER_ID 
+									 , X.SNAME USER_NM 
+									 , '099' SEND_REPEAT
+									 , '실시간' SEND_REPEAT_NM
+									 , X.TID TASK_NO 
+									 , X.MID SUB_TASK_NO
+									 , C.TNM TASK_NM 
+									 , Y.SUBJECT  MAIL_TITLE
+									 , X.RID CUST_ID 
+									 , X.TID CAMP_NO 
+									 , C.TNM CAMP_NM 
+									 , X.RMAIL CUST_EM
+									 , X.RNAME CUST_NM
+									 , X.RCODE SEND_RCODE
+									 , (SELECT CD_DESC FROM TS_RCODE WHERE UILANG = #{uilang} AND X.RCODE = RCODE ) SEND_RCODE_NM
+									 , C.ATTCH_CNT
+									 , '20' SERVICE_GB
+									 , C.CONTENTS_PATH CONT_FL_PATH
+									 , (SELECT IFNULL(SOURCE_URL, '') FROM TS_WEBAGENT WHERE TID = X.TID) WEB_AGENT
+									 , (SELECT IFNULL(SECU_ATT_TYP, '') FROM TS_WEBAGENT WHERE TID = X.TID) WEB_AGENT_TYP
+									 , IFNULL(L.RSID, 0 ) RESP_AMT
+									 , REPLACE(REPLACE(REPLACE(IFNULL(L.RSDATE, ''), '/', ''), ':', ''), ' ' ,'') OPEN_DT
+									 , X.BIZKEY
+									 , 0 SEG_REAL
+									 ,  IFNULL(Y.RTY_MID, 0) RTY_NO
+								  FROM TS_RESULTLOG X
+								 INNER JOIN TS_SERVICETYP C ON (X.TID = C.TID)
+								 INNER JOIN TS_MAILQUEUE Y ON (X.MID = Y.MID AND X.SUBID= Y.SUBID AND X.TID = Y.TID )
+								 INNER JOIN (SELECT MID, MAX(SUBID) SUBID FROM TS_MAILQUEUE GROUP BY MID) D ON ( X.MID = D.MID)
+								  LEFT OUTER JOIN TS_WEBAGENT T ON ( X.TID = T.TID) 
+								  LEFT OUTER JOIN TS_RESPONSELOG L ON ( X.MID = L.MID AND X.SUBID = L.SUBID AND X.RID = L.RID )
+								 WHERE 1=1
+								   <if test="searchStartDt != null and searchStartDt != ''">
+								   <!-- AND X.STIME &gt;= DATE_FORMAT(STR_TO_DATE(#{searchStartDt} , '%Y%m%d'), '%Y/%m/%d %H:%i:%s')  -->
+								   AND DATE_FORMAT(X.STIME, '%Y%m%d') &gt;= #{searchStartDt}
+								   </if>
+								   <if test="searchEndDt != null and searchEndDt != ''">
+								   <!-- AND X.STIME &lt; DATE_FORMAT(STR_TO_DATE(#{searchEndDt} , '%Y%m%d'), '%Y/%m/%d %H:%i:%s') -->
+								   AND DATE_FORMAT(X.STIME, '%Y%m%d') &lt;= #{searchEndDt}
+								   </if>
+				 				   <if test="searchCampNo != null and searchCampNo != 0">
+								   AND X.TID = #{searchCampNo}
+								   </if>
+								   <if test="searchCustId != null and searchCustId != ''">
+								   AND X.RID LIKE CONCAT('%', #{searchCustId}, '%')
+								   </if>			   
+								   <if test="searchCustNm != null and searchCustNm != ''">
+								   AND X.RNAME LIKE CONCAT('%', #{searchCustNm}, '%')
+								   </if>
+								   <if test="searchCustEm != null and searchCustEm != ''">
+								   AND X.RMAIL = #{searchCustEm}
+								   </if>
+								   <if test="searchWorkStatus != null and searchWorkStatus != ''">
+								   		<if test='searchWorkStatus == "10"'>
+								   		AND CAST(X.RCODE AS UNSIGNED) = 1
+								   		</if>
+								   		<if test='searchWorkStatus != "10"'>
+								   		AND CAST(X.RCODE AS UNSIGNED) > 1
+								   		</if>
+								   </if>
+								   <if test="searchUserNm != null and searchUserNm != ''">
+								   AND X.SNAME LIKE CONCAT('%', #{searchUserNm},'%')
+								   </if>
+								) RR
+							 WHERE NOT EXISTS (SELECT MID FROM TS_MAILQUEUE_TEST RT WHERE RR.SUB_TASK_NO = RT.MID)
+						) TT2
+				 WHERE TT1.JOIN_COL = TT2.JOIN_COL
+				 ORDER BY TT1.SEND_DT DESC, TT1.CUST_ID, TT1.CUST_NM
+			) TTT
+		 LIMIT #{startRow}, #{rows}
+	</select>
+	
+	<select id="getSendLogListExcel" parameterType="sendLogVO" resultType="sendLogVO">
+		SELECT SEND_DT
+			 , MAIL_FROM_NM
+			 , MAIL_FROM_EM
+			 , USER_ID
+			 , USER_NM
+			 , SEND_REPEAT
+			 , SEND_REPEAT_NM
+			 , TASK_NO
+			 , SUB_TASK_NO
+			 , TASK_NM
+			 , MAIL_TITLE
+			 , CUST_ID
+			 , CAMP_NO
+			 , CAMP_NM
+			 , CUST_EM
+			 , CUST_NM
+			 , SEND_RCODE
+			 , SEND_RCODE_NM
+			 , ATT_CNT
+			 , SERVICE_GB
+			 , CONT_FL_PATH
+			 , WEB_AGENT
+		FROM 
+			(
+			SELECT T1.SEND_DT
+				 , T3.MAIL_FROM_NM
+				 , T3.MAIL_FROM_EM
+				 , T1.USER_ID
+				 , T5.USER_NM
+				 , T3.SEND_REPEAT
+				 , (SELECT CD_NM FROM NEO_CD WHERE UILANG='000' AND CD_GRP='C017' AND CD=T3.SEND_REPEAT) SEND_REPEAT_NM
+				 , T1.TASK_NO
+				 , T1.SUB_TASK_NO
+				 , T3.TASK_NM
+				 , T3.MAIL_TITLE
+				 , T1.CUST_ID
+				 , T1.CAMP_NO
+				 , T6.CAMP_NM
+				 , T1.CUST_EM
+				 , T1.CUST_NM
+				 , T1.SEND_RCODE
+				 , (SELECT CD_NM FROM NEO_CD WHERE UILANG='000' AND CD_GRP='C035' AND CD=T1.SEND_RCODE) SEND_RCODE_NM
+				 , T3.ATT_CNT
+				 , '10' SERVICE_GB
+				 , T3.CONT_FL_PATH
+				 , (SELECT IFNULL(SOURCE_URL,'') FROM NEO_WEBAGENT WHERE TASK_NO = T1.TASK_NO) WEB_AGENT
+			  FROM NEO_SENDLOG T1
+				 , NEO_SUBTASK T2
+				 , NEO_TASK T3
+				 , NEO_DEPT T4
+				 , NEO_USER T5
+				 , NEO_CAMPAIGN T6
+			 WHERE T1.TASK_NO = T2.TASK_NO
+			   AND T1.SUB_TASK_NO = T2.SUB_TASK_NO
+			   AND T1.TASK_NO = T3.TASK_NO
+			   AND T1.DEPT_NO = T4.DEPT_NO
+			   AND T1.USER_ID = T5.USER_ID
+			   AND T1.CAMP_NO = T6.CAMP_NO
+			   <if test="searchStartDt != null and searchStartDt != ''">
+			   AND T1.SEND_DT &gt;=CONCAT(#{searchStartDt}, '000000')
+			   </if>
+			   <if test="searchEndDt != null and searchEndDt != ''">
+			   AND T1.SEND_DT &lt; CONCAT(#{searchEndDt},'240000')
+			   </if>
+			   <if test="searchCampNo != null and searchCampNo != 0">
+			   AND T1.CAMP_NO = #{searchCampNo}
+			   </if>
+			   <if test="searchCustId != null and searchCustId != ''">
+			   AND T1.CUST_ID LIKE CONCAT('%', #{searchCustId}, '%')
+			   </if>
+			   <if test="searchCustNm != null and searchCustNm != ''">
+			   AND T1.CUST_NM LIKE CONCAT('%', #{searchCustNm}, '%')
+			   </if>
+			   <if test="searchCustEm != null and searchCustEm != ''">
+			   AND T1.CUST_EM = #{searchCustEm}
+			   </if>
+			   <if test="searchWorkStatus != null and searchWorkStatus != ''">
+			   		<if test='searchWorkStatus == "10"'>
+			   		AND T1.SEND_RCODE = '000'
+			   		</if>
+			   		<if test='searchWorkStatus != "10"'>
+			   		AND T1.SEND_RCODE != '000'
+			   		</if>
+			   </if>
+			   <if test="searchUserNm != null and searchUserNm != ''">
+			   AND T5.USER_NM LIKE CONCAT('%', #{searchUserNm},'%')
+			   </if>
+			 UNION ALL
+			SELECT DATE_FORMAT(Y.SDATE,'%Y%m%d%H%i') SEND_DT
+				 , X.SNAME MAIL_FROM_NM
+				 , X.SMAIL MAIL_FROM_EM 
+				 , X.SID USER_ID 
+				 , X.SNAME USER_NM 
+				 , '099' SEND_REPEAT
+				 , '실시간' SEND_REPEAT_NM
+				 , X.TID TASK_NO 
+				 , X.MID SUB_TASK_NO
+				 , C.TNM TASK_NM 
+				 , Y.SUBJECT  MAIL_TITLE
+				 , X.RID CUST_ID 
+				 , X.TID CAMP_NO 
+				 , C.TNM CAMP_NM 
+				 , X.RMAIL CUST_EM
+				 , X.RNAME CUST_NM
+				 , X.RCODE SEND_RCODE
+				 , (SELECT CD_DESC FROM TS_RCODE WHERE UILANG = #{uilang} AND X.RCODE = RCODE ) SEND_RCODE_NM
+				 , C.ATTCH_CNT
+				 , '20' SERVICE_GB
+				 , (SELECT IFNULL(SOURCE_URL,'') FROM TS_WEBAGENT WHERE TID = X.TID) WEB_AGENT
+				 , C.CONTENTS_PATH CONT_FL_PATH
+			  FROM TS_RESULTLOG X
+			     , TS_SERVICETYP C
+			     , TS_MAILQUEUE Y 
+			     , (SELECT MID, MAX(SUBID) SUBID FROM TS_MAILQUEUE GROUP BY MID) D
+			 WHERE X.TID = C.TID
+			   AND X.MID = Y.MID
+			   AND X.MID = D.MID
+			   AND X.SUBID= Y.SUBID
+			   AND X.TID = Y.TID
+			   <if test="searchStartDt != null and searchStartDt != ''">
+			   AND DATE_FORMAT(Y.SDATE, '%Y%m%d') &gt;= #{searchStartDt}
+			   </if>
+			   <if test="searchEndDt != null and searchEndDt != ''">
+			   AND DATE_FORMAT(Y.SDATE, '%Y%m%d') &lt;= #{searchEndDt}
+			   </if>
+			   <if test="searchCampNo != null and searchCampNo != 0">
+			   AND X.TID = #{searchCampNo}
+			   </if>
+			   <if test="searchCustId != null and searchCustId != ''">
+			   AND X.RID LIKE CONCAT('%', #{searchCustId}, '%')
+			   </if>
+			   <if test="searchCustNm != null and searchCustNm != ''">
+			   AAND X.RNAME LIKE CONCAT('%', #{searchCustNm}, '%')
+			   </if>
+			   <if test="searchCustEm != null and searchCustEm != ''">
+			   AND X.RMAIL = #{searchCustEm}
+			   </if>				   
+			   <if test="searchWorkStatus != null and searchWorkStatus != ''">
+			   		<if test='searchWorkStatus == "10"'>
+			   		AND CAST(X.RCODE AS UNSIGNED) = 1
+			   		</if>
+			   		<if test='searchWorkStatus != "10"'>
+			   		AND CAST(X.RCODE AS UNSIGNED) > 1
+			   		</if>
+			   </if>
+			   <if test="searchUserNm != null and searchUserNm != ''">
+			   AND X.SNAME LIKE CONCAT('%', #{searchUserNm},'%')
+			   </if>
+			) ORDER BY SEND_DT DESC
+	</select>
+ 
+<!-- 	<select id="getSendLogListEmsExcel" parameterType="sendLogVO" resultType="sendLogVO">
+		SELECT  
+			   T1.SEND_DT
+			 , T3.MAIL_FROM_NM
+			 , T3.MAIL_FROM_EM
+			 , T1.USER_ID
+			 , T5.USER_NM
+			 , T3.SEND_REPEAT
+			 , (SELECT CD_NM FROM NEO_CD WHERE UILANG='000' AND CD_GRP='C017' AND CD=T3.SEND_REPEAT) SEND_REPEAT_NM
+			 , T1.TASK_NO
+			 , T1.SUB_TASK_NO
+			 , T3.TASK_NM
+			 , T3.MAIL_TITLE
+			 , T1.CUST_ID
+			 , T1.CAMP_NO
+			 , T6.CAMP_NM
+			 , T1.CUST_EM
+			 , T1.CUST_NM
+			 , T1.SEND_RCODE
+			 , (SELECT CD_NM FROM NEO_CD WHERE UILANG='000' AND CD_GRP='C035' AND CD=T1.SEND_RCODE) SEND_RCODE_NM
+			 , T3.ATT_CNT
+			 , '10' SERVICE_GB
+			 , T3.CONT_FL_PATH
+			 , (SELECT IFNULL(SOURCE_URL, '') FROM NEO_WEBAGENT WHERE TASK_NO = T1.TASK_NO) WEB_AGENT
+		  FROM NEO_SENDLOG T1
+			 , NEO_SUBTASK T2
+			 , NEO_TASK T3
+			 , NEO_DEPT T4
+			 , NEO_USER T5
+			 , NEO_CAMPAIGN T6
+			  LEFT OUTER JOIN NEO_RESPLOG  T8 ON 
+						  			(T1.TASK_NO = T8.TASK_NO AND T1.SUB_TASK_NO = T8.SUB_TASK_NO AND T1.DEPT_NO = T8.DEPT_NO AND T1.CAMP_NO = T8.CAMP_NO AND T1.CUST_ID = T8.CUST_ID AND T1.USER_ID = T8.USER_ID ) 
+		 WHERE T1.TASK_NO = T2.TASK_NO
+		   AND T1.SUB_TASK_NO = T2.SUB_TASK_NO
+		   AND T1.TASK_NO = T3.TASK_NO
+		   AND T1.DEPT_NO = T4.DEPT_NO
+		   AND T1.USER_ID = T5.USER_ID
+		   AND T1.CAMP_NO = T6.CAMP_NO
+		   <if test="searchStartDt != null and searchStartDt != ''">
+		   AND T1.SEND_DT &gt; CONCAT( #{searchStartDt} , '000000')
+		   </if>
+		   <if test="searchEndDt != null and searchEndDt != ''">
+		   AND T1.SEND_DT &lt; CONCAT(#{searchEndDt} ,'240000')
+		   </if>
+		   <if test="searchCampNo != null and searchCampNo != 0">
+		   AND T1.CAMP_NO = #{searchCampNo}
+		   </if>
+		   <if test="searchCustId != null and searchCustId != ''">
+		   AND T1.CUST_ID LIKE CONCAT('%', #{searchCustId}, '%')
+		   </if>
+		   <if test="searchCustNm != null and searchCustNm != ''">
+		   AND T1.CUST_NM LIKE CONCAT('%', #{searchCustNm}, '%')
+		   </if>
+		   <if test="searchCustEm != null and searchCustEm != ''">
+		   AND T1.CUST_EM = #{searchCustEm}
+		   </if>
+		   <if test="searchWorkStatus != null and searchWorkStatus != ''">
+		   		<if test='searchWorkStatus == "10"'>
+		   		AND T1.SEND_RCODE = '000'
+		   		</if>
+		   		<if test='searchWorkStatus != "10"'>
+		   		AND T1.SEND_RCODE != '000'
+		   		</if>
+		   </if>
+		   <if test="searchUserNm != null and searchUserNm != ''">
+		   AND T5.USER_NM LIKE CONCAT('%', #{searchUserNm},'%')
+		   </if>
+		 ORDER BY T1.SEND_DT
+	</select> -->
+	
+	<select id="getSendLogListEmsExcel" parameterType="sendLogVO" resultType="sendLogVO">
+		SELECT T1.SEND_DT
+			 , T3.MAIL_FROM_NM
+			 , T3.MAIL_FROM_EM
+			 , T1.USER_ID
+			 , T5.USER_NM
+			 , T3.SEND_REPEAT
+			 , (SELECT CD_NM FROM NEO_CD WHERE UILANG='000' AND CD_GRP='C017' AND CD=T3.SEND_REPEAT) SEND_REPEAT_NM
+			 , T1.TASK_NO
+			 , T1.SUB_TASK_NO
+			 , T3.TASK_NM
+			 , T3.MAIL_TITLE
+			 , T1.CUST_ID
+			 , T1.CAMP_NO
+			 , T6.CAMP_NM
+			 , T1.CUST_EM
+			 , T1.CUST_NM
+			 , T1.SEND_RCODE
+			 , (SELECT CD_NM FROM NEO_CD WHERE UILANG='000' AND CD_GRP='C035' AND CD=T1.SEND_RCODE) SEND_RCODE_NM
+			 , T3.ATT_CNT
+			 , '10' SERVICE_GB
+			 , T3.CONT_FL_PATH
+			 , IFNULL(T7.SOURCE_URL, '') WEB_AGENT
+			 , IFNULL(T7.SECU_ATT_TYP, '') WEB_AGENT_TYP
+			 , IFNULL(T8.RESP_AMT, 0) RESP_AMT
+			 , IFNULL(T8.OPEN_DT, '') OPEN_DT
+			 , T1.BIZKEY
+			 , IFNULL(T2.RTY_TASK_NO,0 ) RTY_NO
+			 , (SELECT COUNT(*) FROM NEO_SEGMENT_REAL WHERE SEG_NO = T3.SEG_NO) SEG_REAL 
+		  FROM NEO_SENDLOG T1 
+		 INNER JOIN NEO_SUBTASK T2   ON (T1.TASK_NO = T2.TASK_NO AND T1.SUB_TASK_NO = T2.SUB_TASK_NO)
+		 INNER JOIN NEO_TASK T3      ON (T1.TASK_NO = T3.TASK_NO)
+		 INNER JOIN NEO_DEPT T4      ON (T1.DEPT_NO = T4.DEPT_NO)
+		 INNER JOIN NEO_USER T5      ON (T1.USER_ID = T5.USER_ID)
+		 INNER JOIN NEO_CAMPAIGN T6  ON (T1.CAMP_NO = T6.CAMP_NO)
+		  LEFT OUTER JOIN NEO_WEBAGENT T7 ON(T1.TASK_NO = T7.TASK_NO)
+		  LEFT OUTER JOIN NEO_RESPLOG  T8 ON 
+					(T1.TASK_NO = T8.TASK_NO AND T1.SUB_TASK_NO = T8.SUB_TASK_NO AND T1.DEPT_NO = T8.DEPT_NO AND T1.CAMP_NO = T8.CAMP_NO AND T1.CUST_ID = T8.CUST_ID AND T1.USER_ID = T8.USER_ID )
+		  WHERE 1=1
+		   <if test="searchStartDt != null and searchStartDt != ''">
+		   AND T1.SEND_DT &gt;= CONCAT(#{searchStartDt}, '000000')
+		   </if>
+		   <if test="searchEndDt != null and searchEndDt != ''">
+		   AND T1.SEND_DT &lt; CONCAT( #{searchEndDt}, '240000')
+		   </if>
+		   <if test="searchCampNo != null and searchCampNo != 0">
+		   AND T1.CAMP_NO = #{searchCampNo}
+		   </if>
+		   <if test="searchCustId != null and searchCustId != ''">
+		   AND T1.CUST_ID LIKE CONCAT('%', #{searchCustId}, '%')
+		   </if>
+		   <if test="searchCustNm != null and searchCustNm != ''">
+		   AND T1.CUST_NM LIKE CONCAT('%', #{searchCustNm}, '%')
+		   </if>
+		   <if test="searchCustEm != null and searchCustEm != ''">
+		   AND T1.CUST_EM = #{searchCustEm}
+		   </if>
+		   <if test="searchWorkStatus != null and searchWorkStatus != ''">
+				<if test='searchWorkStatus == "10"'>
+				AND T1.SEND_RCODE = '000'
+				</if>
+				<if test='searchWorkStatus != "10"'>
+				AND T1.SEND_RCODE != '000'
+				</if>
+		   </if>
+		   <if test="searchUserNm != null and searchUserNm != ''">
+		   AND T5.USER_NM LIKE CONCAT('%', #{searchUserNm},'%')
+		   </if>
+	 ORDER BY T1.SEND_DT  
+	</select>
+	
+	<select id="getSendLogListRnsExcel" parameterType="sendLogVO" resultType="sendLogVO">
+		SELECT SEND_DT
+			 , MAIL_FROM_NM
+			 , MAIL_FROM_EM
+			 , USER_ID
+			 , USER_NM
+			 , SEND_REPEAT
+			 , SEND_REPEAT_NM
+			 , TASK_NO
+			 , SUB_TASK_NO
+			 , TASK_NM
+			 , MAIL_TITLE
+			 , CUST_ID
+			 , CAMP_NO
+			 , CAMP_NM
+			 , CUST_EM
+			 , CUST_NM
+			 , SEND_RCODE
+			 , SEND_RCODE_NM
+			 , ATTCH_CNT
+			 , SERVICE_GB
+			 , CONT_FL_PATH
+			 , WEB_AGENT
+			 , WEB_AGENT_TYP
+			 , RESP_AMT
+			 , OPEN_DT
+			 , BIZKEY
+			 , SEG_REAL
+			 , RTY_NO
+	  	  FROM
+	  		(
+				SELECT DATE_FORMAT(Y.SDATE, '%Y%m%d%H%i') SEND_DT
+					 , X.SNAME MAIL_FROM_NM
+					 , X.SMAIL MAIL_FROM_EM 
+					 , X.SID USER_ID 
+					 , X.SNAME USER_NM 
+					 , '099' SEND_REPEAT
+					 , '실시간' SEND_REPEAT_NM
+					 , X.TID TASK_NO 
+					 , X.MID SUB_TASK_NO
+					 , C.TNM TASK_NM 
+					 , Y.SUBJECT  MAIL_TITLE
+					 , X.RID CUST_ID 
+					 , X.TID CAMP_NO 
+					 , C.TNM CAMP_NM 
+					 , X.RMAIL CUST_EM
+					 , X.RNAME CUST_NM
+					 , X.RCODE SEND_RCODE
+					 , (SELECT CD_DESC FROM TS_RCODE WHERE UILANG = #{uilang} AND X.RCODE = RCODE ) SEND_RCODE_NM
+					 , C.ATTCH_CNT
+					 , '20' SERVICE_GB
+					 , C.CONTENTS_PATH CONT_FL_PATH
+					 , (SELECT IFNULL(SOURCE_URL, '') FROM TS_WEBAGENT WHERE TID = X.TID) WEB_AGENT
+					 , (SELECT IFNULL(SECU_ATT_TYP, '') FROM TS_WEBAGENT WHERE TID = X.TID) WEB_AGENT_TYP
+					 , IFNULL(L.RSID, 0 ) RESP_AMT
+					 , REPLACE(REPLACE(REPLACE(IFNULL(L.RSDATE, ''), '/', ''), ':', ''), ' ' ,'') OPEN_DT
+					 , X.BIZKEY
+					 , 0 SEG_REAL
+					 ,  IFNULL(Y.RTY_MID, 0) RTY_NO
+				  FROM TS_RESULTLOG X
+				 INNER JOIN TS_SERVICETYP C ON (X.TID = C.TID)
+				 INNER JOIN TS_MAILQUEUE Y ON (X.MID = Y.MID AND X.SUBID= Y.SUBID AND X.TID = Y.TID )
+				 INNER JOIN (SELECT MID, MAX(SUBID) SUBID FROM TS_MAILQUEUE GROUP BY MID) D ON ( X.MID = D.MID)
+				  LEFT OUTER JOIN TS_WEBAGENT T ON ( X.TID = T.TID) 
+				  LEFT OUTER JOIN TS_RESPONSELOG L ON ( X.MID = L.MID AND X.SUBID = L.SUBID AND X.RID = L.RID )
+				 WHERE 1=1
+				   <if test="searchStartDt != null and searchStartDt != ''">
+				   <!-- AND X.STIME &gt;= DATE_FORMAT(STR_TO_DATE(#{searchStartDt} , '%Y%m%d'), '%Y/%m/%d %H:%i:%s')  -->
+				   AND DATE_FORMAT(X.STIME, '%Y%m%d') &gt;= #{searchStartDt}
+				   </if>
+				   <if test="searchEndDt != null and searchEndDt != ''">
+				   <!-- AND X.STIME &lt; DATE_FORMAT(STR_TO_DATE(#{searchEndDt} , '%Y%m%d'), '%Y/%m/%d %H:%i:%s') -->
+				   AND DATE_FORMAT(X.STIME, '%Y%m%d') &lt;= #{searchEndDt}
+				   </if>
+ 				   <if test="searchCampNo != null and searchCampNo != 0">
+				   AND X.TID = #{searchCampNo}
+				   </if>
+				   <if test="searchCustId != null and searchCustId != ''">
+				   AND X.RID LIKE CONCAT('%', #{searchCustId}, '%')
+				   </if>			   
+				   <if test="searchCustNm != null and searchCustNm != ''">
+				   AND X.RNAME LIKE CONCAT('%', #{searchCustNm}, '%')
+				   </if>
+				   <if test="searchCustEm != null and searchCustEm != ''">
+				   AND X.RMAIL = #{searchCustEm}
+				   </if>
+				   <if test="searchWorkStatus != null and searchWorkStatus != ''">
+				   		<if test='searchWorkStatus == "10"'>
+				   		AND CAST(X.RCODE AS UNSIGNED) = 1
+				   		</if>
+				   		<if test='searchWorkStatus != "10"'>
+				   		AND CAST(X.RCODE AS UNSIGNED) > 1
+				   		</if>
+				   </if>
+				   <if test="searchUserNm != null and searchUserNm != ''">
+				   AND X.SNAME LIKE CONCAT('%', #{searchUserNm},'%')
+				   </if>
+			) RR
+		 WHERE NOT EXISTS (SELECT MID FROM TS_MAILQUEUE_TEST RT WHERE RR.SUB_TASK_NO = RT.MID)
+		 ORDER BY SEND_DT
+	</select> 
+<!-- 	<select id="getSendLogListRnsExcel" parameterType="sendLogVO" resultType="sendLogVO">
+		SELECT 
+			  DATE_FORMAT(Y.SDATE, '%Y%m%d%H%i') SEND_DT
+			 , X.SNAME MAIL_FROM_NM
+			 , X.SMAIL MAIL_FROM_EM 
+			 , X.SID USER_ID 
+			 , X.SNAME USER_NM 
+			 , '099' SEND_REPEAT
+			 , '실시간' SEND_REPEAT_NM
+			 , X.TID TASK_NO 
+			 , X.MID SUB_TASK_NO
+			 , C.TNM TASK_NM 
+			 , Y.SUBJECT  MAIL_TITLE
+			 , X.RID CUST_ID 
+			 , X.TID CAMP_NO 
+			 , C.TNM CAMP_NM 
+			 , X.RMAIL CUST_EM
+			 , X.RNAME CUST_NM
+			 , X.RCODE SEND_RCODE
+			 , (SELECT CD_DESC FROM TS_RCODE WHERE UILANG = #{uilang} AND X.RCODE = RCODE ) SEND_RCODE_NM
+			 , C.ATTCH_CNT
+			 , '20' SERVICE_GB
+			 , C.CONTENTS_PATH CONT_FL_PATH
+			 , (SELECT IFNULL(SOURCE_URL, '') FROM TS_WEBAGENT WHERE TID = X.TID) WEB_AGENT
+		  FROM TS_RESULTLOG X
+		     , TS_SERVICETYP C
+		     , TS_MAILQUEUE Y 
+		     , (SELECT MID, MAX(SUBID) SUBID FROM TS_MAILQUEUE GROUP BY MID) D
+		 WHERE X.TID = C.TID
+		   AND X.MID = Y.MID
+		   AND X.MID = D.MID
+		   AND X.SUBID= Y.SUBID
+		   AND X.TID = Y.TID
+				   <if test="searchStartDt != null and searchStartDt != ''">
+				   AND X.STIME &gt;= DATE_FORMAT(STR_TO_DATE(#{searchStartDt} , '%Y%m%d'), '%Y/%m/%d %H:%i:%s') 
+				   AND DATE_FORMAT(X.STIME, '%Y%m%d') &gt;= #{searchStartDt}
+				   </if>
+				   <if test="searchEndDt != null and searchEndDt != ''">
+				   AND X.STIME &lt; DATE_FORMAT(STR_TO_DATE(#{searchEndDt} , '%Y%m%d'), '%Y/%m/%d %H:%i:%s')
+				   AND DATE_FORMAT(X.STIME, '%Y%m%d') &lt;= #{searchEndDt}
+				   </if>
+		   <if test="searchCustId != null and searchCustId != ''">
+		   AND X.RID LIKE CONCAT('%', #{searchCustId}, '%')
+		   </if>
+		   <if test="searchCustNm != null and searchCustNm != ''">
+		   AND X.RNAME LIKE CONCAT('%', #{searchCustNm}, '%')
+		   </if>
+		   <if test="searchCustEm != null and searchCustEm != ''">
+		   AND X.RMAIL = #{searchCustEm}
+		   </if>
+		   <if test="searchWorkStatus != null and searchWorkStatus != ''">
+		   		<if test='searchWorkStatus == "10"'>
+		   		AND CAST(X.RCODE AS UNSIGNED) = 1
+		   		</if>
+		   		<if test='searchWorkStatus != "10"'>
+		   		AND CAST(X.RCODE AS UNSIGNED) > 1
+		   		</if>
+		   </if>
+		   <if test="searchUserNm != null and searchUserNm != ''">
+		   AND X.SNAME LIKE CONCAT('%', #{searchUserNm}, '%')
+		   </if>
+		 ORDER BY Y.SDATE
+	</select> -->
+	
+	<select id="getCampMailSendListEms" parameterType="sendLogVO" resultType="sendLogVO">
+		SELECT *
+		  FROM (
+				SELECT CAMP_NO
+					 , CAMP_NM
+					 , TASK_COUNT
+					 , TASK_NO
+					 , TASK_NM
+					 , SEND_REPEAT
+					 , SEND_REPEAT_NM
+					 , USER_NM
+					 , DEPT_NO
+					 , CAMP_REG_DT
+					 , TASK_REG_DT
+					 , SEND_DT
+					 , WORK_STATUS_NM
+					 , TOTAL_COUNT
+				  FROM (
+			 			 SELECT 'X' JOIN_COL
+			 			 	  , T1.CAMP_NO
+							  , T4.CAMP_NM
+							  , T1.SUB_TASK_CNT AS TASK_COUNT
+							  , T1.TASK_NO
+							  , T2.TASK_NM
+							  , T2.SEND_REPEAT
+							  , (SELECT MAX(CD_NM) FROM NEO_CD WHERE UILANG='000' AND CD_GRP='C017' AND CD=T2.SEND_REPEAT) SEND_REPEAT_NM
+							  , (SELECT MAX(USER_NM) FROM NEO_USER WHERE USER_ID = T2.USER_ID) USER_NM  
+							  , T2.DEPT_NO
+							  , T4.REG_DT AS CAMP_REG_DT
+							  , T2.REG_DT AS TASK_REG_DT
+							  , T5.SEND_DT
+							  , (SELECT MAX(CD_NM) FROM NEO_CD WHERE UILANG='000' AND CD_GRP='C101' AND CD=T5.WORK_STATUS) WORK_STATUS_NM
+						  FROM ( 
+								SELECT NT1.CAMP_NO
+									  , CAST(SUBSTR(MAX(CONCAT(NS1.SEND_DT, LPAD(CONCAT(NT1.TASK_NO), '19' , '0'))), 13) AS UNSIGNED) AS TASK_NO
+									  , CAST(SUBSTR(MAX(CONCAT(NS1.SEND_DT, LPAD(CONCAT(NT1.TASK_NO), '19' , '0'), LPAD(CONCAT(NS1.SUB_TASK_NO), '19' , '0') )), 33) AS UNSIGNED ) AS SUB_TASK_NO
+									 , COUNT(*) SUB_TASK_CNT
+								  FROM NEO_TASK NT1
+								     , NEO_SUBTASK NS1
+								 WHERE NT1.TASK_NO = NS1.TASK_NO
+								   AND NS1.WORK_STATUS NOT IN ('000', '001', '002', '201','202','203','204')
+								   AND NS1.SEND_DT &gt;= CONCAT( #{searchStartDt}, '000000')
+								   AND NS1.SEND_DT &lt; CONCAT(#{searchEndDt}, '240000') 
+								   AND NS1.SEND_TEST_YN = 'N'
+								   AND NT1.STATUS != '002' 
+								   <if test="searchCampNo != null and searchCampNo != 0">
+								   AND NT1.CAMP_NO = #{searchCampNo} 
+								   </if>
+								   <if test="searchUserId != null and searchUserId != ''">
+								   AND NT1.USER_ID LIKE CONCAT('%', #{searchUserId}, '%')
+								   </if>
+								   <if test="searchDeptNo != 0">
+								   AND NT1.DEPT_NO = #{searchDeptNo}
+								   </if>
+								 GROUP BY NT1.CAMP_NO
+							   ) T1
+							   INNER JOIN NEO_TASK T2 ON (T1.TASK_NO = T2.TASK_NO )
+							   INNER JOIN NEO_CAMPAIGN T4 ON (T1.CAMP_NO = T4.CAMP_NO )
+							   INNER JOIN NEO_SUBTASK T5 ON (T1.TASK_NO = T5.TASK_NO AND T1.SUB_TASK_NO = T5.SUB_TASK_NO)
+						) TT1, 
+						(
+						 SELECT 'X' JOIN_COL
+							  , COUNT(*) TOTAL_COUNT
+						  FROM ( 
+								SELECT NT1.CAMP_NO
+									  , CAST(SUBSTR(MAX(CONCAT(NS1.SEND_DT, LPAD(CONCAT(NT1.TASK_NO), '19' , '0'))), 13) AS UNSIGNED) AS TASK_NO
+									  , CAST(SUBSTR(MAX(CONCAT(NS1.SEND_DT, LPAD(CONCAT(NT1.TASK_NO), '19' , '0'), LPAD(CONCAT(NS1.SUB_TASK_NO), '19' , '0') )), 33) AS UNSIGNED ) AS SUB_TASK_NO
+									  , COUNT(*) SUB_TASK_CNT
+								  FROM NEO_TASK NT1
+								     , NEO_SUBTASK NS1
+								 WHERE NT1.TASK_NO = NS1.TASK_NO
+								   AND NS1.WORK_STATUS NOT IN ('000', '001', '002', '201','202','203','204')
+								   AND NS1.SEND_DT &gt;= CONCAT(#{searchStartDt}, '000000')
+								   AND NS1.SEND_DT &lt; CONCAT(#{searchEndDt},'240000') 
+								   AND NS1.SEND_TEST_YN = 'N'
+								   AND NT1.STATUS != '002' 
+								   <if test="searchCampNo != null and searchCampNo != 0">
+								   AND NT1.CAMP_NO = #{searchCampNo} 
+								   </if>
+								   <if test="searchUserId != null and searchUserId != ''">
+								   AND NT1.USER_ID LIKE CONCAT('%', #{searchUserId}, '%')
+								   </if>
+								   <if test="searchDeptNo != 0">
+								   AND NT1.DEPT_NO = #{searchDeptNo}
+								   </if>
+								 GROUP BY NT1.CAMP_NO
+							   ) T1
+							   INNER JOIN NEO_TASK T2 ON (T1.TASK_NO = T2.TASK_NO )
+							   INNER JOIN NEO_CAMPAIGN T4 ON (T1.CAMP_NO = T4.CAMP_NO )
+							   INNER JOIN NEO_SUBTASK T5 ON (T1.TASK_NO = T5.TASK_NO AND T1.SUB_TASK_NO = T5.SUB_TASK_NO)
+						) TT2
+				 WHERE TT1.JOIN_COL = TT2.JOIN_COL
+				 ORDER BY TT1.SEND_DT DESC
+			) TTT
+		 LIMIT #{startRow}, #{rows}
+	</select>
+
+	<select id="getCampMailSendListRns" parameterType="sendLogVO" resultType="sendLogVO">
+		SELECT *
+		  FROM (
+				SELECT CAMP_NO
+					 , CAMP_NM
+					 , SEND_DT
+					 , TASK_COUNT
+					 , TASK_NM
+					 , SEND_REPEAT_NM
+					 , USER_ID
+					 , USER_NM
+					 , DEPT_NO
+					 , CAMP_REG_DT
+					 , TASK_REG_DT
+					 , WORK_STATUS_NM
+					 , TOTAL_COUNT
+				  FROM (
+						SELECT 'X' JOIN_COL
+							 , T2.TID CAMP_NO
+							 , T2.TNM CAMP_NM
+							 , DATE_FORMAT(T3.SDATE, '%Y%m%d%H%i') SEND_DT
+							 , T1.TASK_COUNT
+							 , T2.EMAIL_SUBJECT TASK_NM
+							 , '실시간' SEND_REPEAT_NM
+							 , T3.SID USER_ID
+							 , IFNULL((SELECT USER_NM FROM NEO_USER WHERE USER_ID = T3.SID), (SELECT USER_NM FROM NEO_USER WHERE USER_ID = T2.SID)) USER_NM
+							 , IFNULL(T3.DEPT_NO, T2.DEPT_NO) DEPT_NO
+							 , T2.REG_DT CAMP_REG_DT
+							 , DATE_FORMAT( T3.CDATE, '%Y%m%d%H%i%s') TASK_REG_DT
+							 , (SELECT CD_DESC FROM TS_RCODE WHERE RCODE = T4.RCODE) WORK_STATUS_NM
+						  FROM (
+								SELECT C.TID , MAX(Y.MID) MID, COUNT(*) TASK_COUNT
+								  FROM TS_SERVICETYP C, TS_MAILQUEUE Y
+								 WHERE C.TID = Y.TID 
+								   AND IFNULL(Y.STATUS , 1 ) > 0
+								   AND NOT EXISTS (SELECT AA.MID FROM TS_MAILQUEUE_TEST AA WHERE AA.MID = Y.MID )
+								   <if test="searchStartDt != null and searchStartDt != ''">
+								   AND Y.SDATE &gt;= STR_TO_DATE(CONCAT(#{searchStartDt},'000000'),'%Y%m%d%H%i%s')
+								   </if>
+								   <if test="searchEndDt != null and searchEndDt != ''">
+								   AND Y.SDATE  &lt;= STR_TO_DATE(CONCAT(#{searchEndDt},'235959'),'%Y%m%d%H%i%s')
+								   </if>
+								   <if test="searchCampNo != null and searchCampNo != 0">
+								   AND C.TID = #{searchCampNo}
+								   </if>
+								   <if test="searchUserId != null and searchUserId != ''">
+								   AND Y.USER_ID LIKE CONCAT('%', #{searchUserId}, '%')
+								   </if>
+								   <if test="searchDeptNo != 0">
+								   AND Y.DEPT_NO = #{searchDeptNo}
+								   </if>
+			 					GROUP BY C.TID 
+			 				   ) T1
+			 				 , TS_SERVICETYP T2
+			 				 , TS_MAILQUEUE T3
+			 				 , TS_RESULTLOG T4
+						 WHERE T1.TID= T2.TID 
+						   AND T1.MID = T3.MID
+						   AND T1.MID = T4.MID
+						) TT1, 
+						(
+						SELECT 'X' JOIN_COL
+							 , COUNT(*) TOTAL_COUNT
+						  FROM (
+								SELECT C.TID , MAX(Y.MID) MID, COUNT(*) TASK_COUNT
+								  FROM TS_SERVICETYP C, TS_MAILQUEUE Y
+								 WHERE C.TID = Y.TID 
+								   AND IFNULL(Y.STATUS , 1 ) > 0
+								   AND NOT EXISTS (SELECT AA.MID FROM TS_MAILQUEUE_TEST AA WHERE AA.MID = Y.MID )
+								   <if test="searchStartDt != null and searchStartDt != ''">
+								   AND Y.SDATE &gt;= STR_TO_DATE(CONCAT(#{searchStartDt},'000000'),'%Y%m%d%H%i%s')
+								   </if>
+								   <if test="searchEndDt != null and searchEndDt != ''">
+								   AND Y.SDATE  &lt;= STR_TO_DATE(CONCAT(#{searchEndDt},'235959'),'%Y%m%d%H%i%s')
+								   </if>
+								   <if test="searchCampNo != null and searchCampNo != 0">
+								   AND C.TID = #{searchCampNo}
+								   </if>
+								   <if test="searchUserId != null and searchUserId != ''">
+								   AND Y.USER_ID LIKE CONCAT('%', #{searchUserId}, '%')
+								   </if>
+								   <if test="searchDeptNo != 0">
+								   AND Y.DEPT_NO = #{searchDeptNo}
+								   </if>
+			 					GROUP BY C.TID 
+			 				   ) T1
+			 				 , TS_SERVICETYP T2
+			 				 , TS_MAILQUEUE T3
+			 				 , TS_RESULTLOG T4
+						 WHERE T1.TID= T2.TID 
+						   AND T1.MID = T3.MID
+						   AND T1.MID = T4.MID
+						) TT2
+				 WHERE TT1.JOIN_COL = TT2.JOIN_COL
+				 ORDER BY TT1.SEND_DT DESC
+			) TTT
+		 LIMIT #{startRow}, #{rows}
+	</select>
+	
+	<select id="getCampMailEmsList" parameterType="sendLogVO" resultType="sendLogVO">
+		SELECT *
+		  FROM (
+				SELECT TASK_NO
+					 , TASK_NM
+					 , SUB_TASK_NO
+					 , SEG_NO
+					 , SEG_NM
+					 , CAMP_NO
+					 , CAMP_NM
+					 , USER_ID
+					 , MAIL_FROM_NM
+					 , STATUS
+					 , STATUS_NM
+					 , WORK_STATUS
+					 , SEND_TERM_START_DT 
+					 , SEND_TERM_END_DT 
+					 , WORK_STATUS_NM
+					 , WORK_STATUS_DTL
+					 , SEND_DT
+					 , END_DT
+					 , SEND_REPEAT
+					 , SEND_REPEAT_NM 
+					 , MAIL_CNT 
+					 , RTY_NO
+					 , TASK_REG_DT
+					 , SEND_TERM_LOOP
+					 , SEND_TERM_LOOP_TY_NM
+					 , SEG_RETRY
+					 , TOTAL_COUNT
+				  FROM (
+						SELECT 'X' JOIN_COL
+							 , T0.ORD_SEQ
+							 , T1.TASK_NO
+							 , T1.TASK_NM
+							 , T2.SUB_TASK_NO
+							 , T1.SEG_NO
+							 , T3.SEG_NM
+							 , T1.CAMP_NO
+							 , T4.CAMP_NM
+							 , T1.USER_ID
+							 , T1.MAIL_FROM_NM
+							 , T1.STATUS
+							 , (SELECT MAX(CD_NM) FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C023' AND CD = T1.STATUS) STATUS_NM
+							 , T2.WORK_STATUS
+							 , (SELECT MIN(SEND_DT) FROM NEO_SUBTASK WHERE TASK_NO = T1.TASK_NO AND WORK_STATUS NOT IN ('000','001','002','201','202','203', '204') AND SEND_TEST_YN = 'N') SEND_TERM_START_DT 
+							 , T1.SEND_TERM_END_DT 
+							 , T6.CD_NM WORK_STATUS_NM
+							 , T6.CD_DTL WORK_STATUS_DTL
+							 , T2.SEND_DT
+							 , T2.END_DT
+							 , T1.SEND_REPEAT
+							 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C017' AND CD = T1.SEND_REPEAT) SEND_REPEAT_NM 
+							 , (SELECT COUNT(1) FROM NEO_SUBTASK WHERE TASK_NO = T1.TASK_NO) MAIL_CNT 
+							 , IFNULL(T2.RTY_TASK_NO, 0 ) RTY_NO
+							 , T1.REG_DT TASK_REG_DT
+							 , IFNULL(T1.SEND_TERM_LOOP, 0 ) SEND_TERM_LOOP
+							 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C019' AND CD = T1.SEND_TERM_LOOP_TY) SEND_TERM_LOOP_TY_NM
+							 , (SELECT COUNT(*) FROM NEO_SEGMENT_RETRY WHERE SEG_NO = T1.SEG_NO) SEG_RETRY
+						  FROM (
+								SELECT NT1.CAMP_NO
+									 , NT1.TASK_NO AS TASK_NO
+									 , NS1.SUB_TASK_NO
+									 , NS2.ORD_SEQ 
+									 <!-- , MAX(NS1.SEND_DT) OVER(PARTITION BY NT1.TASK_NO) AS ORD_SEQ -->
+								  FROM NEO_TASK NT1
+								     , NEO_SUBTASK NS1
+								     , (
+										SELECT ST1.TASK_NO
+											 , MAX(SS1.SEND_DT) AS ORD_SEQ
+										  FROM NEO_TASK ST1
+								     		 , NEO_SUBTASK SS1
+										 WHERE ST1.TASK_NO = SS1.TASK_NO
+										   AND SS1.WORK_STATUS NOT IN ('000', '001', '002', '201','202','203','204')
+										   AND SS1.SEND_DT &gt;= CONCAT(#{searchStartDt}, '000000')
+										   AND SS1.SEND_DT &lt; CONCAT(#{searchEndDt}, '240000')
+										   AND SS1.SEND_TEST_YN = 'N'
+										   AND ST1.STATUS != '002' 
+										   <if test="searchCampNo != null and searchCampNo != 0">
+										   AND ST1.CAMP_NO = #{searchCampNo}
+										   </if>
+										   <if test='adminYn == "N"'>
+										   AND ST1.DEPT_NO = #{searchDeptNo}
+										   </if>
+										   <if test="searchDeptNo != 0">
+										   AND ST1.DEPT_NO = #{searchDeptNo}
+										   </if>
+										   <if test="searchTaskNm != null and searchTaskNm != ''">
+										   AND ST1.TASK_NM LIKE CONCAT('%', #{searchTaskNm}, '%')
+										   </if>
+										   <if test="searchSendRepeat != null and searchSendRepeat != ''">
+										   AND ST1.SEND_REPEAT = #{searchSendRepeat}
+										   </if>
+										   <if test="searchUserId != null and searchUserId != ''">
+										   AND ST1.USER_ID = #{searchUserId}
+										   </if>
+										 GROUP BY ST1.TASK_NO
+								       ) NS2 
+								 WHERE NT1.TASK_NO = NS1.TASK_NO
+								   AND NT1.TASK_NO = NS2.TASK_NO
+								   AND NS1.WORK_STATUS NOT IN ('000', '001', '002', '201','202','203','204')
+								   AND NS1.SEND_DT &gt;= CONCAT(#{searchStartDt}, '000000')
+								   AND NS1.SEND_DT &lt; CONCAT(#{searchEndDt}, '240000')
+								   AND NS1.SEND_TEST_YN = 'N'
+								   AND NT1.STATUS != '002' 
+								   <if test="searchCampNo != null and searchCampNo != 0">
+								   AND NT1.CAMP_NO = #{searchCampNo}
+								   </if>
+								   <if test='adminYn == "N"'>
+								   AND NT1.DEPT_NO = #{searchDeptNo}
+								   </if>
+								   <if test="searchDeptNo != 0">
+								   AND NT1.DEPT_NO = #{searchDeptNo}
+								   </if>
+								   <if test="searchTaskNm != null and searchTaskNm != ''">
+								   AND NT1.TASK_NM LIKE CONCAT('%', #{searchTaskNm}, '%')
+								   </if>
+								   <if test="searchSendRepeat != null and searchSendRepeat != ''">
+								   AND NT1.SEND_REPEAT = #{searchSendRepeat}
+								   </if>
+								   <if test="searchUserId != null and searchUserId != ''">
+								   AND NT1.USER_ID = #{searchUserId}
+								   </if>
+							   ) T0,
+						       NEO_TASK T1
+						     , NEO_SUBTASK T2
+						     , NEO_SEGMENT T3
+						     , NEO_CAMPAIGN T4
+						     , NEO_USER T5
+						     , NEO_CD T6
+						 WHERE T0.TASK_NO = T1.TASK_NO
+						   AND T0.TASK_NO = T2.TASK_NO
+						   AND T0.SUB_TASK_NO = T2.SUB_TASK_NO 
+						   AND T1.SEG_NO = T3.SEG_NO
+						   AND T1.CAMP_NO = T4.CAMP_NO
+						   AND T1.USER_ID = T5.USER_ID
+						   AND T2.WORK_STATUS = T6.CD
+						   AND T6.UILANG = '000'
+						   AND T6.CD_GRP = 'C101' 
+						   <if test='searchWorkStatus != null and searchWorkStatus != ""'>
+						   AND T2.WORK_STATUS NOT IN ('000','001','002','201','202','203','204')
+						   </if>
+						   <if test='searchWorkStatus == "003"'>
+						   AND T2.WORK_STATUS = #{searchWorkStatus}
+						   </if>
+						   <if test='searchWorkStatus == "004"'>
+						   AND T2.WORK_STATUS NOT IN ('000','001','002','003','201','202','203','204')
+						   </if>
+						) TT1, 
+						(
+						SELECT 'X' JOIN_COL
+							 , COUNT(*) TOTAL_COUNT
+						  FROM (
+								SELECT NT1.CAMP_NO
+									 , NT1.TASK_NO AS TASK_NO
+									 , NS1.SUB_TASK_NO
+									 , NS2.ORD_SEQ 
+									 <!-- , MAX(NS1.SEND_DT) OVER(PARTITION BY NT1.TASK_NO) AS ORD_SEQ -->
+								  FROM NEO_TASK NT1
+								     , NEO_SUBTASK NS1
+								     , (
+										SELECT ST1.TASK_NO
+											 , MAX(SS1.SEND_DT) AS ORD_SEQ
+										  FROM NEO_TASK ST1
+								     		 , NEO_SUBTASK SS1
+										 WHERE ST1.TASK_NO = SS1.TASK_NO
+										   AND SS1.WORK_STATUS NOT IN ('000', '001', '002', '201','202','203','204')
+										   AND SS1.SEND_DT &gt;= CONCAT(#{searchStartDt}, '000000')
+										   AND SS1.SEND_DT &lt; CONCAT(#{searchEndDt}, '240000')
+										   AND SS1.SEND_TEST_YN = 'N'
+										   AND ST1.STATUS != '002' 
+										   <if test="searchCampNo != null and searchCampNo != 0">
+										   AND ST1.CAMP_NO = #{searchCampNo}
+										   </if>
+										   <if test='adminYn == "N"'>
+										   AND ST1.DEPT_NO = #{searchDeptNo}
+										   </if>
+										   <if test="searchDeptNo != 0">
+										   AND ST1.DEPT_NO = #{searchDeptNo}
+										   </if>
+										   <if test="searchTaskNm != null and searchTaskNm != ''">
+										   AND ST1.TASK_NM LIKE CONCAT('%', #{searchTaskNm}, '%')
+										   </if>
+										   <if test="searchSendRepeat != null and searchSendRepeat != ''">
+										   AND ST1.SEND_REPEAT = #{searchSendRepeat}
+										   </if>
+										   <if test="searchUserId != null and searchUserId != ''">
+										   AND ST1.USER_ID = #{searchUserId}
+										   </if>
+										 GROUP BY ST1.TASK_NO
+								       ) NS2 
+								 WHERE NT1.TASK_NO = NS1.TASK_NO
+								   AND NT1.TASK_NO = NS2.TASK_NO
+								   AND NS1.WORK_STATUS NOT IN ('000', '001', '002', '201','202','203','204')
+								   AND NS1.SEND_DT &gt;= CONCAT(#{searchStartDt}, '000000')
+								   AND NS1.SEND_DT &lt; CONCAT(#{searchEndDt}, '240000')
+								   AND NS1.SEND_TEST_YN = 'N'
+								   AND NT1.STATUS != '002' 
+								   <if test="searchCampNo != null and searchCampNo != 0">
+								   AND NT1.CAMP_NO = #{searchCampNo}
+								   </if>
+								   <if test='adminYn == "N"'>
+								   AND NT1.DEPT_NO = #{searchDeptNo}
+								   </if>
+								   <if test="searchDeptNo != 0">
+								   AND NT1.DEPT_NO = #{searchDeptNo}
+								   </if>
+								   <if test="searchTaskNm != null and searchTaskNm != ''">
+								   AND NT1.TASK_NM LIKE CONCAT('%', #{searchTaskNm}, '%')
+								   </if>
+								   <if test="searchSendRepeat != null and searchSendRepeat != ''">
+								   AND NT1.SEND_REPEAT = #{searchSendRepeat}
+								   </if>
+								   <if test="searchUserId != null and searchUserId != ''">
+								   AND NT1.USER_ID = #{searchUserId}
+								   </if>
+							   ) T0,
+						       NEO_TASK T1
+						     , NEO_SUBTASK T2
+						     , NEO_SEGMENT T3
+						     , NEO_CAMPAIGN T4
+						     , NEO_USER T5
+						     , NEO_CD T6
+						 WHERE T0.TASK_NO = T1.TASK_NO
+						   AND T0.TASK_NO = T2.TASK_NO
+						   AND T0.SUB_TASK_NO = T2.SUB_TASK_NO 
+						   AND T1.SEG_NO = T3.SEG_NO
+						   AND T1.CAMP_NO = T4.CAMP_NO
+						   AND T1.USER_ID = T5.USER_ID
+						   AND T2.WORK_STATUS = T6.CD
+						   AND T6.UILANG = '000'
+						   AND T6.CD_GRP = 'C101' 
+						   <if test='searchWorkStatus != null and searchWorkStatus != ""'>
+						   AND T2.WORK_STATUS NOT IN ('000','001','002','201','202','203','204')
+						   </if>
+						   <if test='searchWorkStatus == "003"'>
+						   AND T2.WORK_STATUS = #{searchWorkStatus}
+						   </if>
+						   <if test='searchWorkStatus == "004"'>
+						   AND T2.WORK_STATUS NOT IN ('000','001','002','003','201','202','203','204')
+						   </if>
+						) TT2
+				 WHERE TT1.JOIN_COL = TT2.JOIN_COL
+				 ORDER BY TT1.ORD_SEQ DESC, TT1.TASK_NO, TT1.SUB_TASK_NO
+			) TTT
+		 LIMIT #{startRow}, #{rows}
+	</select>
+	
+	<select id="getCampMailEms" parameterType="sendLogVO" resultType="sendLogVO">
+		SELECT T1.TASK_NO
+			 , T1.TASK_NM
+			 , T2.SUB_TASK_NO
+			 , T1.MAIL_TITLE
+			 , T1.ATT_CNT
+			 , T1.CONT_FL_PATH
+			 , T1.SEG_NO
+			 , T3.SEG_NM
+			 , T1.CAMP_NO
+			 , T4.CAMP_NM
+			 , T1.USER_ID
+			 , T1.MAIL_FROM_NM
+			 , T1.MAIL_FROM_EM
+			 , T1.STATUS
+			 , (SELECT MAX(CD_NM) FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C023' AND CD = T1.STATUS) STATUS_NM
+			 , T2.WORK_STATUS
+			 , (SELECT MIN(SEND_DT) FROM NEO_SUBTASK WHERE TASK_NO = T1.TASK_NO AND WORK_STATUS NOT IN ('000','001','002','201','202','203', '204') AND SEND_TEST_YN = 'N') SEND_TERM_START_DT
+			 , T1.SEND_TERM_END_DT
+			 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C101' AND CD = T2.WORK_STATUS) WORK_STATUS_NM
+			 , (SELECT CD_DTL FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C101' AND CD = T2.WORK_STATUS) WORK_STATUS_DTL
+			 , T2.SEND_DT
+			 , T2.END_DT
+			 , T1.SEND_REPEAT
+			 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C017' AND CD = T1.SEND_REPEAT) SEND_REPEAT_NM 
+			 , (SELECT COUNT(1) FROM NEO_SUBTASK WHERE TASK_NO = T1.TASK_NO) MAIL_CNT 
+			 , IFNULL(T2.RTY_TASK_NO, 0 ) RTY_NO
+			 , T1.REG_DT TASK_REG_DT
+			 , IFNULL(T1.SEND_TERM_LOOP, 0 ) SEND_TERM_LOOP
+			 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C019' AND CD = T1.SEND_TERM_LOOP_TY) SEND_TERM_LOOP_TY_NM
+			 , (SELECT COUNT(*) FROM NEO_SEGMENT_RETRY WHERE SEG_NO = T1.SEG_NO) SEG_RETRY
+			 , (SELECT COUNT(*) FROM NEO_ATTACH WHERE TASK_NO = T1.TASK_NO) ATTCH_CNT  
+			 , (SELECT IFNULL(SECU_ATT_TYP, '') FROM NEO_WEBAGENT WHERE TASK_NO = T1.TASK_NO) WEB_AGENT_TYP
+			 , (SELECT IFNULL(SOURCE_URL, '') FROM NEO_WEBAGENT WHERE TASK_NO = T1.TASK_NO) WEB_AGENT
+			 , T3.CREATE_TY SEG_CREATE_TY
+		  FROM NEO_TASK T1
+		 INNER JOIN NEO_SUBTASK T2 ON ( T1.TASK_NO = T2.TASK_NO AND T1.TASK_NO = #{taskNo} AND T2.SUB_TASK_NO = #{subTaskNo} )
+		 INNER JOIN NEO_SEGMENT T3 ON ( T1.SEG_NO = T3.SEG_NO )
+		 INNER JOIN NEO_CAMPAIGN T4 ON ( T1.CAMP_NO = T4.CAMP_NO)
+		 WHERE T1.TASK_NO = #{taskNo}
+	</select>
+	
+	<select id="getCampMailRnsList" parameterType="sendLogVO" resultType="sendLogVO">
+		SELECT *
+		  FROM (
+				SELECT SEND_DT
+					 , MAIL_FROM_NM
+					 , MAIL_FROM_EM
+					 , USER_ID
+					 , USER_NM
+					 , SEND_REPEAT
+					 , SEND_REPEAT_NM
+					 , TASK_NO
+					 , SUB_TASK_NO
+					 , TASK_NM
+					 , MAIL_TITLE
+					 , CUST_ID
+					 , CAMP_NO
+					 , CAMP_NM
+					 , CUST_EM
+					 , CUST_NM
+					 , SEND_RCODE
+					 , SEND_RCODE_NM
+					 , ATTCH_CNT
+					 , SERVICE_GB
+					 , CONT_FL_PATH
+					 , WEB_AGENT
+					 , WEB_AGENT_TYP
+					 , RESP_AMT
+					 , BIZKEY
+					 , RTY_NO
+					 , TOTAL_COUNT
+			  	  FROM
+			  		(
+						SELECT 'X' JOIN_COL
+							 , DATE_FORMAT(Y.SDATE, '%Y%m%d%H%i') SEND_DT
+							 , X.SNAME MAIL_FROM_NM
+							 , X.SMAIL MAIL_FROM_EM 
+							 , X.SID USER_ID 
+							 , X.SNAME USER_NM 
+							 , '099' SEND_REPEAT
+							 , '실시간' SEND_REPEAT_NM
+							 , X.TID TASK_NO 
+							 , X.MID SUB_TASK_NO
+							 , C.TNM TASK_NM 
+							 , Y.SUBJECT  MAIL_TITLE
+							 , X.RID CUST_ID 
+							 , X.TID CAMP_NO 
+							 , C.TNM CAMP_NM 
+							 , X.RMAIL CUST_EM
+							 , X.RNAME CUST_NM
+							 , X.RCODE SEND_RCODE
+							 , (SELECT CD_DESC FROM TS_RCODE WHERE UILANG = #{uilang} AND X.RCODE = RCODE ) SEND_RCODE_NM
+							 , C.ATTCH_CNT
+							 , '20' SERVICE_GB
+							 , C.CONTENTS_PATH CONT_FL_PATH
+							 , (SELECT IFNULL(SOURCE_URL, '') FROM TS_WEBAGENT WHERE TID = X.TID) WEB_AGENT
+							 , (SELECT IFNULL(SECU_ATT_TYP, '') FROM TS_WEBAGENT WHERE TID = X.TID) WEB_AGENT_TYP
+							 , IFNULL(L.RSID, 0 ) RESP_AMT
+							 , X.BIZKEY
+							 , IFNULL(Y.RTY_MID, 0 ) RTY_NO
+						  FROM TS_MAILQUEUE Y  
+						 INNER JOIN TS_SERVICETYP C ON (Y.TID = C.TID)
+						 INNER JOIN TS_RESULTLOG X ON (X.MID = Y.MID AND X.SUBID= Y.SUBID ) 	
+						  LEFT OUTER JOIN TS_WEBAGENT T ON ( X.TID = T.TID) 
+						  LEFT OUTER JOIN TS_RESPONSELOG L ON ( X.MID = L.MID AND X.SUBID = L.SUBID AND X.RID = L.RID )
+						 WHERE Y.TID = #{searchCampNo}
+						   AND NOT EXISTS (SELECT AA.MID FROM TS_MAILQUEUE_TEST AA WHERE AA.MID = Y.MID )
+						   AND IFNULL(Y.STATUS , 1 ) > 0 
+						   <if test="searchStartDt != null and searchStartDt != ''">
+						   AND Y.SDATE &gt;= STR_TO_DATE(CONCAT(#{searchStartDt},'000000'),'%Y%m%d%H%i%s')
+						   </if>
+						   <if test="searchEndDt != null and searchEndDt != ''">
+						   AND Y.SDATE &lt;= STR_TO_DATE(CONCAT(#{searchEndDt},'235959'),'%Y%m%d%H%i%s')
+						   </if>
+						   <if test="searchCustId != null and searchCustId != ''">
+						   AND X.RID LIKE CONCAT('%', #{searchCustId},'%')
+						   </if>
+						   <if test="searchCustNm != null and searchCustNm != ''">
+						   AND X.RNAME LIKE CONCAT('%', #{searchCustNm}, '%')
+						   </if>
+						   <if test="searchCustEm != null and searchCustEm != ''">
+						   AND X.RMAIL = #{searchCustEm}
+						   </if>
+						   <if test="searchWorkStatus != null and searchWorkStatus != '' and searchWorkStatus == '10' ">
+						   AND X.RCODE = '1'
+						   </if>
+						   <if test="searchWorkStatus != null and searchWorkStatus != '' and searchWorkStatus == '20' ">
+						   AND X.RCODE != '1'
+						   </if>
+						   <if test="searchUserNm != null and searchUserNm != ''">
+						   AND X.SNAME LIKE CONCAT('%', #{searchUserNm}, '%')
+						   </if>
+						) TT1, 
+				  		(
+						SELECT 'X' JOIN_COL
+							 , COUNT(*) TOTAL_COUNT
+						  FROM TS_MAILQUEUE Y  
+						 INNER JOIN TS_SERVICETYP C ON (Y.TID = C.TID)
+						 INNER JOIN TS_RESULTLOG X ON (X.MID = Y.MID AND X.SUBID= Y.SUBID ) 	
+						  LEFT OUTER JOIN TS_WEBAGENT T ON ( X.TID = T.TID) 
+						  LEFT OUTER JOIN TS_RESPONSELOG L ON ( X.MID = L.MID AND X.SUBID = L.SUBID AND X.RID = L.RID )
+						 WHERE Y.TID = #{searchCampNo}
+						   AND NOT EXISTS (SELECT AA.MID FROM TS_MAILQUEUE_TEST AA WHERE AA.MID = Y.MID )
+						   AND IFNULL(Y.STATUS , 1 ) > 0 
+						   <if test="searchStartDt != null and searchStartDt != ''">
+						   AND Y.SDATE &gt;= STR_TO_DATE(CONCAT(#{searchStartDt},'000000'),'%Y%m%d%H%i%s')
+						   </if>
+						   <if test="searchEndDt != null and searchEndDt != ''">
+						   AND Y.SDATE &lt;= STR_TO_DATE(CONCAT(#{searchEndDt},'235959'),'%Y%m%d%H%i%s')
+						   </if>
+						   <if test="searchCustId != null and searchCustId != ''">
+						   AND X.RID LIKE CONCAT('%', #{searchCustId},'%')
+						   </if>
+						   <if test="searchCustNm != null and searchCustNm != ''">
+						   AND X.RNAME LIKE CONCAT('%', #{searchCustNm}, '%')
+						   </if>
+						   <if test="searchCustEm != null and searchCustEm != ''">
+						   AND X.RMAIL = #{searchCustEm}
+						   </if>
+						   <if test="searchWorkStatus != null and searchWorkStatus != '' and searchWorkStatus == '10' ">
+						   AND X.RCODE = '1'
+						   </if>
+						   <if test="searchWorkStatus != null and searchWorkStatus != '' and searchWorkStatus == '20' ">
+						   AND X.RCODE != '1'
+						   </if>
+						   <if test="searchUserNm != null and searchUserNm != ''">
+						   AND X.SNAME LIKE CONCAT('%', #{searchUserNm}, '%')
+						   </if>
+						) TT2
+				 WHERE TT1.JOIN_COL = TT2.JOIN_COL
+				 ORDER BY TT1.SEND_DT DESC, TT1.CUST_ID, TT1.CUST_NM
+			) TTT
+		 LIMIT #{startRow}, #{rows}
+	</select>
+</mapper>

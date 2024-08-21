@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.sict.ums.push.sch.dao.PushScheduleMapper">
+
+	<select id="getScheduleList" parameterType="pushVO" resultType="pushVO">
+		SELECT T1.PUSHMESSAGE_ID 
+			 , T1.SEND_DT
+			 , T1.PUSH_NAME
+			 , T1.PUSH_TITLE
+			 , T3.SEG_NM
+			 , T4.CAMP_NM
+			 , T5.USER_NM
+			 , T1.WORK_STATUS
+			 , (SELECT CD_NM FROM NEO_CD WHERE CD_GRP = 'C118' AND CD= T1.WORK_STATUS AND UILANG =#{uilang}) WORK_STATUS_NM
+		  FROM NEO_PUSHMESSAGE T1, NEO_SEGMENT T3,  NEO_CAMPAIGN T4, NEO_USER T5 
+		 WHERE T1.SEG_NO = T3.SEG_NO
+		   AND T1.CAMP_NO = T4.CAMP_NO
+		   AND T1.STATUS ='000'
+		   AND T1.USER_ID = T5.USER_ID	
+		   <if test="searchDeptNo != 0">
+		   AND T1.DEPT_NO = #{searchDeptNo}
+		   </if>
+		   AND T1.SEND_DT &gt;= CONCAT( #{searchStartDt}, '000000')
+		   AND T1.SEND_DT &lt; CONCAT(#{searchEndDt}, '240000')
+		   AND T3.PUSHUSE_YN = 'Y' 
+		 ORDER BY T1.SEND_DT
+	</select> 
+	
+	<select id="getScheduleAggrList" parameterType="pushVO" resultType="pushScheduleVO">
+		SELECT SUBSTR(T1.SEND_DT, 1, 8 ) SEND_DT
+			 , SUM(CASE WHEN T1.WORK_STATUS IN ('000','001') THEN 1 ELSE 0 END) SCH_CNT
+			 , SUM(CASE WHEN T1.WORK_STATUS IN ('002') THEN 1 ELSE 0 END) ING_CNT
+			 , SUM(CASE WHEN T1.WORK_STATUS IN ('003') THEN 1 ELSE 0 END) SUC_CNT
+			 , SUM(CASE WHEN T1.WORK_STATUS IN ('004') THEN 1 ELSE 0 END) FAIL_CNT
+			 , COUNT(*) TOT_CNT
+		  FROM NEO_PUSHMESSAGE T1, NEO_SEGMENT T3, NEO_CAMPAIGN T4, NEO_USER T5
+		 WHERE T1.SEG_NO = T3.SEG_NO
+		   AND T1.CAMP_NO = T4.CAMP_NO
+		   AND T1.STATUS ='000'
+		   AND T1.USER_ID = T5.USER_ID 
+		   <if test="searchDeptNo != 0">
+		   AND T1.DEPT_NO = #{searchDeptNo}
+		   </if>
+		   AND T1.SEND_DT &gt;=  CONCAT( #{searchStartDt}, '000000')
+		   AND T1.SEND_DT &lt;  CONCAT(#{searchEndDt} , '240000')
+		   AND T3.PUSHUSE_YN = 'Y'
+		 GROUP BY SUBSTR(T1.SEND_DT, 1, 8 )
+	</select> 
+	
+	<select id="getScheduleGrant" parameterType="string" resultType="_int">
+		SELECT COUNT(1) 
+		  FROM  NEO_MENUUSER_MAPP 
+		 WHERE USER_ID = #{userId}
+		   AND MENU_ID = #{pushMenuId} 
+	</select> 	
+ 
+</mapper>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd">
+	
+	<!-- UMS DB Type -->
+	<alias name="dataSource-${Globals.DbType}" alias="dataSource"/>
+	
+	<!-- Oracle DB Connection -->
+	<!-- WAS Resource(Connection Pool) -->
+ 	<bean id="dataSource-oracle" class="org.springframework.jndi.JndiObjectFactoryBean">
+		<property name="jndiName" value="${Ums.DataSourceName}"/>
+	</bean>
+	<!-- Postgre DB Connection -->
+	<bean id="dataSource-postgre" class="org.springframework.jndi.JndiObjectFactoryBean">
+		<property name="jndiName" value="${Ums.DataSourceName}"/>
+	</bean>
+	<!-- Spring Connection Pool -->
+	<!-- 
+	<bean id="dataSource-oracle" class="org.apache.commons.dbcp2.BasicDataSource">
+		<property name="driverClassName" value="${Ums.DriverClassName}"/>
+		<property name="url" value="${Ums.DbUrl}"/>
+		<property name="username" value="${Ums.UserName}"/>
+		<property name="password" value="${Ums.Password}"/>
+		<property name="initialSize" value="10" />
+		<property name="maxTotal" value="30" />
+		<property name="maxIdle" value="20" />
+		<property name="minIdle" value="10" />
+		<property name="maxWaitMillis" value="3000" />
+		<property name="validationQuery" value="SELECT 1 FROM DUAL" />
+	</bean>
+	 -->
+
+	<!-- MySQL DB Connection -->
+	<bean id="dataSource-mysql" class="org.springframework.jndi.JndiObjectFactoryBean">
+		<property name="jndiName" value="${Ums.DataSourceName}"/>
+	</bean>
+	
+	<!-- MS-SQL DB Connection -->
+	<!--
+	<bean id="dataSource-mssql" class="org.springframework.jndi.JndiObjectFactoryBean">
+		<property name="jndiName" value="${Ums.DataSourceName}"/>
+	</bean>
+	-->
+
+</beans>

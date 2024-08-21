@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.sict.ums.com.dao.CodeMapper">
+
+	<!-- 코드 목록 조회 -->
+	<select id="getCodeList" parameterType="codeVO" resultType="codeVO">
+		SELECT CD
+			 , CD_NM
+			 , CD_DTL
+		  FROM NEO_CD
+		 WHERE UILANG = #{uilang}
+		   AND CD_GRP = #{cdGrp}
+		   AND USE_YN = #{useYn}
+		 ORDER BY CD
+	</select>
+	
+	<!-- 코드 정보 조회 -->
+	<select id="getCodeInfo" parameterType="codeVO" resultType="codeVO">
+		SELECT CD
+			 , CD_NM
+			 , CD_DTL
+		  FROM NEO_CD
+		 WHERE UILANG = #{uilang}
+		   AND CD_GRP = #{cdGrp}
+		   AND CD     = #{cd}
+		   AND USE_YN = #{useYn}
+		 ORDER BY CD
+	</select>
+	
+	<!-- 코드 그룹 정보 조회 -->
+	<select id="getCodeGrpInfo" parameterType="codeGrpVO" resultType="codeGrpVO">
+		SELECT CD_GRP
+			 , CD_GRP_NM
+			 , CD_GRP_DTL
+			 , USE_YN
+		  FROM NEO_CD_GRP
+		 WHERE CD_GRP = #{cdGrp}
+		   AND UILANG = #{uilang}
+	</select>
+	
+	<!-- 코드 그룹 목록 조회 -->
+	<select id="getCodeGrpList" parameterType="codeVO" resultType="codeVO">
+		SELECT CD_GRP CD
+			 , CD_GRP_NM CD_NM
+		  FROM NEO_CD_GRP
+		 WHERE UILANG = #{uilang}
+		 <if test="cdGrp != null and cdGrp != ''">
+		   AND CD_GRP = #{cdGrp}
+		 </if>
+		 ORDER BY CD_GRP
+	</select>
+	
+	<!-- 코드 그룹 목록 조회 -->
+	<select id="getCodeListByUpCd" parameterType="codeVO" resultType="codeVO">
+		SELECT T4.CD CD
+			 , T4.CD_NM  CD_NM
+		  FROM NEO_CD_GRP T1
+			   INNER JOIN NEO_CD T2 ON T1.UILANG = T2.UILANG AND T1.CD_GRP = T2.CD_GRP AND T1.UILANG = #{uilang}
+			   INNER JOIN NEO_CD_GRP T3 ON T2.UILANG = T3.UILANG AND T2.CD_GRP = T3.UP_CD_GRP AND T2.UILANG = #{uilang}
+			   INNER JOIN NEO_CD T4 ON T3.UILANG = T4.UILANG AND T3.CD_GRP = T4.CD_GRP AND T2.CD = T4.UP_CD  AND T3.UILANG = #{uilang}
+		 WHERE T1.CD_GRP = #{cdGrp}
+		   AND T2.CD=#{cd}
+		 ORDER BY T4.CD
+	</select>
+	
+	<select id="getTimezoneList" parameterType="codeVO" resultType="codeVO">
+		SELECT TZ_CD CD
+			 , TZ_NM CD_NM
+		  FROM NEO_TIMEZONE
+		 WHERE USE_YN = #{useYn}
+		 ORDER BY TZ_NM
+	</select>
+	
+	<select id="getDeptList" parameterType="codeVO" resultType="codeVO">
+		SELECT DEPT_NO
+			, DEPT_NM
+		  FROM NEO_DEPT
+		 WHERE STATUS = #{status}
+		   AND USE_YN = 'Y'
+		 ORDER BY DEPT_NM
+	</select>
+	
+	<select id="getUserList" parameterType="codeVO" resultType="codeVO">
+		SELECT DEPT_NO
+			 , USER_ID
+			 , USER_NM
+		  FROM NEO_USER
+		 WHERE STATUS = #{status}
+		   AND USE_YN = 'Y'
+		 <if test="deptNo != 0">
+		   AND DEPT_NO = #{deptNo}
+		 </if>
+		 ORDER BY DEPT_NO, USER_NM
+	</select>
+	
+	<select id="getAuthGroupList" resultType="codeVO">
+		SELECT AUTH_GRP_ID CD
+			 , AUTH_GRP_NM CD_NM
+		  FROM NEO_AUTH_GRP
+		 WHERE USE_YN = 'Y'
+		 ORDER BY AUTH_GRP_ID DESC
+	</select>
+	
+	<select id="getProgramList" parameterType="codeVO" resultType="codeVO">
+		SELECT PROG_ID CD
+			 , PROG_NM CD_NM
+		  FROM NEO_PROG
+		 WHERE USE_YN = 'Y'
+		   AND UILANG = #{uilang}
+		 ORDER BY DISP_ORDER ASC, PROG_ID DESC
+	</select>
+	
+	<select id="getCampaignList" parameterType="campaignVO" resultType="campaignVO">
+		SELECT CAMP_NO
+			 , CAMP_NM
+			 , USER_ID
+			 , CAMP_TY
+			 , STATUS
+			 , DEPT_NO
+			 , REG_DT
+			 , REG_ID
+			 , UP_ID
+			 , UP_DT
+		  FROM NEO_CAMPAIGN
+		 WHERE STATUS = #{status}
+		 <if test='adminYn == "N"'>
+		   AND DEPT_NO = #{deptNo}
+		 </if>
+		 ORDER BY CAMP_NM
+	</select>
+	
+	<select id="getCampaignSmsList" parameterType="smsCampaignVO" resultType="smsCampaignVO">
+		SELECT CAMP_NO
+			 , CAMP_NM
+			 , USER_ID
+			 , CAMP_TY
+			 , STATUS
+			 , DEPT_NO
+			 , REG_DT
+			 , REG_ID
+			 , UP_ID
+			 , UP_DT
+		  FROM NEO_CAMPAIGN
+		 WHERE STATUS = #{status}
+		 <if test='adminYn == "N"'>
+		   AND DEPT_NO = #{deptNo}
+		 </if>
+		 ORDER BY CAMP_NM
+	</select>
+	
+	<select id="getCampaignPushList" parameterType="pushCampaignVO" resultType="pushCampaignVO">
+		SELECT CAMP_NO
+			 , CAMP_NM
+			 , USER_ID
+			 , CAMP_TY
+			 , STATUS
+			 , DEPT_NO
+			 , REG_DT
+			 , REG_ID
+			 , UP_ID
+			 , UP_DT
+		  FROM NEO_CAMPAIGN
+		 WHERE STATUS = #{status}
+		 <if test='adminYn == "N"'>
+		   AND DEPT_NO = #{deptNo}
+		 </if>
+		 ORDER BY CAMP_NM
+	</select>
+	
+	<select id="getWorkStatusList" parameterType="codeVO" resultType="codeVO">
+		SELECT CD
+			 , CD_NM
+			 , CD_DTL
+		  FROM NEO_CD
+		 WHERE UILANG = #{uilang}
+		   AND CD_GRP = #{cdGrp}
+		   AND USE_YN = #{useYn}
+		   AND SORT_NO &lt;= 8  
+		 ORDER BY SORT_NO
+	</select>
+	
+	<select id="getRcodeList" parameterType="codeVO" resultType="codeVO">
+		SELECT RCODE CD
+		     , CD_DESC CDNM 
+		  FROM TS_RCODE
+		  WHERE UILANG =#{uilang} 
+	</select>
+	
+	<select id="getKakaoTemplateList" parameterType="codeVO" resultType="codeVO">
+		SELECT TEMP_CD CD
+			 , TEMP_NM CDNM 
+		  FROM NEO_KAKAOTALK_TEMPLATE
+		  WHERE STATUS = #{status}
+		  ORDER BY TEMP_NM
+	</select>
+</mapper>

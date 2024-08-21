@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.sict.ums.sms.ana.dao.AnalysisMapper">
+
+	<select id="getSmsList" parameterType="smsVO" resultType="smsVO">
+		SELECT *
+		  FROM (
+				SELECT A.MSGID
+					 , A.SEND_DT
+					 , A.KEYGEN
+					 , A.USER_ID
+					 , A.DEPT_NO
+					 , B.DEPT_NM
+					 , A.CAMPUS_NO
+					 , C.CAMP_NM 
+					 , A.SEND_DATE
+					 , A.TASK_NM
+					 <if test="searchGubun == '004'">
+					 , E.TEMP_CD 
+					 , E.TEMP_NM 
+					</if>
+					 <if test="searchGubun != '004'">
+					 , '' TEMP_CD
+					 , '' TEMP_NM
+					 </if>
+					 , A.VALID_YN
+					 , A.SMS_NAME 
+					 , A.SMS_MESSAGE
+					 , A.GUBUN
+					 , D.CD_NM AS GUBUN_NM
+					 , (SELECT COUNT(*) FROM NEO_SMSLOG T1 WHERE T1.MSGID = A.MSGID AND T1.KEYGEN = A.KEYGEN) SEND_TOT_CNT
+					 <if test="searchGubun == '004'">
+					 , (SELECT COUNT(*) FROM NEO_SMSLOG T1 WHERE T1.MSGID = A.MSGID AND T1.KEYGEN = A.KEYGEN AND T1.RSLT_CD = '1' AND T1.SMS_SEND_YN = 'N' ) AS SUCC_CNT
+					 , (SELECT COUNT(*) FROM NEO_SMSLOG T1 WHERE T1.MSGID = A.MSGID AND T1.KEYGEN = A.KEYGEN AND T1.RSLT_CD = '0' AND T1.SMS_SEND_YN = 'N' ) AS FAIL_CNT
+					 , (SELECT COUNT(*) FROM NEO_SMSLOG T1 WHERE T1.MSGID = A.MSGID AND T1.KEYGEN = A.KEYGEN AND T1.RSLT_CD = '1' AND T1.SMS_SEND_YN = 'Y' ) AS SUCC_SMS
+					 , (SELECT COUNT(*) FROM NEO_SMSLOG T1 WHERE T1.MSGID = A.MSGID AND T1.KEYGEN = A.KEYGEN AND T1.RSLT_CD = '0' AND T1.SMS_SEND_YN = 'Y' ) AS FAIL_SMS
+					 </if>
+					 <if test="searchGubun != '004'">
+					 , (SELECT COUNT(*) FROM NEO_SMSLOG T1 WHERE T1.MSGID = A.MSGID AND T1.KEYGEN = A.KEYGEN AND T1.RSLT_CD = '1' ) AS SUCC_CNT
+					 , (SELECT COUNT(*) FROM NEO_SMSLOG T1 WHERE T1.MSGID = A.MSGID AND T1.KEYGEN = A.KEYGEN AND T1.RSLT_CD = '0' ) AS FAIL_CNT
+					 , 0 AS SUCC_SMS
+					 , 0 AS FAIL_SMS
+					 </if>
+					 , ROW_NUMBER() OVER (ORDER BY A.SEND_DATE DESC) SEQ
+					 , COUNT(1) OVER() TOTAL_COUNT
+				  FROM NEO_SMS A
+					  INNER JOIN NEO_DEPT B ON A.DEPT_NO = B.DEPT_NO
+					  INNER JOIN NEO_CAMPAIGN C ON A.CAMPUS_NO = C.CAMP_NO
+					  INNER JOIN NEO_CD D ON D.CD_GRP = 'C115' AND A.GUBUN = D.CD
+					  <if test="searchGubun == '004'">
+					  INNER JOIN NEO_KAKAOTALK_TEMPLATE E ON A.TEMP_CD = E.TEMP_CD
+					  </if>
+				 WHERE A.SMS_STATUS = '000'
+				   AND A.STATUS IN ('003','004')
+				   <if test="searchGubun == null or searchGubun == ''">
+				   AND A.GUBUN != '004'
+				   </if>
+				   <if test="searchGubun != null and searchGubun != ''">
+				   AND A.GUBUN = #{searchGubun}
+				   </if>
+				   <if test="searchStartDt != null and searchStartDt != ''">
+				   AND A.SEND_DATE &gt;= #{searchStartDt} || '000000'
+				   </if>
+				   <if test="searchEndDt != null and searchEndDt != ''">
+				   AND A.SEND_DATE &lt;  #{searchEndDt} || '240000'
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND A.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test='searchTaskNm != null and searchTaskNm != ""'>
+				   AND A.TASK_NM LIKE '%' || #{searchTaskNm} || '%'
+				   </if>
+				   <if test="searchGubun == '004'"> 
+					   <if test='searchTempCd != null and searchTempCd != ""'>
+					   AND E.TEMP_CD  = #{searchTempCd}
+					   </if>
+				   </if>
+				   <if test='searchCampNo != null and searchCampNo != 0'>
+				   AND A.CAMPUS_NO = #{searchCampNo}
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND A.USER_ID = #{searchUserId}
+				   </if> 
+				)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	
+	<select id="getSmsInfo" parameterType="smsSendLogVO" resultType="smsSendLogVO">
+		SELECT A.MSGID
+			 , A.KEYGEN
+			  <if test="searchGubun == '004'">
+			 , F.TEMP_CONTENT
+			 </if>
+			 <if test="searchGubun != '004'">
+			 , '' TEMP_CONTENT
+			 </if>
+			 , A.USER_ID
+			 , A.DEPT_NO
+			 , B.DEPT_NM
+			 , A.CAMPUS_NO
+			 , C.CAMP_NM
+			 , A.SEND_DATE
+			 , A.TASK_NM
+			 <if test="searchGubun == '004'">
+			 , F.TEMP_CD 
+			 , F.TEMP_NM 
+			</if>
+			 <if test="searchGubun != '004'">
+			 , '' TEMP_CD 
+			 , '' TEMP_NM
+			 </if>
+			 , A.VALID_YN
+			 , A.SEND_DATE
+			 , A.SEND_START_DT
+			 , A.SEND_END_DT
+			 , A.SEND_TOT_CNT
+			 , O.SMS_SEND_YN
+			 , O.RSLT_CD
+			 , A.SMS_MESSAGE
+			 , D.CD_NM AS GUBUN_NM
+			 <if test="searchGubun == '004'">
+			 , SUM(CASE WHEN O.RSLT_CD = '1' AND O.SMS_SEND_YN = 'N' THEN 1 END ) AS SUCC_CNT
+			 , SUM(CASE WHEN O.RSLT_CD = '0' AND O.SMS_SEND_YN = 'N' THEN 1 END ) AS FAIL_CNT
+			 , SUM(CASE WHEN O.RSLT_CD = '1' AND O.SMS_SEND_YN = 'Y' THEN 1 END ) AS SUCC_SMS
+			 , SUM(CASE WHEN O.RSLT_CD = '0' AND O.SMS_SEND_YN = 'Y' THEN 1 END ) AS FAIL_SMS 
+			 , ROUND(COUNT(CASE WHEN O.RSLT_CD = '1' AND O.SMS_SEND_YN = 'N' THEN 1 END) / COUNT(*)*100) || '%' AS SUCC_PER
+			 , ROUND(COUNT(CASE WHEN O.RSLT_CD = '0' AND O.SMS_SEND_YN = 'N' THEN 1 END) / COUNT(*)*100) || '%' AS FAIL_PER
+			 , ROUND(COUNT(CASE WHEN O.RSLT_CD = '1' AND O.SMS_SEND_YN = 'Y' THEN 1 END) / COUNT(*)*100) || '%' AS SUCC_SMS_PER
+			 , ROUND(COUNT(CASE WHEN O.RSLT_CD = '0' AND O.SMS_SEND_YN = 'Y' THEN 1 END) / COUNT(*)*100) || '%' AS FAIL_SMS_PER
+			 </if>
+			 <if test="searchGubun != '004'">
+			 , SUM(CASE WHEN O.RSLT_CD = '1' THEN 1 END ) AS SUCC_CNT
+			 , SUM(CASE WHEN O.RSLT_CD = '0' THEN 1 END ) AS FAIL_CNT
+			 , 0 AS SUCC_SMS
+			 , 0 AS FAIL_SMS 
+			 , ROUND(COUNT(CASE WHEN O.RSLT_CD = '1' THEN 1 END) / COUNT(*)*100) || '%' AS SUCC_PER
+			 , ROUND(COUNT(CASE WHEN O.RSLT_CD = '0' THEN 1 END) / COUNT(*)*100) || '%' AS FAIL_PER
+			 , 0 AS SUCC_SMS_PER
+			 , 0 AS FAIL_SMS_PER
+			 </if>
+		  FROM NEO_SMS A 
+			   INNER JOIN NEO_SMSLOG O ON O.MSGID = A.MSGID AND O.KEYGEN = A.KEYGEN
+			   INNER JOIN NEO_DEPT B ON A.DEPT_NO = B.DEPT_NO
+			   INNER JOIN NEO_CAMPAIGN C ON A.CAMPUS_NO = C.CAMP_NO
+			   <if test="searchGubun == '004'">
+			   INNER JOIN NEO_KAKAOTALK_TEMPLATE F ON A.TEMP_CD = F.TEMP_CD
+			   </if>
+			   INNER JOIN NEO_CD D ON D.CD_GRP = 'C115' AND A.GUBUN = D.CD   
+		 WHERE A.STATUS IN ('003','004')
+		   AND A.SMS_STATUS = '000'
+		   <if test="searchGubun == null or searchGubun == ''">
+		   AND A.GUBUN != '004'
+		   </if>
+		   <if test="searchGubun != null and searchGubun != ''">
+		   AND A.GUBUN = #{searchGubun}
+		   </if>
+		   AND A.MSGID = #{msgid}
+		   AND A.KEYGEN = #{keygen}
+		 GROUP BY A.MSGID, A.KEYGEN
+	</select> 
+
+	<select id="getPopSmsSendList" parameterType="smsSendLogVO" resultType="smsSendLogVO">
+		SELECT A.MSGID 
+			 , A.KEYGEN 
+			 , NVL(B.PHONE , '') PHONE
+			 , B.RSLT_CD 
+			 , B.SMS_SEND_YN
+		  FROM NEO_SMS A 
+			   LEFT OUTER JOIN NEO_SMSLOG B ON B.MSGID = A.MSGID AND B.KEYGEN = A.KEYGEN
+		 WHERE A.STATUS IN ('003','004')
+		   <if test="gubun == null or gubun == ''">
+		   AND A.GUBUN != '004'
+		   </if>
+		   <if test="gubun != null and gubun != ''">
+		   AND A.GUBUN = #{gubun}
+		   </if>
+		   AND A.SMS_STATUS = '000'
+		   <if test='phone != null and phone != ""'>
+		   AND B.PHONE = #{phone}
+		   </if>
+		   AND A.MSGID = #{msgid}
+		   AND A.KEYGEN = #{keygen}
+		   <if test='rsltCd != null and rsltCd != ""'>
+		   AND B.RSLT_CD = #{rsltCd}
+		   </if>
+		   <if test='smsSendYn != null and smsSendYn != ""'>
+		   AND B.SMS_SEND_YN = #{smsSendYn}
+		   </if>
+	</select>
+	<select id="getSmsSendLogList" parameterType="smsSendLogVO" resultType="smsSendLogVO">
+		SELECT *
+		  FROM (
+				SELECT A.MSGID
+					, A.KEYGEN
+					 , B.USER_ID AS EXE_USER_ID
+					 , B.USER_NM AS EXE_USER_NM
+					 , A.DEPT_NO
+					 , A.CAMPUS_NO
+					 , C.CAMP_NM 
+					 , A.SEND_DATE
+					 , A.TASK_NM
+					 , A.VALID_YN
+					 , E.SUBJECT 
+					 , E.MSG_BODY 
+					 , A.GUBUN
+					 , D.CD_NM AS GUBUN_NM
+					 , E.ID 
+					 , E.NAME 
+					 , E.PHONE 
+					 , E.SEND_TELNO 
+					 , E.RSLT_CD 
+					 , E.RCODE
+					 , E.MSG_TYP SEND_GUBUN
+					 , (SELECT CD_NM FROM NEO_CD WHERE CD_GRP = 'C132' AND E.MSG_TYP = CD ) SEND_GUBUN_NM
+					 , (SELECT CD_DESC FROM NEO_SMS_RCODE WHERE RCODE = E.RCODE ) RNAME
+				  FROM NEO_SMS A
+					  LEFT OUTER JOIN NEO_USER B ON A.EXE_USER_ID = B.USER_ID 
+					  INNER JOIN NEO_CAMPAIGN C ON A.CAMPUS_NO = C.CAMP_NO
+					  INNER JOIN NEO_CD D ON D.CD_GRP = 'C115' AND A.GUBUN = D.CD
+					  INNER JOIN NEO_SMSLOG E ON A.MSGID  = E.MSGID  AND A.KEYGEN  = E.KEYGEN 
+				 WHERE A.SMS_STATUS = '000'
+				   AND D.CD IN
+				   <foreach collection="arrGubunNms" item="item" index="index" open="(" close=")" separator=",">
+				   #{item}
+				   </foreach>
+				   <if test="searchStartDt != null and searchStartDt != ''">
+				   AND A.SEND_DATE &gt;= CONCAT(#{searchStartDt},'000000')
+				   </if> 
+				   <if test="searchEndDt != null and searchEndDt != ''">
+				   AND A.SEND_DATE &lt; CONCAT(#{searchEndDt},'240000')
+				   </if>
+				   <if test='searchCampNm != null and searchCampNm != ""'>
+				   AND C.CAMP_NM LIKE CONCAT('%', #{searchCampNm},'%')
+				   </if>
+				   <if test="searchCustId != null and searchCustId != ''">
+				   AND E.ID LIKE CONCAT('%', #{searchCustId},'%')
+				   </if> 
+				   <if test="searchCustNm != null and searchCustNm != ''">
+				   AND E.NAME LIKE CONCAT('%', #{searchCustNm},'%')
+				   </if> 
+				   <if test="searchCustPhone != null and searchCustPhone != ''">
+				   AND E.PHONE = #{searchCustPhone}
+				   </if> 
+				   <if test="searchStatus != null and searchStatus != ''">
+				   AND E.RSLT_CD = #{searchStatus}
+				   </if> 
+				   <if test="searchExeUserNm != null and searchExeUserNm != ''">
+				   AND E.NAME LIKE CONCAT('%', #{searchExeUserNm},'%')
+				   </if>
+				  )
+				  WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+</mapper>

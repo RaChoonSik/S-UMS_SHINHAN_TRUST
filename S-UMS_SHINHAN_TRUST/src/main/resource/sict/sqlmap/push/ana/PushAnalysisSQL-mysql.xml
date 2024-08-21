@@ -1,0 +1,411 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.sict.ums.push.ana.dao.PushAnalysisMapper">
+	<select id="getPushList" parameterType="pushSendLogVO" resultType="pushSendLogVO">
+		SELECT *
+		  FROM (
+				SELECT PUSHMESSAGE_ID
+					 , USER_ID
+					 , DEPT_NO
+					 , DEPT_NM
+					 , CAMP_NO 
+					 , CAMP_NM 
+					 , SEND_DT 
+					 , PUSH_NAME
+					 , PUSH_TITLE
+					 , PUSH_MESSAGE
+					 , PUSH_GUBUN
+					 , PUSH_GUBUN_NM
+					 , SEND_TOT_CNT
+					 , SUCC_AND
+					 , SUCC_IOS
+					 , FAIL_AND
+					 , FAIL_IOS
+					 , TOTAL_COUNT
+				 FROM (
+						SELECT 'X' JOIN_COL
+							 , A.PUSHMESSAGE_ID
+							 , A.USER_ID
+							 , A.DEPT_NO
+							 , B.DEPT_NM
+							 , A.CAMP_NO 
+							 , C.CAMP_NM 
+							 , A.SEND_DT 
+							 , A.PUSH_NAME
+							 , A.PUSH_TITLE
+							 , A.PUSH_MESSAGE
+							 , A.PUSH_GUBUN
+							 , D.CD_NM AS PUSH_GUBUN_NM
+							 , (SELECT COUNT(*) FROM NEO_PUSHLOG T1 WHERE T1.PUSHMESSAGE_ID = A.PUSHMESSAGE_ID ) AS SEND_TOT_CNT
+							 , (SELECT COUNT(*) FROM NEO_PUSHLOG  T1 WHERE T1.PUSHMESSAGE_ID = A.PUSHMESSAGE_ID AND T1.RSLT_CD = '0' AND T1.OS_GUBUN  = '001' ) AS SUCC_AND
+							 , (SELECT COUNT(*) FROM NEO_PUSHLOG T1 WHERE T1.PUSHMESSAGE_ID = A.PUSHMESSAGE_ID AND T1.RSLT_CD = '0' AND T1.OS_GUBUN = '002' ) AS SUCC_IOS
+							 , (SELECT COUNT(*) FROM NEO_PUSHLOG T1 WHERE T1.PUSHMESSAGE_ID = A.PUSHMESSAGE_ID AND T1.RSLT_CD != '0' AND T1.OS_GUBUN = '001' ) AS FAIL_AND
+							 , (SELECT COUNT(*) FROM NEO_PUSHLOG T1 WHERE T1.PUSHMESSAGE_ID = A.PUSHMESSAGE_ID AND T1.RSLT_CD != '0' AND T1.OS_GUBUN = '002' ) AS FAIL_IOS
+						  FROM NEO_PUSHMESSAGE  A
+							  INNER JOIN NEO_DEPT B ON A.DEPT_NO = B.DEPT_NO
+							  INNER JOIN NEO_CAMPAIGN C ON A.CAMP_NO = C.CAMP_NO
+							  INNER JOIN NEO_CD D ON D.CD_GRP = 'C124' AND A.PUSH_GUBUN = D.CD
+						 WHERE A.STATUS  = '000'
+						   AND A.WORK_STATUS  IN ('003','004')
+						   <if test="searchStartDt != null and searchStartDt != ''">
+						   AND A.SEND_DT &gt;= CONCAT(#{searchStartDt},'000000')
+						   </if>
+						   <if test="searchEndDt != null and searchEndDt != ''">
+						   AND A.SEND_DT &lt; CONCAT(#{searchEndDt},'240000')
+						   </if>
+						   <if test="searchPushName != null and searchPushName != ''">
+						   AND A.PUSH_NAME LIKE CONCAT('%', #{searchPushName},'%')
+						   </if>
+						   <if test="searchPushGubun != null and searchPushGubun != ''">
+						   AND A.PUSH_GUBUN = #{searchPushGubun}
+						   </if>
+						   <if test="searchDeptNo != 0">
+						   AND A.DEPT_NO = #{searchDeptNo}
+						   </if>
+						   <if test='searchCampNo != null and searchCampNo != 0'>
+						   AND A.CAMP_NO = #{searchCampNo}
+						   </if>
+						   <if test="searchUserId != null and searchUserId != ''">
+						   AND A.USER_ID = #{searchUserId}
+						   </if>
+						)TT1, 
+						(SELECT 'X' JOIN_COL
+							  , COUNT(*) TOTAL_COUNT
+						  FROM NEO_PUSHMESSAGE  A
+							  INNER JOIN NEO_DEPT B ON A.DEPT_NO = B.DEPT_NO
+							  INNER JOIN NEO_CAMPAIGN C ON A.CAMP_NO = C.CAMP_NO
+							  INNER JOIN NEO_CD D ON D.CD_GRP = 'C124' AND A.PUSH_GUBUN = D.CD
+						 WHERE A.STATUS  = '000'
+						   AND A.WORK_STATUS  IN ('003','004')
+						   <if test="searchStartDt != null and searchStartDt != ''">
+						   AND A.SEND_DT &gt;= CONCAT(#{searchStartDt},'000000')
+						   </if>
+						   <if test="searchEndDt != null and searchEndDt != ''">
+						   AND A.SEND_DT &lt; CONCAT(#{searchEndDt},'240000')
+						   </if>
+						   <if test="searchPushName != null and searchPushName != ''">
+						   AND A.PUSH_NAME LIKE CONCAT('%', #{searchPushName},'%')
+						   </if>
+						   <if test="searchPushGubun != null and searchPushGubun != ''">
+						   AND A.PUSH_GUBUN = #{searchPushGubun}
+						   </if>
+						   <if test="searchDeptNo != 0">
+						   AND A.DEPT_NO = #{searchDeptNo}
+						   </if>
+						   <if test='searchCampNo != null and searchCampNo != 0'>
+						   AND A.CAMP_NO = #{searchCampNo}
+						   </if>
+						   <if test="searchUserId != null and searchUserId != ''">
+						   AND A.USER_ID = #{searchUserId}
+						   </if>
+						  ) TT2
+					 WHERE TT1.JOIN_COL = TT2.JOIN_COL
+					 ORDER BY TT1.SEND_DT DESC 
+				) TTT
+		 LIMIT #{startRow}, #{rows}
+	</select>
+	
+	<select id="getPushInfo" parameterType="pushSendLogVO" resultType="pushSendLogVO">
+		SELECT A.PUSHMESSAGE_ID
+			 , A.USER_ID
+			 , A.DEPT_NO
+			 , B.DEPT_NM
+			 , A.CAMP_NO
+			 , C.CAMP_NM
+			 , A.SEND_DT
+			 , A.PUSH_NAME
+			 , A.SEND_DT
+			 , A.SEND_END_DT
+			 , O.RSLT_CD
+			 , A.PUSH_MESSAGE
+			 , D.CD_NM AS PUSH_GUBUN_NM
+			 , (SELECT COUNT(*) FROM NEO_PUSHLOG T1 WHERE T1.PUSHMESSAGE_ID = A.PUSHMESSAGE_ID ) AS SEND_TOT_CNT
+			 , (SELECT COUNT(*) FROM NEO_PUSHLOG T1 WHERE T1.PUSHMESSAGE_ID = A.PUSHMESSAGE_ID AND T1.RSLT_CD = '0' ) AS SUCC_CNT
+			 , (SELECT COUNT(*) FROM NEO_PUSHLOG T1 WHERE T1.PUSHMESSAGE_ID = A.PUSHMESSAGE_ID AND T1.RSLT_CD != '0' ) AS FAIL_CNT
+			 , (SELECT COUNT(*) FROM NEO_PUSHLOG T1 WHERE T1.PUSHMESSAGE_ID = A.PUSHMESSAGE_ID AND T1.RSLT_CD = '0' AND T1.OS_GUBUN = '001' ) AS SUCC_AND
+			 , (SELECT COUNT(*) FROM NEO_PUSHLOG T1 WHERE T1.PUSHMESSAGE_ID = A.PUSHMESSAGE_ID AND T1.RSLT_CD = '0' AND T1.OS_GUBUN = '002' ) AS SUCC_IOS
+			 , (SELECT COUNT(*) FROM NEO_PUSHLOG T1 WHERE T1.PUSHMESSAGE_ID = A.PUSHMESSAGE_ID AND T1.RSLT_CD != '0' AND T1.OS_GUBUN = '001' ) AS FAIL_AND
+			 , (SELECT COUNT(*) FROM NEO_PUSHLOG T1 WHERE T1.PUSHMESSAGE_ID = A.PUSHMESSAGE_ID AND T1.RSLT_CD != '0' AND T1.OS_GUBUN = '002' ) AS FAIL_IOS
+ 			 , CONCAT(ROUND((SELECT COUNT(*) FROM NEO_PUSHLOG T1 WHERE T1.PUSHMESSAGE_ID = A.PUSHMESSAGE_ID AND T1.RSLT_CD = '0' AND T1.OS_GUBUN = '001') / COUNT(*) * 100 ), '%') AS SUCC_AND_PER
+			 , CONCAT(ROUND((SELECT COUNT(*) FROM NEO_PUSHLOG T1 WHERE T1.PUSHMESSAGE_ID = A.PUSHMESSAGE_ID AND T1.RSLT_CD = '0' AND T1.OS_GUBUN = '002') / COUNT(*) * 100 ), '%')  AS SUCC_IOS_PER
+ 			 , CONCAT(ROUND((SELECT COUNT(*) FROM NEO_PUSHLOG T1 WHERE T1.PUSHMESSAGE_ID = A.PUSHMESSAGE_ID AND T1.RSLT_CD != '0' AND T1.OS_GUBUN = '001') / COUNT(*) * 100 ), '%') AS FAIL_AND_PER
+ 			 , CONCAT(ROUND((SELECT COUNT(*) FROM NEO_PUSHLOG T1 WHERE T1.PUSHMESSAGE_ID = A.PUSHMESSAGE_ID AND T1.RSLT_CD != '0' AND T1.OS_GUBUN = '002') / COUNT(*) * 100 ), '%')  AS FAIL_IOS_PER
+		  FROM NEO_PUSHMESSAGE A 
+			   LEFT OUTER JOIN NEO_PUSHLOG O ON O.PUSHMESSAGE_ID = A.PUSHMESSAGE_ID
+			   INNER JOIN NEO_DEPT B ON A.DEPT_NO = B.DEPT_NO
+			   INNER JOIN NEO_CAMPAIGN C ON A.CAMP_NO = C.CAMP_NO
+			   INNER JOIN NEO_CD D ON D.CD_GRP = 'C124' AND A.PUSH_GUBUN = D.CD   
+		 WHERE A.WORK_STATUS IN ('003','004')
+		   AND A.STATUS = '000'
+		   AND A.PUSHMESSAGE_ID = #{pushmessageId}
+		 GROUP BY A.PUSHMESSAGE_ID
+	</select> 
+	
+	
+	<select id="getCampPushList" parameterType="pushSendLogVO" resultType="pushSendLogVO">
+		SELECT *
+		  FROM (
+				SELECT CAMP_NO
+					 , CAMP_NM
+					 , PUSHMESSAGE_ID
+					 , PUSH_COUNT
+					 , PUSH_NAME 
+					 , USER_ID 
+					 , USER_NM
+					 , CAMP_REG_DT
+					 , PUSH_REG_DT
+					 , SEND_DT
+					 , WORK_STATUS
+					 , WORK_STATUS_NM 
+					 , TOTAL_COUNT
+				 FROM (
+						SELECT 'X' JOIN_COL
+							 , A.CAMP_NO 
+							 , C.CAMP_NM 
+							 , A.PUSHMESSAGE_ID
+							 , B.PUSH_COUNT
+							 , A.PUSH_NAME
+							 , A.USER_ID
+							 , (SELECT USER_NM FROM NEO_USER WHERE USER_ID = A.USER_ID ) USER_NM 
+							 , C.REG_DT CAMP_REG_DT
+							 , A.REG_DT PUSH_REG_DT
+							 , A.SEND_DT 
+							 , A.WORK_STATUS
+							 , (SELECT CD_NM FROM NEO_CD WHERE CD_GRP = 'C118' AND CD= A.WORK_STATUS AND UILANG ='000') WORK_STATUS_NM
+						  FROM NEO_PUSHMESSAGE A
+							   INNER JOIN 
+							   (
+								  SELECT T2.CAMP_NO, MAX(T1.PUSHMESSAGE_ID) PUSHMESSAGE_ID, T2.PUSH_COUNT
+								    FROM NEO_PUSHMESSAGE T1 INNER JOIN  
+								    (
+									  SELECT CAMP_NO, MAX(SEND_DT) SEND_DT, COUNT(1) PUSH_COUNT 
+									    FROM NEO_PUSHMESSAGE 
+									  WHERE STATUS  = '000'
+										AND WORK_STATUS  IN ('003','004')
+										<if test="searchStartDt != null and searchStartDt != ''">
+										AND SEND_DT &gt;= CONCAT(#{searchStartDt},'000000')
+										</if>
+										<if test="searchEndDt != null and searchEndDt != ''">
+										AND SEND_DT &lt; CONCAT(#{searchEndDt},'240000')
+										</if>
+										<if test="searchDeptNo != 0">
+										AND DEPT_NO = #{searchDeptNo}
+										</if>
+										<if test='searchCampNo != null and searchCampNo != 0'>
+										AND CAMP_NO = #{searchCampNo}
+										</if>
+										<if test="searchUserId != null and searchUserId != ''">
+										AND USER_ID = #{searchUserId}
+										</if>
+									  GROUP BY CAMP_NO 
+								    ) T2 ON (T1.CAMP_NO = T2.CAMP_NO AND T1.SEND_DT = T2.SEND_DT)
+								 WHERE T1.STATUS  = '000'
+								   AND T1.WORK_STATUS  IN ('003','004')
+								   <if test="searchStartDt != null and searchStartDt != ''">
+								   AND T1.SEND_DT &gt;= CONCAT(#{searchStartDt},'000000')
+								   </if>
+								   <if test="searchEndDt != null and searchEndDt != ''">
+								   AND T1.SEND_DT &lt; CONCAT(#{searchEndDt},'240000')
+								   </if>
+								   <if test="searchDeptNo != 0">
+								   AND T1.DEPT_NO = #{searchDeptNo}
+								   </if>
+								   <if test='searchCampNo != null and searchCampNo != 0'>
+								   AND T1.CAMP_NO = #{searchCampNo}
+								   </if>
+								   <if test="searchUserId != null and searchUserId != ''">
+								   AND T1.USER_ID = #{searchUserId}
+								   </if>
+								 GROUP BY T2.CAMP_NO, T2.PUSH_COUNT 
+						      ) B ON A.CAMP_NO = B.CAMP_NO AND A.PUSHMESSAGE_ID = B.PUSHMESSAGE_ID 
+							  INNER JOIN NEO_CAMPAIGN C ON A.CAMP_NO = C.CAMP_NO
+						)TT1, 
+						(SELECT 'X' JOIN_COL
+							  , COUNT(*) TOTAL_COUNT
+						  FROM NEO_PUSHMESSAGE A
+							   INNER JOIN 
+							   (
+								  SELECT T2.CAMP_NO, MAX(T1.PUSHMESSAGE_ID) PUSHMESSAGE_ID, T2.PUSH_COUNT
+								    FROM NEO_PUSHMESSAGE T1 INNER JOIN  
+								    (
+									  SELECT CAMP_NO, MAX(SEND_DT) SEND_DT, COUNT(1) PUSH_COUNT 
+									    FROM NEO_PUSHMESSAGE 
+									  WHERE STATUS  = '000'
+										AND WORK_STATUS  IN ('003','004')
+										<if test="searchStartDt != null and searchStartDt != ''">
+										AND SEND_DT &gt;= CONCAT(#{searchStartDt},'000000')
+										</if>
+										<if test="searchEndDt != null and searchEndDt != ''">
+										AND SEND_DT &lt; CONCAT(#{searchEndDt},'240000')
+										</if>
+										<if test="searchDeptNo != 0">
+										AND DEPT_NO = #{searchDeptNo}
+										</if>
+										<if test='searchCampNo != null and searchCampNo != 0'>
+										AND CAMP_NO = #{searchCampNo}
+										</if>
+										<if test="searchUserId != null and searchUserId != ''">
+										AND USER_ID = #{searchUserId}
+										</if>
+									  GROUP BY CAMP_NO 
+								    ) T2 ON (T1.CAMP_NO = T2.CAMP_NO AND T1.SEND_DT = T2.SEND_DT)
+								 WHERE T1.STATUS  = '000'
+								   AND T1.WORK_STATUS  IN ('003','004')
+								   <if test="searchStartDt != null and searchStartDt != ''">
+								   AND T1.SEND_DT &gt;= CONCAT(#{searchStartDt},'000000')
+								   </if>
+								   <if test="searchEndDt != null and searchEndDt != ''">
+								   AND T1.SEND_DT &lt; CONCAT(#{searchEndDt},'240000')
+								   </if>
+								   <if test="searchDeptNo != 0">
+								   AND T1.DEPT_NO = #{searchDeptNo}
+								   </if>
+								   <if test='searchCampNo != null and searchCampNo != 0'>
+								   AND T1.CAMP_NO = #{searchCampNo}
+								   </if>
+								   <if test="searchUserId != null and searchUserId != ''">
+								   AND T1.USER_ID = #{searchUserId}
+								   </if>
+								 GROUP BY T2.CAMP_NO, T2.PUSH_COUNT 
+						      ) B ON A.CAMP_NO = B.CAMP_NO AND A.PUSHMESSAGE_ID = B.PUSHMESSAGE_ID 
+							  INNER JOIN NEO_CAMPAIGN C ON A.CAMP_NO = C.CAMP_NO
+						  ) TT2
+					 WHERE TT1.JOIN_COL = TT2.JOIN_COL
+					 ORDER BY TT1.SEND_DT DESC 
+				) TTT
+		 LIMIT #{startRow}, #{rows}
+	</select>
+	
+	<select id="getPushCampList" parameterType="pushSendLogVO" resultType="pushSendLogVO">
+        SELECT *
+          FROM (
+                SELECT TT1.CAMP_NO
+                     , TT1.CAMP_NM        /* 캠페인명 */
+                     , TT1.SEND_DT        /* 최종발송일자 */
+                     , TT1.PUSH_COUNT     /* 건수 */
+                     , TT1.PUSH_NAME      /* 발송메세지명 */
+                     , TT1.SEND_TYP       /* 메세지유형 */
+                     , TT1.SEND_TYP_NM    /* 메일유형 */
+                     , TT1.USER_ID        /* 사용자명 */
+                     , TT1.USER_NM        /* 사용자명 */
+                     , TT1.SMS_REG_DT     /* 메세지등록일자 */
+                     , TT1.CAMP_REG_DT    /* 캠페인등록일자 */
+                     , TT1.STATUS         /* 발송상태 */
+                     , TT1.STATUS_NM      /* 발송상태 */
+                     , TT2.TOTAL_COUNT
+                  FROM (
+                        SELECT 'X' JOIN_COL
+                             , T1.CAMP_NO
+                             , T1.CAMP_NM    /* 캠페인명 */
+                             , T2.SEND_DT    /* 최종발송일자 */
+                             , T3.PUSH_COUNT /* 건수 */
+                             , T2.PUSH_NAME  /* 발송메세지명 */
+                             , T2.SEND_TYP   /* 메세지유형 */
+                             , T5.CD_NM AS SEND_TYP_NM /* 메일유형 */
+                             , T2.USER_ID    /* 사용자명 */
+                             , T4.USER_NM    /* 사용자명 */   
+                             , T2.REG_DT AS SMS_REG_DT     /* 메세지등록일자 */
+                             , T1.REG_DT AS CAMP_REG_DT    /* 캠페인등록일자 */
+                             , T2.STATUS     /* 발송상태 */
+                             , T6.CD_NM AS STATUS_NM /* 발송상태 */
+                          FROM NEO_CAMPAIGN T1 
+                               INNER JOIN NEO_PUSHMESSAGE T2
+                                  ON T1.CAMP_NO = T2.CAMP_NO
+                               INNER JOIN ( 
+                                        SELECT CAMP_NO        AS CAMP_NO 
+                                             , MAX(CONCAT(SEND_DT, SEG_NO))   AS LAST_SEND_DATE  
+                                             , COUNT(1)       AS PUSH_COUNT 
+                                          FROM NEO_PUSHMESSAGE T01  
+                                               INNER JOIN NEO_DEPT T02 
+                                                  ON T01.DEPT_NO = T02.DEPT_NO  
+                                               INNER JOIN NEO_CD T03 /* PUSH 유형 */
+                                                  ON T03.CD_GRP = 'C124' 
+                                                 AND T01.PUSH_GUBUN = T03.CD
+                                         WHERE T01.STATUS  = '000'
+                                           AND T01.WORK_STATUS  IN ('003','004')
+        <if test="searchStartDt != null and searchStartDt != ''">
+                                           AND T01.SEND_DT &gt;= CONCAT(#{searchStartDt},'000000')
+        </if>
+        <if test="searchEndDt != null and searchEndDt != ''">
+                                           AND T01.SEND_DT &lt; CONCAT(#{searchEndDt},'240000')
+        </if>
+        <if test="searchPushName != null and searchPushName != ''">
+                                           AND T01.PUSH_NAME LIKE CONCAT('%', #{searchPushName},'%')
+        </if>
+        <if test="searchPushGubun != null and searchPushGubun != ''">
+                                           AND T01.PUSH_GUBUN = #{searchPushGubun}
+        </if>
+        <if test="searchDeptNo != 0">
+                                           AND T01.DEPT_NO = #{searchDeptNo}
+        </if>
+        <if test="searchCampNo != null and searchCampNo != 0">
+                                           AND T01.CAMP_NO = #{searchCampNo}
+        </if>
+        <if test="searchUserId != null and searchUserId != ''">
+                                           AND T01.USER_ID = #{searchUserId}
+        </if>
+                                         GROUP BY CAMP_NO
+                                         ) T3 
+                                  ON T1.CAMP_NO = T3.CAMP_NO 
+                                 AND CONCAT(T2.SEND_DT, T2.SEG_NO) = T3.LAST_SEND_DATE
+                             LEFT OUTER JOIN NEO_USER T4
+                                ON T2.USER_ID = T4.USER_ID 
+                             LEFT OUTER JOIN NEO_CD T5 /* 발송유형 */
+                               ON T5.CD_GRP   = 'C120' 
+                              AND T2.SEND_TYP = T5.CD   
+                             LEFT OUTER JOIN NEO_CD T6 /* 메세지상태 */
+                               ON T6.CD_GRP = 'C101' 
+                              AND T2.STATUS = T6.CD 
+                      ) TT1,
+                      (
+                        SELECT 'X' JOIN_COL
+                             , COUNT(*) TOTAL_COUNT
+                          FROM NEO_CAMPAIGN T1 
+                               INNER JOIN NEO_PUSHMESSAGE T2
+                                  ON T1.CAMP_NO = T2.CAMP_NO
+                               INNER JOIN ( 
+                                        SELECT CAMP_NO        AS CAMP_NO 
+                                             , MAX(SEND_DT)   AS LAST_SEND_DATE  
+                                             , COUNT(1)       AS SMS_CNT 
+                                          FROM NEO_PUSHMESSAGE T01  
+                                               INNER JOIN NEO_DEPT T02 
+                                                  ON T01.DEPT_NO = T02.DEPT_NO  
+                                               INNER JOIN NEO_CD T03 /* 전송 유형 */
+                                                  ON T03.CD_GRP = 'C124' 
+                                                 AND T01.PUSH_GUBUN = T03.CD
+                                         WHERE T01.STATUS  = '000'
+                                           AND T01.WORK_STATUS  IN ('003','004')
+        <if test="searchStartDt != null and searchStartDt != ''">
+                                           AND T01.SEND_DT &gt;= CONCAT(#{searchStartDt},'000000')
+        </if>
+        <if test="searchEndDt != null and searchEndDt != ''">
+                                           AND T01.SEND_DT &lt; CONCAT(#{searchEndDt},'240000')
+        </if>
+        <if test="searchPushName != null and searchPushName != ''">
+                                           AND T01.PUSH_NAME LIKE CONCAT('%', #{searchPushName},'%')
+        </if>
+        <if test="searchPushGubun != null and searchPushGubun != ''">
+                                           AND T01.PUSH_GUBUN = #{searchPushGubun}
+        </if>
+        <if test="searchDeptNo != 0">
+                                           AND T01.DEPT_NO = #{searchDeptNo}
+        </if>
+        <if test="searchCampNo != null and searchCampNo != 0">
+                                           AND T01.CAMP_NO = #{searchCampNo}
+        </if>
+        <if test="searchUserId != null and searchUserId != ''">
+                                           AND T01.USER_ID = #{searchUserId}
+        </if>
+                                         GROUP BY CAMP_NO
+                                         ) T3 
+                                  ON T1.CAMP_NO = T3.CAMP_NO 
+                                 AND CONCAT(T2.SEND_DT, T2.SEG_NO) = T3.LAST_SEND_DATE
+                          ) TT2
+                     WHERE TT1.JOIN_COL = TT2.JOIN_COL
+                     ORDER BY TT1.SEND_DT DESC 
+                ) TTT
+         LIMIT #{startRow}, #{rows}
+	</select>
+</mapper>

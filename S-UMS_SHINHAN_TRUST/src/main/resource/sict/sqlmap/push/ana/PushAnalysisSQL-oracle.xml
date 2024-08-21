@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.sict.ums.push.ana.dao.PushAnalysisMapper">
+	<select id="getPushList" parameterType="pushSendLogVO" resultType="pushSendLogVO">
+		SELECT *
+		  FROM (
+				SELECT A.PUSHMESSAGE_ID
+					 , A.USER_ID
+					 , A.DEPT_NO
+					 , B.DEPT_NM
+					 , A.CAMP_NO 
+					 , C.CAMP_NM 
+					 , A.SEND_DT 
+					 , A.PUSH_NAME
+					 , A.PUSH_TITLE
+					 , A.PUSH_MESSAGE
+					 , A.PUSH_GUBUN
+					 , D.CD_NM AS PUSH_GUBUN_NM
+					 , (SELECT COUNT(*) FROM NEO_PUSHLOG T1 WHERE T1.PUSHMESSAGE_ID = A.PUSHMESSAGE_ID ) AS SEND_TOT_CNT
+					 , (SELECT COUNT(*) FROM NEO_PUSHLOG  T1 WHERE T1.PUSHMESSAGE_ID = A.PUSHMESSAGE_ID AND T1.RSLT_CD = '1' AND T1.OS_GUBUN  = '001' ) AS SUCC_AND
+					 , (SELECT COUNT(*) FROM NEO_PUSHLOG T1 WHERE T1.PUSHMESSAGE_ID = A.PUSHMESSAGE_ID AND T1.RSLT_CD = '1' AND T1.OS_GUBUN = '002' ) AS SUCC_IOS
+					 , (SELECT COUNT(*) FROM NEO_PUSHLOG T1 WHERE T1.PUSHMESSAGE_ID = A.PUSHMESSAGE_ID AND T1.RSLT_CD = '0' AND T1.OS_GUBUN = '001' ) AS FAIL_AND
+					 , (SELECT COUNT(*) FROM NEO_PUSHLOG T1 WHERE T1.PUSHMESSAGE_ID = A.PUSHMESSAGE_ID AND T1.RSLT_CD = '0' AND T1.OS_GUBUN = '002' ) AS FAIL_IOS
+					 , ROW_NUMBER() OVER (ORDER BY A.SEND_DT DESC) SEQ
+					 , COUNT(1) OVER() TOTAL_COUNT
+				  FROM NEO_PUSHMESSAGE  A
+					  INNER JOIN NEO_DEPT B ON A.DEPT_NO = B.DEPT_NO
+					  INNER JOIN NEO_CAMPAIGN C ON A.CAMP_NO = C.CAMP_NO
+					  INNER JOIN NEO_CD D ON D.CD_GRP = 'C124' AND A.PUSH_GUBUN = D.CD
+				 WHERE A.STATUS  = '000'
+				   AND A.WORK_STATUS  IN ('003','004')
+				   <if test="searchStartDt != null and searchStartDt != ''">
+				   AND A.SEND_DT &gt;= #{searchStartDt} || '000000'
+				   </if>
+				   <if test="searchEndDt != null and searchEndDt != ''">
+				   AND A.SEND_DT &lt;  #{searchEndDt} || '240000'
+				   </if>
+				   <if test="searchPushName != null and searchPushName != ''">
+				   AND A.PUSH_NAME LIKE '%' ||  #{searchPushName} || '%'
+				   </if>
+				   <if test="searchPushGubun != null and searchPushGubun != ''">
+				   AND A.PUSH_GUBUN = #{searchPushGubun}
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND A.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test='searchCampNo != null and searchCampNo != 0'>
+				   AND A.CAMP_NO = #{searchCampNo}
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND A.USER_ID = #{searchUserId}
+				   </if>
+				)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	
+	<select id="getPushInfo" parameterType="pushSendLogVO" resultType="pushSendLogVO">
+		SELECT A.TASK_NO
+			 , D.SUB_TASK_NO
+			 , A.MAIL_TITLE
+			 , A.TASK_NM
+			 , A.MAIL_TITLE
+			 , B.CAMP_NM
+			 , C.SEG_NM
+			 , D.SEND_DT
+			 , D.END_DT
+			 , E.CD_NM CAMP_TY
+			 , A.SEND_REPEAT
+		  FROM NEO_TASK A
+			 , NEO_CAMPAIGN B
+			 , NEO_SEGMENT C
+			 , NEO_SUBTASK D
+			 , (SELECT CD, CD_NM FROM NEO_CD
+				 WHERE CD_GRP = 'C004' AND UILANG = #{uilang} AND USE_YN = 'Y') E
+		 WHERE A.CAMP_NO = B.CAMP_NO
+		   AND A.SEG_NO = C.SEG_NO
+		   AND A.TASK_NO = D.TASK_NO
+		   AND A.TASK_NO = #{taskNo}
+		   AND D.SUB_TASK_NO = #{subTaskNo}
+		   AND A.CAMP_TY = E.CD
+	</select> 
+
+</mapper>

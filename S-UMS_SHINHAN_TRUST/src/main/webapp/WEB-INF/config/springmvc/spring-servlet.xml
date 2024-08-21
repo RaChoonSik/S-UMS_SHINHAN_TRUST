@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/mvc
+	http://www.springframework.org/schema/mvc/spring-mvc.xsd
+	http://www.springframework.org/schema/aop
+	http://www.springframework.org/schema/aop/spring-aop.xsd
+	http://www.springframework.org/schema/util
+	http://www.springframework.org/schema/util/spring-util.xsd">
+
+	<context:component-scan base-package="kr.co.sict" use-default-filters="false">
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"></context:include-filter>
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Service"></context:exclude-filter>
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Repository"></context:exclude-filter>
+	</context:component-scan>
+	
+	<bean class="org.springframework.web.servlet.view.BeanNameViewResolver" p:order="0"/>
+
+	<mvc:annotation-driven content-negotiation-manager="contentNegotiationManager"></mvc:annotation-driven>
+	
+	<mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/**" />
+			<mvc:exclude-mapping path="/lgn/logout.ums" />
+			<mvc:exclude-mapping path="/lgn/lgnP.ums" />
+			<mvc:exclude-mapping path="/lgn/lgn.ums" />
+			<mvc:exclude-mapping path="/lgn/ssolgn.ums" />
+			<mvc:exclude-mapping path="/lgn/timeout.ums" />
+			<mvc:exclude-mapping path="/**/*.json" />
+			<mvc:exclude-mapping path="/**/api/*.ums" />
+			<mvc:exclude-mapping path="/err/*" />
+			<bean id="commonInterceptor" class="kr.co.sict.interceptor.CommonSessionInterceptor"/>
+	    </mvc:interceptor>
+	    <!-- 다국어 지원 -->
+		<beans:bean id="localeChangeInterceptor" class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor">
+			<beans:property name="paramName" value="lang" />
+		</beans:bean>
+	</mvc:interceptors>
+	
+
+	<bean id="contentNegotiationManager" class="org.springframework.web.accept.ContentNegotiationManagerFactoryBean">
+		<property name="favorPathExtension" value="true"></property>
+		<property name="favorParameter" value="true"></property>
+		<property name="ignoreAcceptHeader" value="true"></property>
+		<property name="mediaTypes">
+			<value>
+				xml=application/rss+xml
+				htm=text/html;charset=UTF-8
+				html=text/html;charset=UTF-8
+				ajax=text/html;charset=UTF-8
+				scr=application/x-javascript;charset=UTF-8
+				json=application/json;charset=UTF-8
+				jsonp=application/javascript;charset=UTF-8
+				xml=application/xml;charset=UTF-8
+				do=text/html;charset=UTF-8
+			</value>
+		</property>
+	</bean>
+	
+	<bean id="successView" class="org.springframework.web.servlet.view.json.MappingJackson2JsonView">
+		<property name="objectMapper">
+			<bean class="org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean">
+				<property name="featuresToDisable">
+					<array>
+						<util:constant static-field="com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES"></util:constant>
+					</array>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="viewResolver" class="org.springframework.web.servlet.view.UrlBasedViewResolver">
+		<property name="viewClass" value="org.springframework.web.servlet.view.JstlView"></property>
+		<property name="prefix" value="/WEB-INF/jsp/"></property>
+		<property name="suffix" value=".jsp"></property>
+	</bean>
+	
+	<bean id="jsonView" class="org.springframework.web.servlet.view.json.MappingJackson2JsonView">
+	    <property name="contentType" value="application/json;charset=UTF-8"/>
+	</bean>
+	
+    <bean id="spring.RegularCommonsMultipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <property name="maxUploadSize" value="104857600" />
+        <property name="maxInMemorySize" value="100000000" />
+    </bean>
+    <alias name="spring.RegularCommonsMultipartResolver" alias="multipartResolver" />
+
+</beans>

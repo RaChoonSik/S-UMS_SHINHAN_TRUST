@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.sict.ums.sys.seg.dao.SmsTemplateMapper">
+
+	<select id="getSmsTemplateList" parameterType="SmsTemplateVO" resultType="SmsTemplateVO">
+		SELECT *
+		  FROM (
+				SELECT TEMP_CD
+					 , TEMP_NM
+					 , TEMP_DESC
+					 , TEMP_SUBJECT
+					 , TEMP_CONTENT
+					 , MERGE_ITEM
+					 , GUBUN
+					 , GUBUN_NM
+					 , CAMP_NO
+					 , CAMP_NM
+					 , SEG_NO
+					 , STATUS
+					 , STATUS_NM
+					 , USER_ID
+					 , USER_NM 
+					 , DEPT_NO
+					 , DEPT_NM 
+					 , REG_ID
+					 , REG_DT
+					 , UP_ID
+					 , UP_DT
+					 , TOTAL_COUNT
+				  FROM (
+						SELECT 'X' JOIN_COL
+							  , A.TEMP_CD
+							  , A.TEMP_NM
+							  , A.TEMP_DESC
+							  , A.TEMP_SUBJECT
+							  , A.TEMP_CONTENT
+							  , A.MERGE_ITEM
+							  , A.GUBUN
+							  , D.CD_NM AS GUBUN_NM
+							  , A.CAMP_NO
+							  , C.CAMP_NM
+							  , A.SEG_NO
+							  , A.STATUS
+							  , (SELECT CD_NM FROM NEO_CD WHERE CD_GRP = 'C023' AND CD= A.STATUS AND UILANG =#{uilang}) STATUS_NM
+							  , A.USER_ID
+							  , B.USER_NM 
+							  , A.DEPT_NO
+							  , E.DEPT_NM 
+							  , A.REG_ID
+							  , A.REG_DT
+							  , A.UP_ID
+							  , A.UP_DT
+						  FROM NEO_SMS_TEMPLATE A
+							 , NEO_USER B 
+							 , NEO_CAMPAIGN C 
+							 , NEO_CD D
+							 , NEO_DEPT E 
+						 WHERE A.USER_ID = B.USER_ID
+						   AND A.CAMP_NO = C.CAMP_NO
+						   AND A.GUBUN = D.CD 
+						   AND D.CD_GRP = 'C115'
+						   AND A.DEPT_NO = E.DEPT_NO
+						   <if test="searchStartDt != null and searchStartDt != ''">
+						   AND A.REG_DT &gt;= CONCAT(#{searchStartDt},'000000')
+						   </if>
+						   <if test="searchEndDt != null and searchEndDt != ''">
+						   AND A.REG_DT &lt; CONCAT(#{searchEndDt},'240000')
+						   </if>
+						   <if test="searchDeptNo != 0">
+						   AND A.DEPT_NO = #{searchDeptNo}
+						   </if>
+						   <if test='searchStatus != null and searchStatus != ""'>
+						   AND A.STATUS = #{searchStatus}
+						   </if>
+						   <if test='searchTempNm != null and searchTempNm != ""'>
+						   AND A.TEMP_NM LIKE CONCAT('%', #{searchTempNm},'%')
+						   </if>
+						   <if test='searchTempCd != null and searchTempCd != ""'>
+						   AND A.TEMP_CD LIKE CONCAT('%', #{searchTempCd},'%')
+						   </if>
+						   <if test="searchUserId != null and searchUserId != ''">
+						   AND A.USER_ID = #{searchUserId}
+						   </if>
+					   ) TT1,
+					   (
+						SELECT 'X' JOIN_COL
+							 , COUNT(*) TOTAL_COUNT
+						  FROM NEO_SMS_TEMPLATE A
+							 , NEO_USER B 
+							 , NEO_CAMPAIGN C 
+							 , NEO_CD D
+							 , NEO_DEPT E 
+						 WHERE A.USER_ID = B.USER_ID
+						   AND A.CAMP_NO = C.CAMP_NO
+						   AND A.GUBUN = D.CD 
+						   AND D.CD_GRP = 'C115'
+						   AND A.DEPT_NO = E.DEPT_NO
+						   <if test="searchStartDt != null and searchStartDt != ''">
+						   AND A.REG_DT &gt;= CONCAT(#{searchStartDt},'000000')
+						   </if>
+						   <if test="searchEndDt != null and searchEndDt != ''">
+						   AND A.REG_DT &lt; CONCAT(#{searchEndDt},'240000')
+						   </if>
+						   <if test="searchDeptNo != 0">
+						   AND A.DEPT_NO = #{searchDeptNo}
+						   </if>
+						   <if test='searchStatus != null and searchStatus != ""'>
+						   AND A.STATUS = #{searchStatus}
+						   </if>
+						   <if test='searchTempNm != null and searchTempNm != ""'>
+						   AND A.TEMP_NM LIKE CONCAT('%', #{searchTempNm},'%')
+						   </if>
+						   <if test='searchTempCd != null and searchTempCd != ""'>
+						   AND A.TEMP_CD LIKE CONCAT('%', #{searchTempCd},'%')
+						   </if>
+						   <if test="searchUserId != null and searchUserId != ''">
+						   AND A.USER_ID = #{searchUserId}
+						   </if>
+					   ) TT2
+				 WHERE TT1.JOIN_COL = TT2.JOIN_COL
+				 ORDER BY TT1.REG_DT DESC
+			    ) TTT
+		 LIMIT #{startRow}, #{rows}
+	</select>
+	<select id="getSmsTemplateInfo" parameterType="string" resultType="SmsTemplateVO">
+ 		SELECT TEMP_CD
+			 , TEMP_NM
+			 , TEMP_DESC
+			 , TEMP_SUBJECT
+			 , TEMP_CONTENT
+			 , MERGE_ITEM
+			 , GUBUN
+			 , (SELECT CD_NM FROM NEO_CD WHERE CD_GRP = 'C115' AND CD = A.GUBUN AND UILANG ='000') GUBUN_NM 
+			 , CAMP_NO
+			 , (SELECT CAMP_NM FROM NEO_CAMPAIGN WHERE CAMP_NO = A.CAMP_NO ) CAMP_NM
+			 , SEG_NO
+			 , STATUS
+			 , (SELECT CD_NM FROM NEO_CD WHERE CD_GRP = 'C023' AND CD = A.STATUS AND UILANG ='000') STATUS_NM 
+			 , SEG_NO
+			 , (SELECT SEG_NM FROM NEO_SEGMENT WHERE SEG_NO = A.SEG_NO) SEG_NM
+			 , DEPT_NO
+			 , USER_ID
+			 , REG_ID
+			 , REG_DT
+			 , UP_ID
+			 , UP_DT
+			 , (SELECT USER_NM FROM NEO_USER WHERE USER_ID = A.REG_ID) AS REG_NM
+			 , (SELECT USER_NM FROM NEO_USER WHERE USER_ID = A.UP_ID) AS UP_NM
+			 , REG_DT
+			 , UP_DT
+			 , (SELECT COUNT(*) FROM NEO_KAKAOTALK_TEMPLATE WHERE MAPP_TEMP_CD = #{tempCd}) MAPP_KAKAO_TEMP_CNT
+			 , (SELECT TEMP_NM FROM NEO_KAKAOTALK_TEMPLATE WHERE MAPP_TEMP_CD = #{tempCd} ORDER BY REG_DT DESC LIMIT 1 ) MAPP_KAKAO_TEMP_NM
+		  FROM NEO_SMS_TEMPLATE A
+		 WHERE TEMP_CD = #{tempCd}
+	</select>
+	<update id="updateSmsTemplateInfo" parameterType="SmsTemplateVO">
+		UPDATE NEO_SMS_TEMPLATE
+		   SET TEMP_NM       = #{tempNm}
+			 , TEMP_DESC     = #{tempDesc}
+			 , TEMP_SUBJECT  = #{tempSubject}
+			 , TEMP_CONTENT  = #{tempContent}
+			 , MERGE_ITEM    = #{mergeItem}
+			 , GUBUN         = #{gubun}
+			 , CAMP_NO       = #{campNo}
+			 , SEG_NO        = #{segNo}
+			 , STATUS        = #{status}
+			 , DEPT_NO       = #{deptNo}
+			 , USER_ID       = #{userId}
+			 , UP_ID         = #{upId}
+			 , UP_DT         = #{upDt}
+		 WHERE TEMP_CD       = #{tempCd}
+	</update>
+	<update id="updateSmsTemplateStatus" parameterType="SmsTemplateVO">
+		UPDATE NEO_SMS_TEMPLATE
+		   SET STATUS        = #{status}
+			 , UP_ID         = #{upId}
+			 , UP_DT         = #{upDt}
+		 WHERE TEMP_CD       = #{tempCd}
+	</update>
+	<insert id="insertSmsTemplateInfo" parameterType="SmsTemplateVO">
+		INSERT INTO NEO_SMS_TEMPLATE
+		(	
+			TEMP_CD
+		  , TEMP_NM
+		  , TEMP_DESC
+		  , TEMP_SUBJECT
+		  , TEMP_CONTENT
+		  , MERGE_ITEM
+		  , GUBUN
+		  , CAMP_NO
+		  , SEG_NO
+		  , STATUS
+		  , DEPT_NO
+		  , USER_ID
+		  , REG_ID
+		  , REG_DT
+		)
+		VALUES
+		(	
+			#{tempCd}
+		  , #{tempNm}
+		  , #{tempDesc}
+		  , #{tempSubject}
+		  , #{tempContent}
+		  , #{mergeItem}
+		  , #{gubun}
+		  , #{campNo}
+		  , #{segNo}
+		  , #{status}
+		  , #{deptNo}
+		  , #{userId}
+		  , #{regId}
+		  , #{regDt}
+		)
+	</insert>
+	<select id="checkSmsTemplateCode" parameterType="String" resultType="smsTemplateVO" >
+	SELECT TEMP_CD
+	  FROM NEO_SMS_TEMPLATE
+	 WHERE TEMP_CD       = #{tempCd}
+	</select>
+	<select id="getSmsTemplate" parameterType="string" resultType="smsTemplateVO">
+	SELECT MERGE_ITEM 
+		 , SEG_NO
+		 , TEMP_CONTENT
+		 , TEMP_NM
+		 , TEMP_SUBJECT
+		 , GUBUN
+	  FROM NEO_SMS_TEMPLATE
+	  WHERE TEMP_CD = #{tempCd}
+	</select>
+	<select id="getApiTemplateList" parameterType="SmsTemplateVO" resultType="SmsTemplateVO">
+		SELECT  TEMP_CD
+			  , TEMP_NM
+			  , TEMP_DESC
+			  , TEMP_SUBJECT
+			  , MERGE_ITEM
+		  FROM NEO_SMS_TEMPLATE
+		 WHERE STATUS = '000'
+		 ORDER BY TEMP_CD
+	</select>
+	<select id="getSmsTemplateSimpleList" resultType="SmsTemplateVO">
+		SELECT A.TEMP_CD
+			  , A.TEMP_NM
+		  FROM NEO_SMS_TEMPLATE A 
+		 ORDER BY A.TEMP_NM
+	</select>
+</mapper>

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.sict.ums.sys.rns.dao.RnsStandardMapper">
+
+	<!-- 사용자 로그인 이력 조회 -->
+	<select id="getDomainList" parameterType="domainInfoVO" resultType="domainInfoVO">
+		SELECT *
+		  FROM (	
+				SELECT DOMAINID
+					 , DOMAINNAME
+					 , REG_ID
+					 , REG_DT
+					 , UP_ID
+					 , UP_DT
+					 , REG_NM
+					 , UP_NM
+					 , TOTAL_COUNT 
+				  FROM (
+						SELECT 'X' JOIN_COL
+							,  A.DOMAINID
+							 , A.DOMAINNAME
+							 , A.REG_ID
+							 , A.REG_DT
+							 , A.UP_ID
+							 , A.UP_DT
+							 , (SELECT USER_NM FROM NEO_USER WHERE USER_ID = A.REG_ID) REG_NM
+							 , (SELECT USER_NM FROM NEO_USER WHERE USER_ID = A.UP_ID) UP_NM
+						  FROM TS_DOMAIN_INFO A 
+						 WHERE 1=1 
+						   <if test="searchDomainName != null and searchDomainName != ''">
+						   AND A.DOMAINNAME LIKE CONCAT('%', #{searchDomainName} , '%')
+						   </if> 
+					   ) TT1, 
+					   (
+						SELECT 'X' JOIN_COL
+							 , COUNT(*) TOTAL_COUNT
+						  FROM TS_DOMAIN_INFO A 
+						 WHERE 1=1 
+						   <if test="searchDomainName != null and searchDomainName != ''">
+						   AND A.DOMAINNAME LIKE CONCAT('%', #{searchDomainName} , '%')
+						   </if> 
+					   ) TT2
+					WHERE TT1.JOIN_COL = TT2.JOIN_COL
+					ORDER BY TT1.DOMAINID DESC
+				) TTT
+		 LIMIT #{startRow}, #{rows}
+	</select>
+	
+	<!-- 도메인 정보 조회-->
+	<select id="getDomainInfo" parameterType="domainInfoVO" resultType="domainInfoVO">
+		SELECT A.DOMAINID
+			 , A.DOMAINNAME
+			 , A.REG_ID
+			 , A.REG_DT
+			 , A.UP_ID
+			 , A.UP_DT
+			 , (SELECT USER_NM FROM NEO_USER WHERE USER_ID = A.REG_ID) REG_NM
+			 , (SELECT USER_NM FROM NEO_USER WHERE USER_ID = A.UP_ID) UP_NM 
+		  FROM TS_DOMAIN_INFO A 
+		 WHERE A.DOMAINID = #{domainId}
+	</select>	
+
+	<!-- 도메인 정보 등록 -->
+	<insert id="insertDomainInfo" parameterType="domainInfoVO">
+		INSERT INTO TS_DOMAIN_INFO
+		(
+			 DOMAINID
+			, DOMAINNAME
+			, REG_ID
+			, REG_DT 
+		)
+		VALUES
+		(
+			  TS_DOMAINID_SEQ('NEXTVAL')
+			, #{domainName}
+			, #{regId}
+			, #{regDt} 
+		)
+	</insert>
+	
+	<!-- 도메인 정보 수정  -->
+	<update id="updateDomainInfo" parameterType="domainInfoVO">
+		UPDATE TS_DOMAIN_INFO
+		SET DOMAINNAME = #{domainName},
+			UP_ID = #{upId},
+			UP_DT = #{upDt} 
+		WHERE DOMAINID = #{domainId}
+	</update>	
+	
+	<!-- 도메인 정보 삭제-->
+	<delete id="deleteDomainInfo" parameterType="domainInfoVO">
+		DELETE FROM TS_DOMAIN_INFO 
+		WHERE DOMAINID IN 		    
+			  <foreach collection="arrDomainId" item="item" index="index" open="(" close=")" separator=",">
+				#{item}
+			  </foreach>
+	</delete>		
+</mapper>

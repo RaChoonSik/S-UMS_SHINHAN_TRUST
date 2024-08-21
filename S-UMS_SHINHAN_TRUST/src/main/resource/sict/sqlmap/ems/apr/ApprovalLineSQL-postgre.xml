@@ -1,0 +1,575 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.sict.ums.ems.apr.dao.SecuApprovalLineMapper">
+	
+	<select id="getApprovalLineList" parameterType="approvalLineVO" resultType="approvalLineVO">
+		SELECT *
+		  FROM (
+			SELECT TASK_NO
+				 , SUB_TASK_NO
+				 , SEND_DT
+				 , TASK_NM
+				 , CAMP_NO
+				 , CAMP_NM
+				 , SEG_NO
+				 , SEG_NM
+				 , USER_ID
+				 , USER_NM
+				 , STATUS
+				 , STATUS_NM
+				 , WORK_STATUS
+				 , WORK_STATUS_NM
+				 , SECU_ATT_YN
+				 , SVC_TYPE
+				 , SVC_TYPE_NM
+				 , ROW_NUMBER() OVER (ORDER BY TASK_NO DESC) SEQ
+				 , COUNT(1) OVER() TOTAL_COUNT
+				 , REG_DT
+				 , ORG_KOR_NM
+				 , MKT_YN
+				 , PROHIBIT_CHK_TYP				 
+			  FROM (
+					SELECT T1.TASK_NO
+						 , T2.SUB_TASK_NO
+						 , T2.SEND_DT
+						 , T1.TASK_NM
+						 , T1.CAMP_NO
+						 , T3.CAMP_NM
+						 , T1.SEG_NO
+						 , T4.SEG_NM
+						 , T1.USER_ID
+						 , T5.USER_NM
+						 , T1.STATUS
+						 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C023' AND CD = T1.STATUS) STATUS_NM
+						 , T2.WORK_STATUS
+						 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C101' AND CD = T2.WORK_STATUS) WORK_STATUS_NM
+						 , (SELECT SECU_ATT_YN FROM NEO_WEBAGENT WHERE TASK_NO = T1.TASK_NO) SECU_ATT_YN
+						 , '10' SVC_TYPE
+						 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C017' AND CD = T1.SEND_REPEAT) SVC_TYPE_NM
+						 , T1.REG_DT
+						 , T7.ORG_KOR_NM
+						 , (SELECT Z2.CD_NM FROM NEO_MAILMKT_CHK Z1,NEO_CD Z2 WHERE TASK_NO = T1.TASK_NO AND Z1.MAIL_MKT_GB = Z2.CD AND Z2.CD_GRP='C114') AS MKT_YN
+					  FROM NEO_TASK T1
+						 , NEO_SUBTASK T2
+						 , NEO_CAMPAIGN T3
+						 , NEO_SEGMENT T4
+						 , NEO_USER T5
+						 , NEO_USERORG_MAPP T6
+						 , V_NEO_ORGANIZATION T7						 
+						 <!--, NEO_SECUAPPROVAL_LINE T6-->
+					 WHERE T1.TASK_NO = T2.TASK_NO
+					   AND T1.CAMP_NO = T3.CAMP_NO
+					   AND T1.SEG_NO = T4.SEG_NO
+					   AND T1.USER_ID = T5.USER_ID
+					   AND T1.USER_ID = T6.USER_ID
+					   AND T6.ORG_CD = T7.ORG_CD					   
+					   AND EXISTS (SELECT 1 FROM NEO_SECUAPPROVAL_LINE LI, NEO_USER UR
+									WHERE LI.APPR_USER_ID = UR.USER_ID
+									  AND LI.TASK_NO = T1.TASK_NO
+									  <if test='topNotiYn == "Y"'>
+									  AND LI.RSLT_CD = '001'
+									  </if>
+									  <if test="searchAprDeptNo != 0">
+										<if test='adminYn == "N"'>
+										AND (UR.DEPT_NO = #{searchAprDeptNo} OR LI.REG_ID = #{regId})
+										</if>
+										<if test='adminYn == "Y"'>
+										AND UR.DEPT_NO = #{searchAprDeptNo}
+										</if>
+									  </if>
+									  <if test="searchAprUserId != null and searchAprUserId != ''">
+									  AND UR.USER_ID = #{searchAprUserId}
+									  </if>
+									)
+					   <!--AND T1.TASK_NO = T6.TASK_NO-->
+					   AND T2.SUB_TASK_NO = (SELECT MAX(SUB_TASK_NO) FROM NEO_SUBTASK WHERE TASK_NO = T1.TASK_NO)
+					   AND T2.SEND_TEST_YN = 'N'
+					   AND T2.WORK_STATUS NOT IN ('000', '201')
+					   <if test="searchStartDt != null and searchStartDt != ''">
+					   AND T1.REG_DT &gt;= #{searchStartDt} || '000000'
+					   </if>
+					   <if test="searchEndDt != null and searchEndDt != ''">
+					   AND T1.REG_DT &lt; #{searchEndDt} ||'240000'
+					   </if>
+					   <if test="searchTaskNm != null and searchTaskNm != ''">
+					   AND T1.TASK_NM LIKE '%' || #{searchTaskNm} || '%'
+					   </if>
+					   <if test="searchCampNo != 0">
+					   AND T1.CAMP_NO = #{searchCampNo}
+					   </if>
+					   <if test="searchDeptNo != 0">
+					   AND T1.DEPT_NO = #{searchDeptNo}
+					   </if>
+					   <if test="searchUserId != null and searchUserId != ''">
+					   AND T1.USER_ID = #{searchUserId}
+					   </if>
+					   <if test="searchWorkStatus != null and searchWorkStatus != ''">
+					   		<if test='searchWorkStatus == "004"'>
+					   		AND T2.WORK_STATUS NOT IN ('000','001','002','003','201','202','203','204')
+					   		</if>
+					   		<if test='searchWorkStatus != "004"'>
+					   		AND T2.WORK_STATUS = #{searchWorkStatus}
+					   		</if>
+					   </if>
+					 UNION ALL 
+					SELECT T1.TID TASK_NO
+						 , 0 SUB_TASK_NO
+						 , SUBSTR( T1.REG_DT, 1, 12) SEND_DT
+						 , T1.EMAIL_SUBJECT TASK_NM
+						 , 0 CAMP_NO
+						 , T1.TNM  CAMP_NM
+						 , 0 SEG_NO
+						 , '' SEG_NM
+						 , T1.USER_ID
+						 , T5.USER_NM
+						 , T1.STATUS
+						 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C023' AND CD = T1.STATUS) STATUS_NM
+						 , T1.WORK_STATUS
+						 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C101' AND CD = T1.WORK_STATUS) WORK_STATUS_NM
+						 , (SELECT SECU_ATT_YN FROM TS_WEBAGENT WHERE TID = T1.TID) SECU_ATT_YN
+						 , '20' SVC_TYPE
+						 , '실시간' SVC_TYPE_NM 
+						 , T1.REG_DT
+						 , T7.ORG_KOR_NM	
+						 , '' AS MKT_YN
+					  FROM TS_SERVICETYP T1
+						 , NEO_USER T5
+						 , NEO_USERORG_MAPP T6
+						 , V_NEO_ORGANIZATION T7						 
+						 <!--, NEO_SECUAPPROVAL_LINE T6-->
+					 WHERE T1.USER_ID = T5.USER_ID
+					   AND T1.USER_ID = T6.USER_ID
+					   AND T6.ORG_CD = T7.ORG_CD					 
+					   AND EXISTS (SELECT 1 FROM TS_SECUAPPROVAL_LINE LI, NEO_USER UR
+									WHERE LI.APPR_USER_ID = UR.USER_ID
+									  AND LI.TID = T1.TID
+									  <if test='topNotiYn == "Y"'>
+									  AND LI.RSLT_CD = '001'
+									  </if>
+									  <if test="searchAprDeptNo != 0">
+										<if test='adminYn == "N"'>
+										AND (UR.DEPT_NO = #{searchAprDeptNo} OR LI.REG_ID = #{regId})
+										</if>
+										<if test='adminYn == "Y"'>
+										AND UR.DEPT_NO = #{searchAprDeptNo}
+										</if>
+									  </if>
+									  <if test="searchAprUserId != null and searchAprUserId != ''">
+									  AND UR.USER_ID = #{searchAprUserId}
+									  </if>
+									)
+					   <!--AND T1.TASK_NO = T6.TASK_NO-->
+					   AND T1.WORK_STATUS NOT IN ('000', '201')
+					   <if test="searchStartDt != null and searchStartDt != ''">
+					   AND T1.REG_DT &gt;= #{searchStartDt} || '000000'
+					   </if>
+					   <if test="searchEndDt != null and searchEndDt != ''">
+					   AND T1.REG_DT &lt; #{searchEndDt} ||'240000'
+					   </if>
+					   <if test="searchTaskNm != null and searchTaskNm != ''">
+					   AND T1.TNM LIKE '%' || #{searchTaskNm} || '%'
+					   </if>
+					   <if test="searchDeptNo != 0">
+					   AND T1.DEPT_NO = #{searchDeptNo}
+					   </if>
+					   <if test="searchUserId != null and searchUserId != ''">
+					   AND T1.USER_ID = #{searchUserId}
+					   </if>
+					   <if test="searchWorkStatus != null and searchWorkStatus != ''">
+							<if test='searchWorkStatus == "004"'>
+							AND T1.WORK_STATUS NOT IN ('000','001','002','003','201','202','203','204')
+							</if>
+							<if test='searchWorkStatus != "004"'>
+							AND T1.WORK_STATUS = #{searchWorkStatus}
+							</if>
+					   </if>
+					)
+				)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	
+	<select id="getApprovalLineEmsList" parameterType="approvalLineVO" resultType="approvalLineVO">
+		SELECT *
+		  FROM ( 
+				SELECT T1.TASK_NO
+					 , T2.SUB_TASK_NO
+					 , T2.SEND_DT
+					 , T1.TASK_NM
+					 , T1.CAMP_NO
+					 , T3.CAMP_NM
+					 , T1.SEG_NO
+					 , T4.SEG_NM
+					 , T1.USER_ID
+					 , T5.USER_NM
+					 , T1.STATUS
+					 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C023' AND CD = T1.STATUS) STATUS_NM
+					 , T2.WORK_STATUS
+					 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C101' AND CD = T2.WORK_STATUS) WORK_STATUS_NM
+					 , (SELECT SECU_ATT_YN FROM NEO_WEBAGENT WHERE TASK_NO = T1.TASK_NO) SECU_ATT_YN
+					 , '10' SVC_TYPE
+					 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C017' AND CD = T1.SEND_REPEAT) SVC_TYPE_NM
+			 		 , ROW_NUMBER() OVER (ORDER BY T1.TASK_NO DESC) SEQ
+			 		 , COUNT(1) OVER() TOTAL_COUNT
+			 		 , T1.REG_DT
+			 		 , T7.ORG_KOR_NM
+			 		 , (SELECT Z2.CD_NM FROM NEO_MAILMKT_CHK Z1,NEO_CD Z2 WHERE TASK_NO = T1.TASK_NO AND Z1.MAIL_MKT_GB = Z2.CD AND Z2.CD_GRP='C114') AS MKT_YN
+				  FROM NEO_TASK T1
+					 , NEO_SUBTASK T2
+					 , NEO_CAMPAIGN T3
+					 , NEO_SEGMENT T4
+					 , NEO_USER T5
+					 , NEO_USERORG_MAPP T6
+					 , V_NEO_ORGANIZATION T7					 
+					 <!--, NEO_SECUAPPROVAL_LINE T6-->
+				 WHERE T1.TASK_NO = T2.TASK_NO
+				   AND T1.CAMP_NO = T3.CAMP_NO
+				   AND T1.SEG_NO = T4.SEG_NO
+				   AND T1.USER_ID = T5.USER_ID
+				   AND T1.USER_ID = T6.USER_ID
+				   AND T6.ORG_CD = T7.ORG_CD				   
+				   AND EXISTS (SELECT 1 FROM NEO_SECUAPPROVAL_LINE LI, NEO_USER UR
+								WHERE LI.APPR_USER_ID = UR.USER_ID
+								  AND LI.TASK_NO = T1.TASK_NO
+								  <if test='topNotiYn == "Y"'>
+								  AND LI.RSLT_CD = '001'
+								  </if>
+								  <if test="searchAprDeptNo != 0">
+									<if test='adminYn == "N"'>
+									AND (UR.DEPT_NO = #{searchAprDeptNo} OR LI.REG_ID = #{regId})
+									</if>
+									<if test='adminYn == "Y"'>
+									AND UR.DEPT_NO = #{searchAprDeptNo}
+									</if>
+								  </if>
+								  <if test="searchAprUserId != null and searchAprUserId != ''">
+								  AND UR.USER_ID = #{searchAprUserId}
+								  </if>
+								)
+				   <!--AND T1.TASK_NO = T6.TASK_NO-->
+				   AND T2.SUB_TASK_NO = (SELECT MAX(SUB_TASK_NO) FROM NEO_SUBTASK WHERE TASK_NO = T1.TASK_NO)
+				   AND T2.SEND_TEST_YN = 'N'
+				   AND T2.WORK_STATUS NOT IN ('000', '201')
+				   <if test="searchSendRepeat != null and searchSendRepeat != ''">
+				   AND T1.SEND_REPEAT = #{searchSendRepeat}
+				   </if>
+				   <if test="searchStartDt != null and searchStartDt != ''">
+				   AND T2.SEND_DT &gt;= #{searchStartDt} || '000000'
+				   </if>
+				   <if test="searchEndDt != null and searchEndDt != ''">
+				   AND T2.SEND_DT &lt; #{searchEndDt} ||'240000'
+				   </if>
+				   <if test="searchTaskNm != null and searchTaskNm != ''">
+				   AND T1.TASK_NM LIKE '%' || #{searchTaskNm} || '%'
+				   </if>
+				   <if test="searchCampNo != 0">
+				   AND T1.CAMP_NO = #{searchCampNo}
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND T1.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND T1.USER_ID = #{searchUserId}
+				   </if>
+				   <if test="searchWorkStatus != null and searchWorkStatus != ''">
+				   		<if test='searchWorkStatus == "004"'>
+				   		AND T2.WORK_STATUS NOT IN ('000','001','002','003','201','202','203','204')
+				   		</if>
+				   		<if test='searchWorkStatus != "004"'>
+				   		AND T2.WORK_STATUS = #{searchWorkStatus}
+				   		</if>
+				   </if>
+				)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	
+	<select id="getApprovalLineRnsList" parameterType="approvalLineVO" resultType="approvalLineVO">
+		SELECT *
+		  FROM (
+				SELECT T1.TID TASK_NO
+					 , 0 SUB_TASK_NO
+					 , SUBSTR( T1.REG_DT, 1, 12) SEND_DT
+					 , T1.EMAIL_SUBJECT TASK_NM
+					 , 0 CAMP_NO
+					 , T1.TNM  CAMP_NM
+					 , 0 SEG_NO
+					 , '' SEG_NM
+					 , T1.USER_ID
+					 , T5.USER_NM
+					 , T1.STATUS
+					 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C023' AND CD = T1.STATUS) STATUS_NM
+					 , T1.WORK_STATUS
+					 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C101' AND CD = T1.WORK_STATUS) WORK_STATUS_NM
+					 , (SELECT SECU_ATT_YN FROM TS_WEBAGENT WHERE TID = T1.TID) SECU_ATT_YN
+					 , '20' SVC_TYPE
+					 , '실시간' SVC_TYPE_NM 
+			 		 , ROW_NUMBER() OVER (ORDER BY T1.TID DESC) SEQ
+			 		 , COUNT(1) OVER() TOTAL_COUNT
+			 		 , T1.REG_DT
+			 		 , T7.ORG_KOR_NM
+			 		 , '' AS MKT_YN
+				  FROM TS_SERVICETYP T1
+					 , NEO_USER T5
+					 , NEO_USERORG_MAPP T6
+					 , V_NEO_ORGANIZATION T7					 
+					 <!--, NEO_SECUAPPROVAL_LINE T6-->
+				 WHERE T1.USER_ID = T5.USER_ID
+				   AND T1.USER_ID = T6.USER_ID
+				   AND T6.ORG_CD = T7.ORG_CD				 
+				   AND EXISTS (SELECT 1 FROM TS_SECUAPPROVAL_LINE LI, NEO_USER UR
+								WHERE LI.APPR_USER_ID = UR.USER_ID
+								  AND LI.TID = T1.TID
+								  <if test='topNotiYn == "Y"'>
+								  AND LI.RSLT_CD = '001'
+								  </if>
+								  <if test="searchAprDeptNo != 0">
+									<if test='adminYn == "N"'>
+									AND (UR.DEPT_NO = #{searchAprDeptNo} OR LI.REG_ID = #{regId})
+									</if>
+									<if test='adminYn == "Y"'>
+									AND UR.DEPT_NO = #{searchAprDeptNo}
+									</if>
+								  </if>
+								  <if test="searchAprUserId != null and searchAprUserId != ''">
+								  AND UR.USER_ID = #{searchAprUserId}
+								  </if>
+								)
+				   <!--AND T1.TASK_NO = T6.TASK_NO-->
+				   AND T1.WORK_STATUS NOT IN ('000', '201')
+				   <if test="searchStartDt != null and searchStartDt != ''">
+				   AND T1.REG_DT &gt;= #{searchStartDt} || '000000'
+				   </if>
+				   <if test="searchEndDt != null and searchEndDt != ''">
+				   AND T1.REG_DT &lt; #{searchEndDt} ||'240000'
+				   </if>
+				   <if test="searchTaskNm != null and searchTaskNm != ''">
+				   AND T1.TNM LIKE '%' || #{searchTaskNm} || '%'
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND T1.DEPT_NO = #{searchDeptNo}
+				   </if>
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND T1.USER_ID = #{searchUserId}
+				   </if>
+				   <if test="searchWorkStatus != null and searchWorkStatus != ''">
+						<if test='searchWorkStatus == "004"'>
+						AND T1.WORK_STATUS NOT IN ('000','001','002','003','201','202','203','204')
+						</if>
+						<if test='searchWorkStatus != "004"'>
+						AND T1.WORK_STATUS = #{searchWorkStatus}
+						</if>
+				   </if> 
+			)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+		
+		
+	<select id="getMailInfo" parameterType="approvalLineVO" resultType="approvalLineVO">
+		SELECT T1.TASK_NO
+			 , T2.SUB_TASK_NO
+			 , T1.STATUS
+			 , T2.WORK_STATUS
+			 , T2.SEND_DT
+			 , T1.SEND_MODE
+			 , T1.SEND_REPEAT
+			 , T1.SEND_TERM_LOOP
+			 , T1.SEND_TERM_LOOP_TY
+			 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C019' AND CD = T1.SEND_TERM_LOOP_TY) SEND_TERM_LOOP_TY_NM
+			 , T1.SEND_TERM_END_DT
+			 , T1.RESP_LOG
+			 , T1.CAMP_NO
+			 , T3.CAMP_NM
+			 , T3.CAMP_TY
+			 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C004' AND CD = T3.CAMP_TY) CAMP_TY_NM
+			 , T1.SEG_NO
+			 , T4.SEG_NM
+			 , T1.DEPT_NO
+			 , T5.DEPT_NM
+			 , T1.USER_ID
+			 , T6.USER_NM
+			 , T1.MAIL_FROM_NM
+			 , T1.MAIL_FROM_EM
+			 , T1.RESP_YN
+			 , T1.TASK_NM
+			 , T1.MAIL_TITLE
+			 , T1.CONT_FL_PATH			
+			 , (SELECT SECU_ATT_YN FROM NEO_WEBAGENT WHERE TASK_NO = T1.TASK_NO) WEB_AGENT_ATTACH_YN
+			 , (SELECT CD_NM FROM NEO_MAILMKT_CHK TT1, NEO_CD TT2 WHERE TT1.MAIL_MKT_GB = TT2.CD AND TT2.UILANG = '000' AND TT2.CD_GRP = 'C114' AND TT1.TASK_NO = T1.TASK_NO) MAIL_MKT_NM
+			 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C017' AND CD = T1.SEND_REPEAT) AS SVC_TYPE_NM
+			 , T1.REG_DT
+			 , T8.ORG_KOR_NM
+			 , CASE WHEN (SELECT Z2.CD_NM FROM NEO_MAILMKT_CHK Z1,NEO_CD Z2 WHERE TASK_NO = T1.TASK_NO AND Z1.MAIL_MKT_GB = Z2.CD AND Z2.CD_GRP='C114') IS NULL THEN 'N' ELSE 'Y' END AS MKT_YN
+			 , (SELECT Z2.CD_NM FROM NEO_MAILMKT_CHK Z1,NEO_CD Z2 WHERE TASK_NO = T1.TASK_NO AND Z1.MAIL_MKT_GB = Z2.CD AND Z2.CD_GRP='C114') MKT_NM
+		  FROM NEO_TASK T1, NEO_SUBTASK T2, NEO_CAMPAIGN T3, NEO_SEGMENT T4, NEO_DEPT T5, NEO_USER T6,
+			   NEO_USERORG_MAPP T7, V_NEO_ORGANIZATION T8	 
+		 WHERE T1.TASK_NO = T2.TASK_NO
+		   AND T1.CAMP_NO = T3.CAMP_NO
+		   AND T1.SEG_NO = T4.SEG_NO
+		   AND T1.DEPT_NO = T5.DEPT_NO
+		   AND T1.USER_ID = T6.USER_ID
+		   AND T1.USER_ID = T7.USER_ID
+		   AND T7.ORG_CD = T8.ORG_CD		   
+		   AND T1.TASK_NO = #{taskNo}
+		   AND T2.SUB_TASK_NO = #{subTaskNo}
+	</select>
+	
+	<select id="getAttachList" parameterType="_int" resultType="attachVO">
+		SELECT ATT_NM
+			 , ATT_FL_PATH
+			 , ATT_FL_SIZE
+		  FROM NEO_ATTACH
+		 WHERE TASK_NO = #{taskNo}
+		 ORDER BY ATT_NO
+	</select>
+	
+	<select id="getMailApprLineList" parameterType="_int" resultType="approvalLineVO">
+		SELECT 
+			 TASK_NO
+			 , APPR_STEP
+			 , APPR_USER_ID
+			 , APPR_USER_NM
+			 , ORG_CD
+			 , ORG_NM
+			 , RSLT_CD
+			 , RSLT_NM
+			 , REJECT_CD
+			 , REJECT_NM
+			 , REJECT_DESC
+			 , UP_DT
+			 , REG_ID
+			 , COMPLIANCE_YN
+			 , TOTAL_COUNT
+		FROM (
+				SELECT T1.TASK_NO
+					 , T1.APPR_STEP
+					 , T1.APPR_USER_ID
+					 , T2.USER_NM APPR_USER_NM
+					 , T1.ORG_CD
+					 , (SELECT COALESCE(MAX(T7.ORG_KOR_NM), 'NONE')  FROM V_NEO_ORGANIZATION T7  WHERE T7.ORG_CD = T3.ORG_CD) ORG_NM
+					 , T1.RSLT_CD
+					 , CASE WHEN T1.COMPLIANCE_YN ='Y' AND T1.RSLT_CD IN ('002','003') AND T1.APPR_USER_ID != T1.ACT_APPR_USER_ID THEN '전결' ELSE
+					   (SELECT CASE WHEN CD = '000' THEN '' ELSE CD_NM  END FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C103' AND CD = T1.RSLT_CD) END RSLT_NM
+					 , T1.REJECT_CD
+					 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C104' AND CD = T1.REJECT_CD) REJECT_NM
+					 , T1.REJECT_DESC
+					 , T1.UP_DT
+					 , T1.REG_ID
+					 , T1.COMPLIANCE_YN
+					 , ROW_NUMBER() OVER (ORDER BY T1.APPR_STEP) SEQ 
+					 , COUNT(1) OVER() TOTAL_COUNT
+				  FROM NEO_USER T2
+				 INNER JOIN NEO_SECUAPPROVAL_LINE T1 ON (T2.USER_ID = T1.APPR_USER_ID )
+				  LEFT OUTER JOIN NEO_USERORG_MAPP T3 ON (T2.USER_ID = T3.USER_ID) 
+				 WHERE T1.TASK_NO = #{taskNo}
+				)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	
+	<update id="updateMailAprStep" parameterType="approvalLineVO">
+		UPDATE NEO_SECUAPPROVAL_LINE
+		   SET RSLT_CD   = #{rsltCd}
+			 , REJECT_CD = #{rejectCd}
+			 , APPR_DT	 = #{apprDt}
+			 , UP_ID     = #{upId}
+			 , UP_DT     = #{upDt}
+		 WHERE TASK_NO   = #{taskNo}
+		   AND APPR_STEP = #{apprStep}
+	</update>
+	
+	<update id="updateMailAprStepNext" parameterType="approvalLineVO">
+		UPDATE NEO_SECUAPPROVAL_LINE
+		   SET RSLT_CD   = '001'
+		 WHERE TASK_NO   = #{taskNo}
+		   AND APPR_STEP = #{apprStep} + 1
+	</update>
+	
+	<update id="updateMailWorkStatus" parameterType="taskVO">
+		UPDATE NEO_SUBTASK
+		   SET WORK_STATUS = #{workStatus}
+		 WHERE TASK_NO = #{taskNo}
+		   AND SUB_TASK_NO = #{subTaskNo}
+	</update>
+	
+	<update id="updateTaskStatusAdmit" parameterType="taskVO">
+		UPDATE NEO_TASK
+		   SET RECO_STATUS = #{recoStatus}
+			 , EXE_USER_ID = #{exeUserId}
+		 WHERE TASK_NO     = #{taskNo}
+	</update>
+	
+	<update id="updateSubTaskStatusAdmit" parameterType="taskVO">
+		UPDATE NEO_SUBTASK
+		   SET WORK_STATUS = #{workStatus}
+		 WHERE TASK_NO     = #{taskNo}
+		   AND SUB_TASK_NO = #{subTaskNo}
+	</update>
+	
+	<select id="getApprCount" parameterType="string" resultType="_int">
+		SELECT SUM(REC_CNT)
+		  FROM (
+				SELECT COUNT(*) REC_CNT FROM NEO_SECUAPPROVAL_LINE
+				 WHERE APPR_USER_ID = #{userId}
+				   AND RSLT_CD = '001'
+				 UNION ALL
+				SELECT COUNT(*) REC_CNT FROM TS_SECUAPPROVAL_LINE
+				 WHERE APPR_USER_ID = #{userId}
+				   AND RSLT_CD = '001'
+			    )
+	</select>
+	
+	<select id="getRejectNm" parameterType="string" resultType="string">
+		SELECT CD_NM
+		  FROM NEO_CD
+		 WHERE CD_GRP = 'C104'
+		   AND UILANG = '000'
+		   AND CD = #{rejectCd}
+	</select>
+	
+	<select id="nextMailAprStep" parameterType="approvalLineVO" resultType="approvalLineVO">
+		SELECT T1.TASK_NO
+			 , T1.APPR_STEP
+			 , T1.APPR_USER_ID
+			 , T2.USER_NM APPR_USER_NM
+			 , T1.ORG_CD
+			 , T3.ORG_KOR_NM ORG_NM
+			 , T1.RSLT_CD
+			 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C103' AND CD = T1.RSLT_CD) RSLT_NM
+			 , T1.REJECT_CD
+			 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C104' AND CD = T1.REJECT_CD) REJECT_NM
+			 , T1.UP_DT
+			 , T1.REG_ID
+			 , COUNT(1) OVER() TOTAL_COUNT
+		  FROM NEO_SECUAPPROVAL_LINE T1, NEO_USER T2, V_NEO_ORGANIZATION T3
+		 WHERE T1.TASK_NO = #{taskNo}
+		   AND T1.APPR_USER_ID = T2.USER_ID
+		   AND T1.ORG_CD = T3.ORG_CD
+		   AND T1.APPR_STEP <![CDATA[>]]> #{apprStep}
+		 ORDER BY T1.APPR_STEP
+	</select>
+	
+	<select id="nowMailAprStep" parameterType="approvalLineVO" resultType="approvalLineVO">
+	 
+		SELECT T1.TASK_NO
+			 , T1.APPR_STEP
+			 , T1.APPR_USER_ID
+			 , T2.USER_NM APPR_USER_NM
+			 , T1.ORG_CD
+			 , T3.ORG_KOR_NM ORG_NM
+			 , T1.RSLT_CD
+			 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C103' AND CD = T1.RSLT_CD) RSLT_NM
+			 , T1.REJECT_CD
+			 , (SELECT CD_NM FROM NEO_CD WHERE UILANG = '000' AND CD_GRP = 'C104' AND CD = T1.REJECT_CD) REJECT_NM
+			 , T1.UP_DT
+			 , T1.REG_ID
+			 , COUNT(1) OVER() TOTAL_COUNT
+		  FROM NEO_SECUAPPROVAL_LINE T1, NEO_USER T2, V_NEO_ORGANIZATION T3
+		 WHERE T1.TASK_NO = #{taskNo}
+		   AND T1.APPR_USER_ID = T2.USER_ID
+		   AND T1.ORG_CD = T3.ORG_CD		   
+		   AND T1.APPR_STEP <![CDATA[>]]>= #{apprStep}
+		 ORDER BY T1.APPR_STEP
+	 	 
+	</select>
+	
+</mapper>

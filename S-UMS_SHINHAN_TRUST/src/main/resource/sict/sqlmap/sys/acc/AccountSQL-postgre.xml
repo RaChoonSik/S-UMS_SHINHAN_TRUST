@@ -1,0 +1,967 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.sict.ums.sys.acc.dao.AccountMapper">
+	<!-- ************ 사용자 그룹 관리  ******************-->
+	<!-- 부서 목록 조회 -->
+	<select id="getDeptList" parameterType="deptVO" resultType="deptVO">
+		SELECT *
+		  FROM 	(
+				SELECT A.DEPT_NO
+					 , A.DEPT_NM
+					 , A.DEPT_DESC
+					 , A.STATUS
+					 , A.REG_ID
+					 , A.REG_DT
+					 , B.CD_NM STATUS_NM
+					 , (SELECT USER_NM FROM NEO_USER WHERE A.REG_ID = USER_ID ) REG_NM
+					 , (SELECT USER_NM FROM NEO_USER WHERE A.UP_ID = USER_ID ) UP_NM
+					 , ROW_NUMBER() OVER (ORDER BY A.DEPT_NO DESC) SEQ
+					 , COUNT(1) OVER() TOTAL_COUNT
+				  FROM NEO_DEPT A,
+						(SELECT CD, CD_NM
+						   FROM NEO_CD
+						  WHERE CD_GRP = 'C009'
+						    AND USE_YN = 'Y'
+						    AND UILANG = #{uilang}) B 
+				 WHERE A.STATUS = B.CD 
+				   AND A.USE_YN = 'Y'
+				<if test="searchDeptNm != null and searchDeptNm != ''">
+				   AND A.DEPT_NM LIKE '%' || #{searchDeptNm} || '%'
+				</if>
+				<if test="searchStatus != null and searchStatus != ''">
+				   AND A.STATUS = #{searchStatus}
+				</if>
+				)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	
+	<!-- 부서 정보 조회 -->
+	<select id="getDeptInfo" parameterType="deptVO" resultType="deptVO">
+		SELECT A.DEPT_NO
+			 , A.DEPT_NM
+			 , A.DEPT_DESC
+			 , A.STATUS
+			 , A.REG_ID
+			 , A.REG_DT
+			 , A.UP_ID
+			 , A.UP_DT
+			 , (SELECT USER_NM FROM NEO_USER WHERE A.REG_ID = USER_ID ) REG_NM
+			 , (SELECT USER_NM FROM NEO_USER WHERE A.UP_ID = USER_ID ) UP_NM
+		  FROM NEO_DEPT A
+		 WHERE A.DEPT_NO = #{deptNo} 
+		   AND A.USE_YN = 'Y'
+	</select>
+	
+	<!-- 부서 정보 등록 -->
+	<insert id="insertDeptInfo" parameterType="deptVO">
+		INSERT INTO NEO_DEPT
+		(
+			  DEPT_NO
+			, DEPT_NM
+			, DEPT_DESC
+			, STATUS
+			, USE_YN
+			, REG_ID
+			, REG_DT
+		)
+		VALUES
+		(
+			  NEXTVAL('NEO_DEPT_SEQ')
+			, #{deptNm}
+			, #{deptDesc}
+			, #{status}
+			, #{useYn}
+			, #{regId}
+			, #{regDt}
+		)
+	</insert>
+	
+	<!-- 부서 정보 수정 -->
+	<update id="updateDeptInfo" parameterType="deptVO">
+		UPDATE NEO_DEPT
+		   SET DEPT_NM   = #{deptNm}
+			 , DEPT_DESC = #{deptDesc}
+			 , STATUS    = #{status}
+			 , UP_ID     = #{upId}
+			 , UP_DT     = #{upDt}
+		WHERE DEPT_NO    = #{deptNo}
+	</update>
+	
+	<!-- 부서 정보 수정 -->
+	<update id="deleteDeptInfo" parameterType="deptVO">
+		UPDATE NEO_DEPT
+		   SET USE_YN    = #{useYn}
+			 , UP_ID     = #{upId}
+			 , UP_DT     = #{upDt}
+		WHERE DEPT_NO    = #{deptNo}
+	</update>
+	
+	<!-- ****************************** 조직 관리  ****************************-->
+	 
+	<!-- 조직 정보 조회 -->
+	<select id="getOrgInfo" parameterType="string" resultType="organizationVO">
+		SELECT A.ORG_CD 
+			 , A.ORG_KOR_NM ORG_NM
+			 , A.UP_ORG_CD 
+			 , (SELECT ORG_KOR_NM FROM NEO_ORGANIZATION WHERE ORG_CD = A.UP_ORG_CD ) UP_ORG_NM  
+			 , LVL_VAL 
+			 , USE_YN
+			 , UP_ID
+			 , UP_DT 
+			 , REG_ID
+			 , REG_DT
+			 , (SELECT USER_NM FROM NEO_USER WHERE A.REG_ID = USER_ID ) REG_NM
+			 , (SELECT USER_NM FROM NEO_USER WHERE A.UP_ID = USER_ID ) UP_NM			 
+		  FROM NEO_ORGANIZATION A 
+		 WHERE A.USE_YN ='Y' 
+		   AND A.ORG_CD = #{orgCd} 
+	</select>
+		 
+	<!-- 조직 목록 조회 -->
+	<select id="getOrgList" parameterType="organizationVO" resultType="organizationVO">
+		SELECT ORG_CD 
+			 , ORG_KOR_NM ORG_NM
+			 , UP_ORG_CD 
+			 , (SELECT ORG_KOR_NM FROM NEO_ORGANIZATION WHERE ORG_CD = A.UP_ORG_CD ) UP_ORG_NM  
+			 , LVL_VAL 
+			 , (SELECT COUNT(*) FROM NEO_ORGANIZATION WHERE UP_ORG_CD = A.ORG_CD) CHILD_CNT
+		  FROM NEO_ORGANIZATION  A
+		 WHERE USE_YN ='Y' 
+		   <if test="lvlVal != null and lvlVal != ''">
+		   AND LVL_VAL = #{lvlVal}
+		    </if>		 
+		   <if test="searchOrgCd != null and searchOrgCd != ''">
+		   AND ORG_CD = #{searchOrgCd} 
+		   </if> 
+		   <if test="searchOrgNm != null and searchOrgNm != ''">
+		   AND ORG_KOR_NM LIKE '%' || #{searchOrgNm} || '%'
+		   </if>
+		   <if test="upOrgCd != null and upOrgCd != ''">
+		   AND UP_ORG_CD LIKE '%' || #{upOrgCd} || '%'
+		   </if>				   
+		 ORDER BY LVL_VAL, ORG_CD 
+	</select>
+	
+	<!-- 조직 관리 목록 조회 -->
+	<select id="getOrgInfoList" parameterType="organizationVO" resultType="organizationVO">
+		SELECT A.ORG_CD 
+			 , A.ORG_KOR_NM ORG_NM
+			 , A.UP_ORG_CD 
+			 , A.LVL_VAL 
+			 , A.USE_YN
+			 , A.UP_ID
+			 , A.UP_DT 
+			 , A.REG_ID
+			 , A.REG_DT 
+			 , (SELECT COUNT(*) FROM NEO_ORGANIZATION WHERE UP_ORG_CD = A.ORG_CD) CHILD_CNT 
+			 , (SELECT USER_NM FROM NEO_USER WHERE A.REG_ID = USER_ID ) REG_NM
+			 , (SELECT USER_NM FROM NEO_USER WHERE A.UP_ID = USER_ID ) UP_NM
+		  FROM NEO_ORGANIZATION A
+		 WHERE A.USE_YN ='Y' 
+		   <if test="searchOrgCd != null and searchOrgCd != ''">
+		   AND A.ORG_CD IN  
+		   <foreach collection="arrSearchOrgCds" item="item" index="index" open="(" close=")" separator=",">
+		   #{item}
+		   </foreach>
+		   </if>
+		 ORDER BY A.LVL_VAL, A.ORG_CD 	 
+	</select> 
+	
+	<!-- 하위 조직 조회 : VIEW -->
+	<select id="getOrgChildList" parameterType="string" resultType="organizationVO">
+		SELECT ORG_CD 
+			 , ORG_KOR_NM ORG_NM 
+			 , UP_ORG_CD
+		  FROM NEO_ORGANIZATION A  
+		 WHERE USE_YN ='Y' 
+		   AND UP_ORG_CD = #{upOrgCd}  
+	</select>		 
+	
+ 	<!-- 조직 코드 찾기  -->
+	<select id="getOrgCodeMax" parameterType="string" resultType="string">
+		SELECT MAX(SUBSTR(ORG_CD, 2, 5)) MAX_ORG_CD  
+		  FROM NEO_ORGANIZATION A
+		 WHERE LVL_VAL = #{lvlVal}
+	</select>
+		
+ 	<!-- 조직 트리 생성용 : 상위 코드 찾기 -->
+	<select id="getOrgListTreeParent" parameterType="string" resultType="string">
+		SELECT UP_ORG_CD  
+		  FROM NEO_ORGANIZATION A
+		 WHERE USE_YN ='Y'
+		   AND ORG_CD = #{orgCd} 
+	</select>
+		
+	<!--팝업용 조직 목록 조회 : VIEW -->
+	<select id="getOrgListView" parameterType="organizationVO" resultType="organizationVO">
+		SELECT ORG_CD 
+			 , ORG_KOR_NM ORG_NM
+			 , UP_ORG_CD 
+			 , (SELECT ORG_KOR_NM FROM V_NEO_ORGANIZATION WHERE ORG_CD = A.UP_ORG_CD ) UP_ORG_NM  
+			 , LVL_VAL 
+			 , (SELECT COUNT(*)  FROM V_NEO_ORGANIZATION WHERE UP_ORG_CD = A.ORG_CD) CHILD_CNT
+		  FROM V_NEO_ORGANIZATION  A
+		 WHERE USE_YN ='Y'
+		   <if test="lvlVal != null and lvlVal != ''">
+		   AND LVL_VAL = CAST(#{lvlVal} AS INTEGER) 
+		   </if>
+		   <if test="upOrgCd != null and upOrgCd != ''">
+		   AND UP_ORG_CD = #{upOrgCd} 
+		   </if>
+	</select>	
+		 
+	<!-- 팝업용 하위 조직 조회 : VIEW -->
+	<select id="getOrgChildListView" parameterType="string" resultType="organizationVO">
+		SELECT ORG_CD 
+			 , ORG_KOR_NM ORG_NM 
+			 , UP_ORG_CD
+		  FROM V_NEO_ORGANIZATION A  
+		 WHERE USE_YN ='Y' 
+		   AND UP_ORG_CD = #{upOrgCd}  
+	</select>		 
+  
+	<!-- 부서 내 사용자 수 조회 -->
+	<select id="getOrgUserCount" parameterType="organizationVO" resultType="int">
+		SELECT COUNT(*) REC_CNT
+		  FROM NEO_USERORG_MAPP A  
+		 <if test="searchOrgCd != null and searchOrgCd != ''">
+		 WHERE ORG_CD IN  
+			<foreach collection="arrSearchOrgCds" item="item" index="index" open="(" close=")" separator=",">
+			   #{item}
+			</foreach>
+		 </if>
+	</select>	
+	  
+	<!-- 조직 정보 수정 -->
+	<update id="updateOrganizationInfo" parameterType="organizationVO">
+		UPDATE NEO_ORGANIZATION
+		   SET
+			  ORG_KOR_NM    = #{orgKorNm}
+			 , UP_ORG_CD    = #{upOrgCd}
+			 , LVL_VAL      = #{lvlVal} 
+			 , UP_ID        = #{upId}
+			 , UP_DT        = #{upDt}
+		 WHERE ORG_CD      = #{orgCd}
+	</update>
+	
+	<!-- 사용자 정보 삭제 -->
+	<update id="deleteOrganizationInfo" parameterType="organizationVO">
+		UPDATE NEO_ORGANIZATION
+		   SET USE_YN       = #{useYn}
+			 , UP_ID        = #{upId}
+			 , UP_DT        = #{upDt}
+		 WHERE ORG_CD      = #{orgCd}
+	</update>	
+
+	<!-- 조직 정보 등록 -->
+	<insert id="insertOragnizationInfo" parameterType="organizationVO">
+		INSERT INTO NEO_ORGANIZATION
+		(
+			  ORG_CD
+			, ORG_KOR_NM
+			, UP_ORG_CD
+			, LVL_VAL
+			, USE_YN
+			, REG_ID
+			, REG_DT
+		)
+		VALUES
+		(   
+			 #{orgCd}
+			, #{orgKorNm}
+			, #{upOrgCd}
+			, #{lvlVal}
+			, #{useYn}
+			, #{regId}
+			, #{regDt}
+		)
+	</insert>
+		 
+	<!-- ************ 사용자 관리  ******************-->
+	<!-- 사용자 목록 조회 -->
+	<select id="getUserList" parameterType="userVO" resultType="userVO">
+		SELECT *
+		  FROM (
+				SELECT A.USER_ID
+					 , A.DEPT_NO
+					 , A.USER_NM
+					 , A.USER_EM
+					 , A.USER_TEL
+					 , A.STATUS
+					 , A.MAIL_FROM_NM
+					 , A.MAIL_FROM_EM
+					 , A.REPLY_TO_EM
+					 , A.RETURN_EM
+					 , A.CHARSET
+					 , A.TZ_CD
+					 , A.UILANG
+					 , A.REG_ID
+					 , A.REG_DT
+					 , A.UP_ID
+					 , A.UP_DT
+					 , B.DEPT_NM
+					 , C.TZ_NM
+					 , D.ORG_CD 
+					 , D.ORG_KOR_NM 
+					 , E.CD_NM STATUS_NM
+					 , F.CD_NM CHARSET_NM
+					 , G.CD_NM UILANG_NM
+					 , I.CD_NM POSITION_NM
+					 , H.CD_NM JOB_NM
+					 , '' SERVICE_NM
+					 , (SELECT USER_NM FROM NEO_USER WHERE A.REG_ID = USER_ID ) REG_NM
+					 , (SELECT USER_NM FROM NEO_USER WHERE A.UP_ID = USER_ID ) UP_NM
+					 , ROW_NUMBER() OVER (ORDER BY A.USER_ID) SEQ
+					 , COUNT(1) OVER() TOTAL_COUNT
+				  FROM NEO_USER A
+				  	 , NEO_DEPT B
+				  	 , NEO_TIMEZONE C
+                     , (
+                        SELECT X.USER_ID, X.ORG_CD, Y.ORG_KOR_NM, X.POSITION_GB, X.JOB_GB
+                          FROM NEO_USERORG_MAPP X, V_NEO_ORGANIZATION  Y 
+                         WHERE X.ORG_CD = Y.ORG_CD
+							   <if test="searchUserId != null and searchUserId != ''">
+							   AND X.USER_ID LIKE '%' || #{searchUserId} || '%'
+							   </if> 
+							   <if test="searchOrgCd != null and searchOrgCd != ''">
+							   AND X.ORG_CD IN 
+							   <foreach collection="arrSearchOrgCds" item="item" index="index" open="(" close=")" separator=",">
+    							#{item}
+    							</foreach> 
+							   </if> ) D
+				  	 , (
+				  	 	SELECT CD, CD_NM
+						  FROM NEO_CD
+						 WHERE CD_GRP = 'C010'
+						   AND USE_YN = 'Y'
+						  AND UILANG = #{uilang}) E
+					 , (
+					 	SELECT CD, CD_NM
+						  FROM NEO_CD
+						 WHERE CD_GRP = 'C022'
+						   AND USE_YN = 'Y'
+						  AND UILANG = #{uilang}) F
+					 , (
+						SELECT CD, CD_NM
+						  FROM NEO_CD
+						 WHERE CD_GRP = 'C025'
+						   AND USE_YN = 'Y'
+						   AND UILANG = #{uilang}) G
+					 , (
+						SELECT CD, CD_NM
+						  FROM NEO_CD
+						 WHERE CD_GRP = 'C105'
+						   AND USE_YN = 'Y'
+						   AND UILANG = #{uilang}) H
+					, (
+						SELECT CD, CD_NM
+						  FROM NEO_CD
+						 WHERE CD_GRP = 'C106'
+						   AND USE_YN = 'Y'
+						   AND UILANG = #{uilang}) I
+					<if test="searchServiceGb != null and searchServiceGb != ''">
+					, (
+						SELECT USER_ID
+						  FROM NEO_USER_PROG M, NEO_SERVICEKEY L 
+						 WHERE M.PROG_ID = L.SERVICE_GB						   
+						   AND L.SERVICE_GB = #{searchServiceGb}) J
+					</if>
+				 WHERE A.DEPT_NO = B.DEPT_NO
+				   AND A.TZ_CD = C.TZ_CD
+				   AND A.STATUS = E.CD
+                   AND A.USER_ID = D.USER_ID 
+				   AND A.CHARSET = F.CD
+				   AND A.UILANG = G.CD
+                   AND D.POSITION_GB = I.CD
+                   AND D.JOB_GB = H.CD
+                   AND A.USE_YN ='Y'
+                   AND B.USE_YN = 'Y'
+				   <if test="searchUserId != null and searchUserId != ''">
+				   AND A.USER_ID LIKE '%' || #{searchUserId} || '%'
+				   </if>
+				   <if test="searchStatus != null and searchStatus != ''">
+				   AND A.STATUS = #{searchStatus}
+				   </if>
+				   <if test="searchUserNm != null and searchUserNm != ''">
+				   AND A.USER_NM LIKE '%' || #{searchUserNm} || '%'
+				   </if>
+				   <if test="searchDeptNo != 0">
+				   AND A.DEPT_NO = #{searchDeptNo}
+				   </if> 
+				   <if test="searchServiceGb != null and searchServiceGb != ''">
+				   AND A.USER_ID = J.USER_ID 
+				   </if>
+			)
+		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	
+	<!-- 사용자 목록 조회 -->
+	<select id="getOrgUserList" parameterType="userVO" resultType="userVO">
+		SELECT A.USER_ID
+			 , A.DEPT_NO
+			 , A.USER_NM
+			 , A.USER_EM
+			 , A.USER_TEL
+			 , A.STATUS 
+			 , B.DEPT_NM 
+			 , D.ORG_CD 
+			 , D.ORG_KOR_NM 
+			 , E.CD_NM STATUS_NM
+			 , F.CD_NM CHARSET_NM
+			 , G.CD_NM UILANG_NM
+			 , I.CD_NM POSITION_NM
+			 , H.CD_NM JOB_NM 
+		  FROM NEO_USER A
+			 , NEO_DEPT B 
+			 , (
+				SELECT X.USER_ID, X.ORG_CD, Y.ORG_KOR_NM, X.POSITION_GB, X.JOB_GB
+				  FROM NEO_USERORG_MAPP X, V_NEO_ORGANIZATION Y
+				 WHERE X.ORG_CD = Y.ORG_CD 
+				   <if test="orgCd != null and orgCd != ''">
+				   AND X.ORG_CD = #{orgCd} 
+				   </if>
+			   ) D
+			 , (
+				SELECT CD, CD_NM
+				  FROM NEO_CD
+				 WHERE CD_GRP = 'C010'
+				   AND USE_YN = 'Y'
+				   AND UILANG = #{uilang}) E
+			 , (
+				SELECT CD, CD_NM
+				  FROM NEO_CD
+				 WHERE CD_GRP = 'C022'
+				   AND USE_YN = 'Y'
+				   AND UILANG = #{uilang}) F
+			 , (
+				SELECT CD, CD_NM
+				  FROM NEO_CD
+				 WHERE CD_GRP = 'C025'
+				   AND USE_YN = 'Y'
+				   AND UILANG = #{uilang}) G
+			 , (
+				SELECT CD, CD_NM
+				  FROM NEO_CD
+				 WHERE CD_GRP = 'C105'
+				   AND USE_YN = 'Y'
+				   AND UILANG = #{uilang}) H
+			 , (
+				SELECT CD, CD_NM
+				  FROM NEO_CD
+				 WHERE CD_GRP = 'C106'
+				   AND USE_YN = 'Y'
+				   AND UILANG = #{uilang}) I
+		 WHERE A.DEPT_NO = B.DEPT_NO 
+		   AND A.STATUS = E.CD
+		   AND A.USER_ID = D.USER_ID 
+		   AND A.CHARSET = F.CD
+		   AND A.UILANG = G.CD
+		   AND D.POSITION_GB = I.CD
+		   AND D.JOB_GB = H.CD
+		   AND A.USE_YN = 'Y'
+		   AND B.USE_YN = 'Y'
+		   <if test="userId != null and userId != ''">
+		   AND A.USER_ID LIKE '%' || #{userId} || '%'
+		   </if>
+		   <if test="status != null and status != ''">
+		   AND A.STATUS = #{status}
+		   </if>
+		   <if test="userNm != null and userNm != ''">
+		   AND A.USER_NM LIKE '%' || #{userNm} || '%'
+		   </if>
+		   <if test="deptNo != 0">
+		   AND A.DEPT_NO = #{deptNo}
+		   </if>  
+	</select>
+	
+	<!-- 사용자 목록 조회 -->
+	<select id="getUserListSimple" parameterType="userVO" resultType="userVO">
+		SELECT A.USER_ID
+			 , A.DEPT_NO
+			 , A.USER_NM
+			 , B.DEPT_NM 
+		  FROM NEO_USER A
+		  	 , NEO_DEPT B
+		 WHERE A.DEPT_NO = B.DEPT_NO
+		   AND A.USE_YN = 'Y'
+		   <if test="deptNo != 0">
+		   AND A.DEPT_NO = #{deptNo}
+		   </if>
+		   <if test="userNm != null and userNm != ''">
+		   AND A.USER_NM LIKE '%' || #{userNm} || '%'
+		   </if>
+	</select>
+	
+	<!-- 사용자 목록 조회 -->
+	<select id="getUserListByDbConn" parameterType="userVO" resultType="userVO">
+		SELECT A.USER_ID
+			 , A.DEPT_NO
+			 , A.USER_NM
+			 , B.DEPT_NM 
+		  FROM NEO_USER A
+		  	 , NEO_DEPT B
+		 WHERE A.DEPT_NO = B.DEPT_NO
+		   AND A.STATUS = '000'		   
+		   AND A.USE_YN ='Y'
+		   AND B.STATUS = '000'
+		   AND B.USE_YN ='Y'
+		   <if test="deptNo != 0">
+		   AND A.DEPT_NO = #{deptNo}
+		   </if>
+		   <if test="userNm != null and userNm != ''">
+		   AND A.USER_NM LIKE '%' || #{userNm} || '%'
+		   </if>
+	</select>
+		
+	<!-- 사용자 정보 조회 -->
+	<select id="getUserInfo" parameterType="userVO" resultType="userVO">
+		SELECT A.USER_ID
+			 , A.DEPT_NO
+			 , A.USER_NM
+			 , A.USER_EM
+			 , A.USER_TEL
+			 , A.USER_DESC
+			 , A.STATUS
+			 , A.MAIL_FROM_NM
+			 , A.MAIL_FROM_EM
+			 , A.REPLY_TO_EM
+			 , A.RETURN_EM
+			 , A.CHARSET
+			 , A.TZ_CD
+			 , A.UILANG
+			 , A.REG_ID
+			 , A.REG_DT
+			 , A.UP_ID
+			 , A.UP_DT
+			 , B.DEPT_NM
+			 , C.TZ_NM
+			 , D.CD_NM STATUS_NM
+			 , E.CD_NM CHARSET_NM
+			 , F.CD_NM UILANG_NM
+			 , (SELECT USER_NM FROM NEO_USER WHERE A.REG_ID = USER_ID ) REG_NM
+			 , (SELECT USER_NM FROM NEO_USER WHERE A.UP_ID = USER_ID ) UP_NM			 
+		  FROM NEO_USER A
+			 , NEO_DEPT B
+			 , NEO_TIMEZONE C
+			 , (
+				SELECT CD, CD_NM
+				  FROM NEO_CD
+				 WHERE CD_GRP = 'C010'
+				   AND USE_YN = 'Y'
+				   AND UILANG = #{uilang}) D
+			 , (
+				SELECT CD, CD_NM
+				  FROM NEO_CD
+				 WHERE CD_GRP = 'C022'
+				   AND USE_YN = 'Y'
+				   AND UILANG = #{uilang}) E
+			 , (
+				SELECT CD, CD_NM
+				  FROM NEO_CD
+				 WHERE CD_GRP = 'C025'
+				   AND USE_YN = 'Y'
+				   AND UILANG = #{uilang}) F
+		 WHERE A.USER_ID = #{userId}
+		   AND A.DEPT_NO = B.DEPT_NO
+		   AND A.TZ_CD = C.TZ_CD
+		   AND A.STATUS = D.CD
+		   AND A.CHARSET = E.CD
+		   AND A.UILANG = F.CD
+	</select>
+	
+	<select id="getUserInfoDetail" parameterType="userVO" resultType="userVO">
+		SELECT A.USER_ID
+			 , A.DEPT_NO
+			 , A.USER_NM
+			 , A.USER_EM
+			 , A.USER_TEL
+			 , A.STATUS
+			 , A.MAIL_FROM_NM
+			 , A.MAIL_FROM_EM
+			 , A.REPLY_TO_EM
+			 , A.RETURN_EM
+			 , A.CHARSET
+			 , A.TZ_CD
+			 , A.UILANG
+			 , A.REG_ID
+			 , A.REG_DT
+			 , A.UP_ID
+			 , A.UP_DT
+			 , B.DEPT_NM
+			 , C.TZ_NM
+			 , D.ORG_CD 
+			 , D.ORG_KOR_NM 
+			 , D.POSITION_GB
+			 , D.JOB_GB
+			 , E.CD_NM STATUS_NM
+			 , F.CD_NM CHARSET_NM
+			 , G.CD_NM UILANG_NM
+			 , I.CD_NM POSITION_NM
+			 , H.CD_NM JOB_NM
+			 , '' SERVICE_NM
+			 , (SELECT USER_NM FROM NEO_USER WHERE A.REG_ID = USER_ID ) REG_NM
+			 , (SELECT USER_NM FROM NEO_USER WHERE A.UP_ID = USER_ID ) UP_NM			 
+		  FROM NEO_USER A
+		  	 , NEO_DEPT B
+		  	 , NEO_TIMEZONE C
+             , (
+				SELECT X.USER_ID, X.ORG_CD, Y.ORG_KOR_NM, X.POSITION_GB, X.JOB_GB
+				  FROM NEO_USERORG_MAPP X, V_NEO_ORGANIZATION  Y 
+			     WHERE X.ORG_CD = Y.ORG_CD
+			       AND X.USER_ID = #{userId}
+			    ) D
+		  	 , (
+		  	 	SELECT CD, CD_NM
+				  FROM NEO_CD
+				 WHERE CD_GRP = 'C010'
+				   AND USE_YN = 'Y'
+				  AND UILANG = #{uilang}) E
+			 , (
+			 	SELECT CD, CD_NM
+				  FROM NEO_CD
+				 WHERE CD_GRP = 'C022'
+				   AND USE_YN = 'Y'
+				  AND UILANG = #{uilang}) F
+			 , (
+				SELECT CD, CD_NM
+				  FROM NEO_CD
+				 WHERE CD_GRP = 'C025'
+				   AND USE_YN = 'Y'
+				   AND UILANG = #{uilang}) G
+			 , (
+				SELECT CD, CD_NM
+				  FROM NEO_CD
+				 WHERE CD_GRP = 'C105'
+				   AND USE_YN = 'Y'
+				   AND UILANG = #{uilang}) H
+			, (
+				SELECT CD, CD_NM
+				  FROM NEO_CD
+				 WHERE CD_GRP = 'C106'
+				   AND USE_YN = 'Y'
+				   AND UILANG = #{uilang}) I
+		 WHERE A.DEPT_NO = B.DEPT_NO
+		   AND A.TZ_CD = C.TZ_CD
+		   AND A.STATUS = E.CD
+           AND A.USER_ID = D.USER_ID 
+		   AND A.CHARSET = F.CD
+		   AND A.UILANG = G.CD
+           AND D.POSITION_GB = I.CD
+           AND D.JOB_GB = H.CD
+		   AND A.USER_ID = #{userId}
+	</select>
+		
+	<!-- 사용자 서비스  조회 -->
+	<select id="getUserServiceList" parameterType="userVO" resultType="userVO">
+		SELECT A.USER_ID
+			 , A.DEPT_NO
+			 , A.USER_NM
+			 , B.DEPT_NM
+			 , D.SERVICE_GB
+			 , D.SERVICE_NM
+		  FROM NEO_USER A
+			 , NEO_DEPT B
+			 , NEO_USER_PROG C
+			 , ( SELECT SERVICE_GB, SERVICE_NM FROM NEO_SERVICEKEY 
+				  UNION ALL 
+				 SELECT 99, 'SYS' ) D
+		 WHERE A.DEPT_NO = B.DEPT_NO
+		   AND A.USER_ID = C.USER_ID
+		   AND C.PROG_ID = D.SERVICE_GB
+		   AND A.USE_YN = 'Y'
+		   AND B.USE_YN = 'Y'
+		   <if test="userId != null and userId != ''">
+		   AND A.USER_ID LIKE '%' || #{userId} || '%'
+		   </if>
+		   <if test="status != null and status != ''">
+		   AND A.STATUS = #{userNm}
+		   </if>
+		   <if test="userNm != null and userNm != ''">
+		   AND A.USER_NM LIKE '%' || #{userNm} || '%'
+		   </if>
+		   <if test="deptNo != 0">
+		   AND A.DEPT_NO = #{deptNo}
+		   </if>
+		   <if test="serviceGb != null and serviceGb != ''">
+		   AND D.SERVICE_GB = #{serviceGb}
+		   </if>
+	</select>	
+  
+  	<!-- 사용자 조직 조회 -->
+	<select id="getOrgInfoView" parameterType="string" resultType="organizationVO">
+		SELECT ORG_CD 
+			 , ORG_KOR_NM ORG_NM
+			 , UP_ORG_CD 
+			 , (SELECT ORG_KOR_NM FROM V_NEO_ORGANIZATION WHERE ORG_CD = A.UP_ORG_CD ) UP_ORG_NM  
+			 , LVL_VAL 
+			 , USE_YN
+			 , UP_ID
+			 , UP_DT 
+			 , REG_ID
+			 , REG_DT
+			 , (SELECT USER_NM FROM NEO_USER WHERE A.REG_ID = USER_ID ) REG_NM
+			 , (SELECT USER_NM FROM NEO_USER WHERE A.UP_ID = USER_ID ) UP_NM
+		  FROM V_NEO_ORGANIZATION A
+		 WHERE USE_YN ='Y' 
+		   AND ORG_CD = #{orgCd} 
+	</select>	
+		
+	<!-- 사용자 아이디를 체크한다. 중복 방지용 -->
+	<select id="userIdCheck" parameterType="string" resultType="userVO">
+		SELECT USER_ID
+		FROM NEO_USER
+		WHERE USER_ID = #{userId}
+	</select>
+	
+	<!-- 사용자 정보 등록 -->
+	<insert id="insertUserInfo" parameterType="userVO">
+		INSERT INTO NEO_USER 
+		(
+			USER_ID
+		  , DEPT_NO
+		  , USER_NM
+		  , USER_PWD
+		  , USER_EM
+		  , USER_TEL
+		  , USER_DESC
+		  , STATUS
+		  , MAIL_FROM_NM
+		  , MAIL_FROM_EM
+		  , REPLY_TO_EM
+		  , RETURN_EM
+		  , CHARSET
+		  , TZ_CD
+		  , UILANG
+		  , REG_ID
+		  , REG_DT
+		  , USE_YN
+		)
+		VALUES
+		(
+			#{userId}
+		  , #{deptNo}
+		  , #{userNm}
+		  , #{userPwd}
+		  , #{userEm}
+		  , #{userTel}
+		  , #{userDesc}
+		  , #{status}
+		  , #{mailFromNm}
+		  , #{mailFromEm}
+		  , #{replyToEm}
+		  , #{returnEm}
+		  , #{charset}
+		  , #{tzCd}
+		  , #{uilang}
+		  , #{regId}
+		  , #{regDt}
+		  , 'Y'
+		)
+	</insert> 
+ 
+	<!-- 사용자 정보 수정 -->
+	<update id="updateUserInfo" parameterType="userVO">
+		UPDATE NEO_USER
+		   SET
+			  UP_ID        = #{upId}
+			 , UP_DT        = #{upDt}
+			 <if test="deptNo != 0">
+			 ,  DEPT_NO      = #{deptNo}
+			 </if>
+			 <if test="userNm != null and userNm != ''">
+			 , USER_NM      = #{userNm}
+			 </if>
+			 <if test="userEm != null and userEm != ''">
+			 , USER_EM      = #{userEm}
+			 </if>
+			 <if test="userTel != null and userTel != ''">
+			 , USER_TEL     = #{userTel}
+			 </if>
+			 <if test="userDesc != null and userDesc != ''">
+			 , USER_DESC    = #{userDesc}
+			 </if>
+			 <if test="status != null and status != ''">
+			 , STATUS       = #{status}
+			 </if>
+			 <if test="mailFromNm != null and mailFromNm != ''">
+			 , MAIL_FROM_NM = #{mailFromNm}
+			 </if>
+			 <if test="mailFromEm != null and mailFromEm != ''">
+			 , MAIL_FROM_EM = #{mailFromEm}
+			 </if> 
+			 <if test="returnEm != null and returnEm != ''">
+			 , RETURN_EM    = #{returnEm}
+			 </if>
+			 <if test="replyToEm != null and replyToEm != ''">
+			 , REPLY_TO_EM  = #{replyToEm}
+			 </if>
+			 <if test="charset != null and charset != ''">
+			 , CHARSET      = #{charset}
+			 </if>
+			 <if test="tzCd != null and tzCd != ''">
+			 , TZ_CD        = #{tzCd}
+			 </if>
+			 <if test="uilang != null and uilang != ''">
+			 , UILANG       = #{uilang}
+			 </if>
+			  
+		 WHERE USER_ID      = #{userId}
+	</update>
+	
+	<!-- 사용자 정보 삭제 -->
+	<update id="deleteUserInfo" parameterType="userVO">
+		UPDATE NEO_USER
+		   SET
+			  STATUS       = #{status}
+			 , UP_ID        = #{upId}
+			 , UP_DT        = #{upDt} 
+			 , USE_YN       = 'N'
+		 WHERE USER_ID      = #{userId}
+	</update>	
+
+	<!-- 사용자 프로그램 정보 등록 -->
+	<insert id="insertUserProgInfo" parameterType="userProgVO">
+		INSERT INTO NEO_USER_PROG
+			(USER_ID,PROG_ID)
+		VALUES
+			(#{userId}, #{progId})
+	</insert>
+	
+	<!-- 사용자 프로그램 정보 삭제 -->
+	<delete id="deleteUserProgInfo" parameterType="string">
+		DELETE FROM NEO_USER_PROG
+		 WHERE USER_ID = #{userId}
+	</delete>
+			
+	<!-- 사용자 조직 정보 등록 -->
+	<insert id="insertUserOrgInfo" parameterType="userOrgVO">
+		INSERT INTO NEO_USERORG_MAPP 
+		(
+			USER_ID
+		  , ORG_CD
+		  , POSITION_GB
+		  , JOB_GB
+		  , REG_ID
+		  , REG_DT
+		)
+		VALUES
+		(
+		    #{userId}
+		  , #{orgCd}
+		  , #{positionGb}
+		  , #{jobGb}
+		  , #{regId}
+		  , #{regDt}
+		)
+	</insert>
+	
+	<!-- 사용자 조직 정보 수정 -->
+	<update id="updateUserOrgInfo" parameterType="userOrgVO">
+		UPDATE NEO_USERORG_MAPP
+		   SET
+			   ORG_CD       = #{orgCd}
+			 , POSITION_GB  = #{positionGb}  
+			 , JOB_GB       = #{jobGb}
+			 , UP_ID        = #{upId}
+			 , UP_DT        = #{upDt}
+		 WHERE USER_ID      = #{userId}
+	</update>
+	
+	<!-- 사용자 조직 정보 삭제 -->
+	<delete id="deleteUserOrgInfo" parameterType="string">
+		DELETE FROM NEO_USERORG_MAPP
+		 WHERE USER_ID = #{userId}
+	</delete>	
+		
+	<!-- 서비스 목록 조회 -->
+	<select id="getServiceList" parameterType="serviceVO" resultType="serviceVO">
+		SELECT SERVICE_GB
+			 , CUST_DOMAIN
+			 , SERVICE_NM
+			 , LICENSE_KEY
+		  FROM NEO_SERVICEKEY
+		 WHERE USE_YN = 'Y'
+		 ORDER BY SERVICE_GB
+	</select>
+	
+	<select id="getCountUserService" parameterType="string" resultType="_int">
+		SELECT COUNT(*) AS REC_CNT
+		  FROM NEO_USER_PROG
+		 WHERE USER_ID = #{userId}
+	</select>
+	 
+	<select id="getCountUserOrg" parameterType="string" resultType="_int">
+		SELECT COUNT(*) AS REC_CNT
+		  FROM NEO_USERORG_MAPP
+		 WHERE USER_ID = #{userId}
+	</select>
+	
+	<!-- 사용자 링크 삭제 -->
+	<update id="deleteServiceLink" parameterType="userVO">
+		UPDATE NEO_USER_PROG
+		   SET LINK_YN       = 'N'			 
+		 WHERE USER_ID      = #{userId}
+	</update>	
+	
+	<!-- 사용자 링크 저장 -->
+	<update id="updateServiceLink" parameterType="userVO">
+		UPDATE NEO_USER_PROG
+		   SET LINK_YN       = 'Y'			 
+		 WHERE USER_ID      = #{userId}
+		   AND PROG_ID 		= #{progId}
+	</update>		
+
+	<!-- 사용자의 현재 암호를 확인한다-->
+	<select id="checkUserPwd" parameterType="string" resultType="_int">
+		SELECT COUNT(1)
+		FROM NEO_USER
+		WHERE USER_ID = #{userId} AND USER_PWD = #{curPwd}
+	</select>
+		
+	<!-- 사용자 암호  저장 -->
+	<update id="updateUserPwd" parameterType="userVO">
+		UPDATE NEO_USER
+			  SET USER_PWD = #{userPwd}
+				   , UP_ID         = #{upId}
+				   , UP_DT        = #{upDt}
+				   , PW_INIT_YN  = 'N'
+		 WHERE USER_ID      = #{userId} 
+	</update>
+	
+	<!-- 사용자 암호  저장 -->
+	<update id="initUserPwd" parameterType="userVO">
+		UPDATE NEO_USER
+			  SET USER_PWD = #{userPwd}
+				   , PW_INIT_YN   = 'Y'
+				   , UP_ID         = #{upId}
+				   , UP_DT        = #{upDt}
+		 WHERE USER_ID      = #{userId}
+	</update>
+		
+	<!-- 사용자 시스템 공통 설정 메뉴 삭제 -->
+	<delete id="deleteUserSysMenu" parameterType="string">
+		DELETE FROM NEO_MENUUSER_MAPP
+		 WHERE USER_ID = #{userId} 
+		   AND MENU_ID LIKE 'M99%'
+	</delete>
+	
+	<!-- 사용자 시스템 공통 설정 메뉴 등록 -->
+	<insert id="insertUserDefaultMenu" parameterType="userProgVO">
+		INSERT INTO NEO_MENUUSER_MAPP 
+		(
+			MENU_ID
+		  , USER_ID 
+		  , REG_ID
+		  , REG_DT
+		)
+		SELECT MENU_ID
+			 , #{userId}
+			 , #{regId}
+			 , #{regDt}
+		  FROM NEO_MENU_DEFAULT 
+		 WHERE SERVICE_GB = #{progId}
+	</insert>
+		 
+</mapper>

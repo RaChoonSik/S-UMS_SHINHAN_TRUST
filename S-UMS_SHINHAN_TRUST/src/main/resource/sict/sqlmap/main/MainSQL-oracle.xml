@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.sict.ums.main.dao.MainMapper">
+
+	<!-- 상단 메뉴 조회 -->
+	<select id="getTopMenuList" parameterType="string" resultType="menuVO">
+		SELECT A.PROG_ID, A.PROG_NM, A.PROG_TARGET
+			 , A.PROG_DOMAIN, A.USE_YN, A.PROG_SCRIPT, A.UILANG
+		  FROM NEO_PROG A
+		 WHERE A.USE_YN = 'Y'
+		   AND A.UILANG = #{uilang}
+		 ORDER BY A.DISP_ORDER ASC, A.PROG_ID DESC
+	</select>
+	
+	<!-- 메뉴 기본 정보 조회 -->
+	<select id="getMenuBasicInfo" parameterType="string" resultType="sysMenuVO">
+		SELECT MENU_NM
+			 , SOURCE_PATH
+		  FROM NEO_SYSMENU
+		 WHERE MENU_ID = #{menuId}
+	</select>
+	
+	<!-- 각 서비스 기본 화면에서 첫번째 메뉴 조회 -->
+	<select id="getServiceUserMenu" parameterType="sysMenuVO" resultType="sysMenuVO">
+		SELECT MENU_ID, MENU_NM, PARENTMENU_ID, SOURCE_PATH
+		  FROM (
+				SELECT ROW_NUMBER() OVER (ORDER BY T1.MENU_ID) SEQ<!-- SORT_SNO 대신 메뉴ID로 정렬함(메뉴 순서가 안바뀔듯)  -->
+					 , T1.MENU_ID
+					 , T1.MENU_NM
+					 , T1.PARENTMENU_ID
+					 , T1.SOURCE_PATH
+				  FROM NEO_SYSMENU T1
+					 , NEO_MENUUSER_MAPP T2
+				 WHERE T1.MENU_ID = T2.MENU_ID
+				   AND T2.USER_ID = #{userId}
+				   AND T1.SERVICE_GB = #{serviceGb}
+				   AND T1.SOURCE_PATH IS NOT NULL
+				)
+		 WHERE SEQ = 1
+	</select>
+	
+	<!-- 시스템메뉴 정보에 등록된 URI인지 확인 -->
+	<select id="getSourcePathMenu" parameterType="string" resultType="sysMenuVO">
+		SELECT MENU_ID, MENU_NM, PARENTMENU_ID
+		  FROM NEO_SYSMENU
+		 WHERE SOURCE_PATH = #{sourcePath}
+	</select>
+	
+	<!-- 메뉴에 대한 사용자 권한 확인 -->
+	<select id="getUserMenuAuth" parameterType="sysMenuVO" resultType="sysMenuVO">
+		SELECT T2.MENU_ID, T2.MENU_NM, T2.PARENTMENU_ID
+		  FROM NEO_MENUUSER_MAPP T1, NEO_SYSMENU T2
+		 WHERE T1.MENU_ID = T2.MENU_ID
+		   AND T1.USER_ID = #{userId}
+		   AND T2.SOURCE_PATH = #{sourcePath}
+	</select>
+
+	<!-- 서비스에 대한 사용자 권한 확인 -->
+	<select id="getUserService" parameterType="string" resultType="serviceVO">
+		SELECT A.SERVICE_GB
+			 , (SELECT COUNT(*) FROM NEO_USER_PROG WHERE PROG_ID = A.SERVICE_GB AND USER_ID = #{userId}) USE_YN
+			 , CUST_DOMAIN
+			 , SERVICE_NM 
+			 , LICENSE_KEY
+			 , 0 PAY_YN
+		  FROM NEO_SERVICEKEY A
+		 ORDER BY A.SERVICE_GB
+	</select>
+	
+</mapper>

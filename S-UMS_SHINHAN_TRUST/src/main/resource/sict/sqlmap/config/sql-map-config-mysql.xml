@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+
+	<settings>
+		<setting name="mapUnderscoreToCamelCase" value="true"/>
+		<setting name="jdbcTypeForNull" value="NULL"/>
+	</settings>
+
+	<typeAliases>
+		<typeAlias alias="string"			type="java.lang.String" />
+		<typeAlias alias="map"     			type="java.util.Map" />
+		
+		<!-- 로그인 -->
+		<typeAlias alias="loginVO"			type="kr.co.sict.ums.lgn.vo.LoginVO" />
+		<typeAlias alias="lgnHistVO"		type="kr.co.sict.ums.lgn.vo.LoginHistVO" />
+		
+		<!-- 메뉴조회 -->
+		<typeAlias alias="menuVO"			type="kr.co.sict.ums.main.vo.MenuVO" />
+		
+		<!-- 코드성자료조회 -->
+		<typeAlias alias="codeVO"			type="kr.co.sict.ums.com.vo.CodeVO" />
+		<typeAlias alias="codeGrpVO"		type="kr.co.sict.ums.com.vo.CodeGroupVO" />
+		
+		<!-- 시스템관리 -->
+		<typeAlias alias="userVO"			type="kr.co.sict.ums.sys.acc.vo.UserVO" />
+		<typeAlias alias="userProgVO"		type="kr.co.sict.ums.sys.acc.vo.UserProgVO" />
+		<typeAlias alias="sysMenuVO"		type="kr.co.sict.ums.sys.acc.vo.SysMenuVO" />
+		<typeAlias alias="deptVO"			type="kr.co.sict.ums.sys.acc.vo.DeptVO" />
+		<typeAlias alias="serviceVO"		type="kr.co.sict.ums.sys.acc.vo.ServiceVO" />
+		<typeAlias alias="userOrgVO"		type="kr.co.sict.ums.sys.acc.vo.UserOrgVO" />
+		<typeAlias alias="organizationVO"	type="kr.co.sict.ums.sys.acc.vo.OrganizationVO" />
+		<typeAlias alias="userCodeVO"		type="kr.co.sict.ums.sys.cod.vo.UserCodeVO" />
+		<typeAlias alias="userCodeGroupVO"	type="kr.co.sict.ums.sys.cod.vo.UserCodeGroupVO" />
+		<typeAlias alias="dbConnVO"			type="kr.co.sict.ums.sys.dbc.vo.DbConnVO" />
+		<typeAlias alias="dbConnPermVO"		type="kr.co.sict.ums.sys.dbc.vo.DbConnPermVO" />
+		<typeAlias alias="dbConnGrpPermVO"	type="kr.co.sict.ums.sys.dbc.vo.DbConnGrpPermVO" />
+		<typeAlias alias="metaTableVO"		type="kr.co.sict.ums.sys.dbc.vo.MetaTableVO" />
+		<typeAlias alias="metaColumnVO"		type="kr.co.sict.ums.sys.dbc.vo.MetaColumnVO" />
+		<typeAlias alias="metaOperatorVO"	type="kr.co.sict.ums.sys.dbc.vo.MetaOperatorVO" />
+		<typeAlias alias="metaValueVO"		type="kr.co.sict.ums.sys.dbc.vo.MetaValueVO" />
+		<typeAlias alias="metaJoinVO"		type="kr.co.sict.ums.sys.dbc.vo.MetaJoinVO" />
+		<typeAlias alias="dbConnUserVO"		type="kr.co.sict.ums.sys.dbc.vo.DbConnUserVO" />
+		<typeAlias alias="loginHistVO"		type="kr.co.sict.ums.sys.log.vo.LoginHistVO" />
+		<typeAlias alias="actionLogVO"		type="kr.co.sict.ums.sys.log.vo.ActionLogVO" />
+		<typeAlias alias="menuUserMappVO"	type="kr.co.sict.ums.sys.aut.vo.MenuUserMappVO" />
+		<typeAlias alias="domainInfoVO"		type="kr.co.sict.ums.sys.rns.vo.DomainInfoVO" />
+		<typeAlias alias="segmentVO"		type="kr.co.sict.ums.sys.seg.vo.SegmentVO" />
+		<typeAlias alias="KakaoTemplateVO"	type="kr.co.sict.ums.sys.seg.vo.KakaoTemplateVO" />
+		<typeAlias alias="smsTemplateVO"	type="kr.co.sict.ums.sys.seg.vo.SmsTemplateVO" />
+		
+		<typeAlias alias="senderKeyVO"		type="kr.co.sict.ums.sys.cod.vo.SenderKeyVO" />
+		
+		<!-- 발송현황 -->
+		<typeAlias alias="scheduleVO"		type="kr.co.sict.ums.ems.sch.vo.ScheduleVO" />
+		
+		<!-- 캠페인/메일관리 -->
+		<typeAlias alias="campaignVO"		type="kr.co.sict.ums.ems.cam.vo.CampaignVO" />
+		<typeAlias alias="taskVO"			type="kr.co.sict.ums.ems.cam.vo.TaskVO" />
+		<typeAlias alias="attachVO"			type="kr.co.sict.ums.ems.cam.vo.AttachVO" />
+		<typeAlias alias="linkVO"			type="kr.co.sict.ums.ems.cam.vo.LinkVO" />
+		<typeAlias alias="testUserVO"		type="kr.co.sict.ums.ems.cam.vo.TestUserVO" />
+		<typeAlias alias="sendTestLogVO"	type="kr.co.sict.ums.ems.cam.vo.SendTestLogVO" />
+		<typeAlias alias="webAgentVO"		type="kr.co.sict.ums.ems.cam.vo.WebAgentVO" />
+		<typeAlias alias="emailClinicVO"	type="kr.co.sict.ums.ems.cam.vo.EmailClinicVO" />
+		<typeAlias alias="mailMktChkVO"		type="kr.co.sict.ums.ems.cam.vo.MailMktChkVO" />
+		<typeAlias alias="approvalOrgVO"	type="kr.co.sict.ums.ems.cam.vo.ApprovalOrgVO" />
+		<typeAlias alias="approvalLineVO"	type="kr.co.sict.ums.ems.apr.vo.SecuApprovalLineVO" />
+		
+		<!-- 템플릿 -->
+		<typeAlias alias="templateVO"		type="kr.co.sict.ums.ems.tmp.vo.TemplateVO" />
+
+		<!-- 통계분석 -->
+		<typeAlias alias="mailSummVO"		type="kr.co.sict.ums.ems.ana.vo.MailSummVO" />
+		<typeAlias alias="mailErrorVO"		type="kr.co.sict.ums.ems.ana.vo.MailErrorVO" />
+		<typeAlias alias="mailDomainVO"		type="kr.co.sict.ums.ems.ana.vo.MailDomainVO" />
+		<typeAlias alias="sendLogVO"		type="kr.co.sict.ums.ems.ana.vo.SendLogVO" />
+		<typeAlias alias="respLogVO"		type="kr.co.sict.ums.ems.ana.vo.RespLogVO" />
+		<typeAlias alias="periodSummVO"		type="kr.co.sict.ums.ems.ana.vo.PeriodSummVO" />
+		
+		<!-- RNS 자동발송관리 -->
+		<typeAlias alias="rnsTemplateVO"		type="kr.co.sict.ums.rns.tmp.vo.RnsTemplateVO" />
+		<typeAlias alias="rnsServiceVO"			type="kr.co.sict.ums.rns.svc.vo.RnsServiceVO" />
+		<typeAlias alias="rnsAttachVO"			type="kr.co.sict.ums.rns.svc.vo.RnsAttachVO" />
+		<typeAlias alias="rnsWebAgentVO"		type="kr.co.sict.ums.rns.svc.vo.RnsWebAgentVO" />
+		<typeAlias alias="rnsRecipientInfoVO"	type="kr.co.sict.ums.rns.svc.vo.RnsRecipientInfoVO" />
+		<typeAlias alias="rnsMailQueueVO"		type="kr.co.sict.ums.rns.svc.vo.RnsMailQueueVO" />
+		<typeAlias alias="rnsMailQueueTestVO"	type="kr.co.sict.ums.rns.svc.vo.RnsMailQueueTestVO" />
+		<typeAlias alias="rnsApprovalLineVO"	type="kr.co.sict.ums.rns.svc.vo.RnsSecuApprovalLineVO" />
+		
+		<!--RNS 통계분석 -->
+		<typeAlias alias="rnsAnaMonthVO"		type="kr.co.sict.ums.rns.ana.vo.RnsAnaMonthVO" />
+		<typeAlias alias="rnsAnaServiceVO"		type="kr.co.sict.ums.rns.ana.vo.RnsAnaServiceVO" />
+		<typeAlias alias="rnsAnaDomainVO"		type="kr.co.sict.ums.rns.ana.vo.RnsAnaDomainVO" />
+		<typeAlias alias="rnsAnaDetailLogVO"	type="kr.co.sict.ums.rns.ana.vo.RnsAnaDetailLogVO" />
+		<typeAlias alias="rnsAnaMailSendResultVO"	type="kr.co.sict.ums.rns.ana.vo.RnsAnaMailSendResultVO" />
+	
+		<!-- SMS 발송관리 --> 
+		<typeAlias alias="smsVO"				type="kr.co.sict.ums.sms.cam.vo.SmsVO" />
+		<typeAlias alias="smsPhoneVO"			type="kr.co.sict.ums.sms.cam.vo.SmsPhoneVO" />
+		<typeAlias alias="smsAttachVO"			type="kr.co.sict.ums.sms.cam.vo.SmsAttachVO" />
+		<typeAlias alias="smsCampaignVO"		type="kr.co.sict.ums.sms.cam.vo.SmsCampaignVO" />
+		<typeAlias alias="smsSendLogVO"			type="kr.co.sict.ums.sms.ana.vo.SmsSendLogVO" />
+		<typeAlias alias="smsScheduleVO"		type="kr.co.sict.ums.sms.sch.vo.SmsScheduleVO" />
+		<typeAlias alias="smsStgVO"				type="kr.co.sict.ums.sms.cam.vo.SmsStgVO" />
+		
+		<!-- PUSH 발송관리 -->
+		<typeAlias alias="pushVO"				type="kr.co.sict.ums.push.cam.vo.PushVO" />
+		<typeAlias alias="pushCampaignVO"		type="kr.co.sict.ums.push.cam.vo.PushCampaignVO" />
+		<typeAlias alias="pushSendLogVO"		type="kr.co.sict.ums.push.ana.vo.PushSendLogVO" />
+		<typeAlias alias="pushScheduleVO"		type="kr.co.sict.ums.push.sch.vo.PushScheduleVO" />
+		
+	</typeAliases>
+
+	<mappers>
+		<mapper resource="sict/sqlmap/com/CodeSQL-mysql.xml"></mapper>
+		<mapper resource="sict/sqlmap/lgn/LoginSQL-mysql.xml"></mapper>
+		<mapper resource="sict/sqlmap/main/MainSQL-mysql.xml"></mapper>
+		
+		<mapper resource="sict/sqlmap/ems/ana/AnalysisSQL-mysql.xml"></mapper>
+		<mapper resource="sict/sqlmap/ems/apr/ApprovalLineSQL-mysql.xml"></mapper>
+		<mapper resource="sict/sqlmap/ems/cam/CampaignSQL-mysql.xml"></mapper>
+		<mapper resource="sict/sqlmap/ems/sch/ScheduleSQL-mysql.xml"></mapper>
+		<mapper resource="sict/sqlmap/ems/tmp/TemplateSQL-mysql.xml"></mapper>
+
+		<mapper resource="sict/sqlmap/rns/tmp/TemplateSQL-mysql.xml"></mapper>
+		<mapper resource="sict/sqlmap/rns/svc/ServiceSQL-mysql.xml"></mapper>
+		<mapper resource="sict/sqlmap/rns/ana/AnalysisSQL-mysql.xml"></mapper>
+
+		<mapper resource="sict/sqlmap/sys/acc/AccountSQL-mysql.xml"></mapper>
+		<mapper resource="sict/sqlmap/sys/aut/AuthSQL-mysql.xml"></mapper>
+		<mapper resource="sict/sqlmap/sys/cod/UserCodeSQL-mysql.xml"></mapper>
+		<mapper resource="sict/sqlmap/sys/dbc/DBConnSQL-mysql.xml"></mapper>
+		<mapper resource="sict/sqlmap/sys/log/SystemLogSQL-mysql.xml"></mapper>
+		<mapper resource="sict/sqlmap/sys/rns/RnsStandardSQL-mysql.xml"></mapper>
+		<mapper resource="sict/sqlmap/sys/seg/SegmentSQL-mysql.xml"></mapper>
+		<mapper resource="sict/sqlmap/sys/seg/KakaoTemplateSQL-mysql.xml"></mapper>
+		<mapper resource="sict/sqlmap/sys/seg/SmsTemplateSQL-mysql.xml"></mapper>
+
+		<mapper resource="sict/sqlmap/sms/ana/SmsAnalysisSQL-mysql.xml"></mapper>
+		<mapper resource="sict/sqlmap/sms/cam/SmsCampaignSQL-mysql.xml"></mapper>
+		<mapper resource="sict/sqlmap/sms/sch/SmsScheduleSQL-mysql.xml"></mapper>
+		
+		<mapper resource="sict/sqlmap/push/cam/PushCampaignSQL-mysql.xml"></mapper>
+		<mapper resource="sict/sqlmap/push/sch/PushScheduleSQL-mysql.xml"></mapper>
+		<mapper resource="sict/sqlmap/push/ana/PushAnalysisSQL-mysql.xml"></mapper>
+	</mappers>
+	
+</configuration>

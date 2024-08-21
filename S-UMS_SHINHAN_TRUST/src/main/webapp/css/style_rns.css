@@ -1,0 +1,95 @@
+@charset "utf-8";
+
+/**
+ * --------------------------------
+ * RNS CSS
+ * creator : chowoobin
+ * --------------------------------
+*/
+
+/* layout */
+.rns .cont-head .util .user .info em {color:#AF00EE;}
+
+/* lnb */
+.rns #lnb nav {margin-top:30px;}
+.rns #lnb nav > ul > li > a > span {padding-left:36px;background:url("../img/rns/lnb_navicon.png") no-repeat;}
+.rns #lnb nav > ul > li > a > span.item01 {background-position:0 3px;}
+.rns #lnb nav > ul > li > a > span.item02 {background-position:0 -28px;}
+.rns #lnb nav > ul > li:nth-child(n+3):nth-child(-n+4) > a:after {content:'';background:none;}
+.rns #lnb .inner-menu li.active {background:#AF00EE;}
+
+/* input checkbox */
+input[type="checkbox"] + span:before {background-image:url("../img/rns/form_chk.png");}
+
+/* input radio */
+input[type="radio"] + span:before {background-image:url("../img/rns/form_rdo.png");}
+
+/* grid */
+.grid a {color:#AF00EE;}
+.grid a:not(.btn):hover {color:#8C25B1;}
+
+/* toggle */
+.toggle li.active > button {color:#AF00EE;}
+
+/* list-item */
+.list-item a{font-size:12px;color:#AF00EE;text-decoration:underline;}
+.list-item.mr12 input[type="checkbox"] + span{margin-right:12px;}
+.lineheight32 *{line-height:32px;vertical-align:middle;}
+
+/* popup : 보안메일 등록 */
+.popregisteragent .cont .clear label {float:right;margin-top:10px;}
+.popregisteragent .cont .clear label span {margin-right:0;color:#888;font-size:13px;}
+.popregisteragent .cont input[type="text"] {margin-top:20px;}
+.popregisteragent .cont .list-star {display:inline-block;}
+
+/* popup : HTML 등록, 파일 등록 */
+.pophtmlenroll .btn-wrap, .popfileenroll .btn-wrap {margin-top:40px;}
+.pophtmlenroll .list-star, .popfileenroll .list-star {margin-bottom:-30px;}
+
+/* popup : push */
+.popservicepush .cont .btn:hover {background:#AF00EE;}
+
+/* popup : 신규 메일 발송 */
+.popmailsend .list-wrap a:hover {background:#AF00EE;}
+
+/* popup : 발송결재라인 등록 */
+.popsendenroll h4 {padding-bottom:7px;font-size:16px;font-weight:600;border-bottom:1px solid #111;}
+.popsendenroll h4 .btn-reset {float:right;width:24px;height:24px;background:url("../img/common/btn_reset.png") no-repeat 0 0;}
+.popsendenroll .graybox {float:left;width:300px;height:490px;margin-top:0 !important;}
+.popsendenroll .graybox + .graybox {margin-left:20px;}
+.popsendenroll .content-area {padding:20px;}
+.popsendenroll .item input {width:65%;}
+.popsendenroll .item .btn {width:68px;margin-left:10px;}
+.popsendenroll .user {margin-top:20px;}
+.popsendenroll .user li {margin-top:10px;}
+.popsendenroll .user strong {margin-right:10px;padding-left:17px;background:url("../img/ems/btn_user.png") no-repeat 0 4px;color:#666;font-weight:600;}
+.popsendenroll .user span {color:#666;}
+.popsendenroll .user span:last-child:before {content:"|";display:inline-block;margin:0 5px 0 3px;}
+.popsendenroll .user li.active strong {color:#5668F0;background-position:0 -23px;}
+.popsendenroll .btn-area {position:absolute;top:200px;left:649px;}
+.popsendenroll .btn-area button {display:block;width:30px;height:30px;margin-bottom:15px;}
+.popsendenroll .btn-area .btn-remove {background:url("../img/common/arrow_left.png") no-repeat 0 0;}
+.popsendenroll .btn-area .btn-add {background:url("../img/common/arrow_right.png") no-repeat 0 0;}
+.popsendenroll .requester {display:flex;justify-content:space-between;margin-bottom:20px;padding:15px 13px 15px 23px;border-bottom:1px solid #E1E1E1;}
+.popsendenroll .requester span {color:#666;}
+.popsendenroll .grid-area {padding:0;}
+.popsendenroll .grid thead th {font-weight:400;}
+.popsendenroll .grid tbody tr {background-color:#fff;}
+.popsendenroll .grid tbody td:first-child {padding-left:30px;}
+.popsendenroll .grid .selected {background-color:#f2f2f2;}
+.popsendenroll .btn-wrap {margin-top:30px;}
+
+/* popup : 결재라인 정보 */
+.poppaymentinfo h3 {padding-bottom:7px;font-size:16px;font-weight:600;border-bottom:1px solid #111;}
+.poppaymentinfo .popcont {padding-top:30px;}
+.poppaymentinfo .requester {display:flex;justify-content:space-between;margin-bottom:20px;padding:15px 13px 15px 23px;border-bottom:1px solid #E1E1E1;}
+.poppaymentinfo .requester span {color:#666;}
+.poppaymentinfo .grid thead th {font-weight:400;}
+.poppaymentinfo .grid tbody tr {background-color:#fff;}
+.poppaymentinfo .btn-wrap {margin-top:30px;}
+
+/* popup : 템플릿 미리보기 */
+.poppreviewtemplate .graybox .table-area th {background:#f2f2f2;}
+.poppreviewtemplate .graybox .table-area td {padding:10px 20px;}
+.poppreviewtemplate .previewbox {margin-top:20px;border-radius:5px;box-shadow:0px 3px 10px rgba(141,141,141,0.16);}
+.poppreviewtemplate .previewbox img {max-width:100%;}
