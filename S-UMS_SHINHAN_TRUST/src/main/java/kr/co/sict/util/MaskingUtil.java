@@ -29,15 +29,14 @@ public class MaskingUtil {
 				// 고객 이름
 				} else if ("CUST_NM".equals(colNm) || "NAME".equals(colNm)) {
 					String frsNm = "";
-					String midNm = "";
-					String maskNm = ""; 
+					//String midNm = "";
+					String maskNm = "*"; 
+					String lastNm = "";
 					if(colData.length() > 0) {
 						frsNm = colData.substring(0,1);
-						midNm = colData.substring(1,colData.length()-1);
-						for(int i=0; i<1; i++) {
-							maskNm += "*";
+						if( colData.length() > 2) {
+							lastNm = colData.substring(2, colData.length());
 						}
-						String lastNm = colData.substring(3, colData.length());
 						result = frsNm + maskNm + lastNm;
 						break;
 					} else {

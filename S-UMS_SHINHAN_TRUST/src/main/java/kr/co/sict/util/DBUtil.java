@@ -143,6 +143,12 @@ public class DBUtil {
 				sql += "   AND TABNAME NOT LIKE 'TS_%' 		";
 				sql += " ORDER BY TABNAME 						";
 			} else if(Code.DB_VENDOR_POSTGRES.equals(dbTy)) {	//POSTGRES
+				sql =  "SELECT TABLENAME TABLE_NAME 				";
+				sql += "  FROM PG_TABLES ";
+				sql += " WHERE UPPER(TABLEOWNER) = '" +loginId.toUpperCase() + "' ";
+				sql += "   AND UPPER(TABLENAME)NOT LIKE '%NEO_%' 		";
+				sql += "   AND UPPER(TABLENAME) NOT LIKE 'TS_%' 		";
+				sql += " ORDER BY TABLENAME 						";
 			} else {
 				sql = "";
 			}
@@ -253,13 +259,20 @@ public class DBUtil {
 				sql += "  WHERE TABSCHEMA = '" + loginId.toUpperCase() + "'	";
 				sql += "	   AND TABNAME = '" + tblNm + "'";
 			} else if(Code.DB_VENDOR_POSTGRES.equals(dbTy)) {	//POSTGRES
+				sql =  " SELECT table_name TBL_NM,				";
+				sql += "   	   column_name COL_NM,				";
+				sql += "		   data_type COL_DATA_TY,	";
+				sql += "		   '' COL_DATA_TY_JDBC		";
+				sql += "	  FROM information_schema.\"columns\"  ";
+				sql += "  WHERE UPPER(TABLENAME) =UPPER( '" + tblNm + "' )	";  
 			} else {
 				sql = "";
 			}
 			
 			logger.debug("getRealColumnList sql = " + sql);
 			
-	 
+			
+			/*
 			pstm = conn.prepareStatement(sql);
 			rss = pstm.executeQuery();
 			
@@ -272,9 +285,9 @@ public class DBUtil {
 				
 				columnList.add(metaColumn);
 			}
-		 
+			*/
 			
-			/*sql = "SELECT * FROM " + tblNm + " WHERE 1 = 2 ";
+			sql = "SELECT * FROM " + tblNm + " WHERE 1 = 2 ";
 			
 			pstm = conn.prepareStatement(sql);
 			rss = pstm.executeQuery();
@@ -287,8 +300,7 @@ public class DBUtil {
 				metaColumn.setColDataTy(metaData.getColumnTypeName(cnt));
 				metaColumn.setColDataTyJdbc(Integer.toString(metaData.getColumnType(cnt)));
 				columnList.add(metaColumn);
-			}
-			*/
+			} 
 		} catch(Exception e) {
 			System.out.println("getRealColumnList error = " + e);
 		} finally {
@@ -692,16 +704,21 @@ public class DBUtil {
 			String mergeKey = "";
 			int cols = mrs.getColumnCount();
 			for(int i=1;i<=cols;i++) {
-				if(i == 1) {
-					//oracle 
-					//mergeKey += mrs.getColumnName(i).toUpperCase();
-					//mysql 
-					mergeKey += mrs.getColumnLabel(i).toUpperCase();
+				// oracle : getColumnName(i)과 getColumnLabel(i)이 알리아스명
+				// mariadb: getColumnName(i)은 원래 컬러명 getColumnLabel(i)이 알리아스명
+				//dbDriver : org.mariadb.jdbc.Driver
+				if(dbDriver.indexOf("maria") > 0 ) {
+					if(i == 1) {
+						mergeKey += mrs.getColumnLabel(i).toUpperCase();
+					} else {
+						mergeKey += "," + mrs.getColumnLabel(i).toUpperCase();
+					}
 				} else {
-					//oracle 
-					//mergeKey += mrs.getColumnName(i).toUpperCase();
-					//mysql
-					mergeKey += "," + mrs.getColumnLabel(i).toUpperCase();
+					if(i == 1) {
+						mergeKey += mrs.getColumnName(i).toUpperCase();
+					} else {
+						mergeKey += "," + mrs.getColumnName(i).toUpperCase();
+					}
 				}
 			}
 			
@@ -747,16 +764,21 @@ public class DBUtil {
 			String mergeKey = "";
 			int cols = mrs.getColumnCount();
 			for(int i=1;i<=cols;i++) {
-				if(i == 1) {
-					//oracle 
-					//mergeKey += mrs.getColumnName(i).toUpperCase();
-					//mysql 
-					mergeKey += mrs.getColumnLabel(i).toUpperCase();
+				// oracle : getColumnName(i)과 getColumnLabel(i)이 알리아스명
+				// mariadb: getColumnName(i)은 원래 컬러명 getColumnLabel(i)이 알리아스명
+				//dataSourceNAme : java:/comp/env/MPV31ForMaria
+				if(dataSourceName.indexOf("Maria") > 0 ) {
+					if(i == 1) {
+						mergeKey += mrs.getColumnLabel(i).toUpperCase();
+					} else {
+						mergeKey += "," + mrs.getColumnLabel(i).toUpperCase();
+					}
 				} else {
-					//oracle 
-					//mergeKey += mrs.getColumnName(i).toUpperCase();
-					//mysql
-					mergeKey += "," + mrs.getColumnLabel(i).toUpperCase();
+					if(i == 1) {
+						mergeKey += mrs.getColumnName(i).toUpperCase();
+					} else {
+						mergeKey += "," + mrs.getColumnName(i).toUpperCase();
+					}
 				}
 			}
 			

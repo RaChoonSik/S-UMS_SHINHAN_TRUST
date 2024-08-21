@@ -1,18 +1,26 @@
 /**
- * 작성자 : 김상진
+ * 작성자 : 김준희
  * 작성일시 : 2021.07.06
  * 설명 : 문자열 관련 처리 모음
  */
 package kr.co.sict.util;
 
+import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.log4j.Logger;
+
 public class StringUtil {
-	
+	private static Logger logger = Logger.getLogger(StringUtil.class);
 	/**
 	 * Null 문자열인 경우 0을 반환한다. Null이 아닌 경우 문자열을 숫자로 변환한다.
 	 * @param str
@@ -77,19 +85,7 @@ public class StringUtil {
 			return "00";
 		}
 	}
-	
-	/**
-	 * Null 문자열인 경우 ""을 반환한다. Null이 아닌 경우 문자열을 변환한다.
-	 * @param str
-	 * @return
-	 */
-	public static String setNullToString(String str) {
-		if(str != null && !"".equals(str)) {
-			return str;
-		} else {
-			return "";
-		} 
-	}
+ 
 	
 	/**
 	 * 값이 NULL인지 체크한다.
@@ -147,6 +143,10 @@ public class StringUtil {
 			cal.add(Calendar.MONTH, dur);
 		} else if("Y".equals(durType)) {
 			cal.add(Calendar.YEAR, dur);
+		} else if("H".equals(durType)) {
+			cal.add(Calendar.HOUR_OF_DAY, dur);
+		} else if("MI".equals(durType)) {
+			cal.add(Calendar.MINUTE, dur);
 		}
 		
 		SimpleDateFormat sdf = new SimpleDateFormat(format);
@@ -835,6 +835,8 @@ public class StringUtil {
 	public static String makeRandomString(int makeType) {
 		String retStr = "";
 		int randomLength = 0;
+		int randomCharLength = 0;
+		int randomNumLength = 0;
 		
 		char[]charTable =  { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
 				'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
@@ -847,10 +849,15 @@ public class StringUtil {
 				'w', 'x', 'y', 'z', '!', '@', '#', '$', '%', '^', '&', '*',
 				'(', ')', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0' };
 		
+		char[]charOnlyTable =  { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
+				'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
+
+		char[]numOnlyTable =   { '1', '2', '3', '4', '5', '6', '7', '8', '9', '0' };
+		
 		Random random = new Random(System.currentTimeMillis());
 		
 		if(makeType == Code.RAND_TYPE_A) { //숫자
-			randomLength = 6;
+			randomLength = 5;
 			
 			int range = (int)Math.pow(10,randomLength);
 			int trim = (int)Math.pow(10, randomLength-1);
@@ -871,7 +878,23 @@ public class StringUtil {
 				buf.append(charTable[random.nextInt(tableLength)]);
 			}
 			
-			retStr = buf.toString(); 
+			retStr = buf.toString();
+		} else if (makeType == Code.RAND_TYPE_D) { //문자2+숫자6
+			randomCharLength = 2;
+			randomNumLength = 6;
+			
+			int tableLength  = charOnlyTable.length;
+			StringBuffer buf = new StringBuffer();
+			
+			for (int i = 0; i < randomCharLength ; i ++) {
+				buf.append(charOnlyTable[random.nextInt(tableLength)]);
+			}
+			
+			tableLength  = numOnlyTable.length;
+			for (int j= 0; j < randomNumLength ; j ++) {
+				buf.append(numOnlyTable[random.nextInt(tableLength)]);
+			}
+			retStr = buf.toString();
 		} else { //문자+숫자+특수문자 
 			randomLength = 8;
 			
@@ -887,6 +910,328 @@ public class StringUtil {
 		return  retStr;
 	}
 	
+	
+	/**
+	 * 두 날짜의 차이를 계산한다 
+	 * 
+	 * @param input
+	 *	srcDate : 기준이 되는 날짜 tagDate : 계산 대상 날짜 
+	 * @return 일자 차이 
+	 */
+	public static int getCalcDateDiff(String srcDate, String tagDate) {
+		if("".equals(tagDate)) {
+			tagDate = getDate(Code.TM_YMDHMS);
+		}
+		
+		DateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
+		
+		long days = 0 ; 
+		long secs = 0 ; 
+		try {
+			Date d1 = format.parse( tagDate );
+			Date d2 = format.parse( srcDate );
+			secs = (d1.getTime() - d2.getTime()) / 1000; // 초
+			days = secs / (24*60*60); // 일자수
+		} catch (ParseException e) {
+			days = -99999;
+		} 
+		
+		int dateDiff = Long.valueOf(days).intValue();
+		
+		return dateDiff;
+	}
+	
+	/**
+	 * 암호 체크 
+	 * 
+	 * @param input
+	 *	입력된 암호 
+	 * @return 결과 
+	 */
+	public static String checkPw(String inputPw) {
+		String strResult = "";
+		if (inputPw == null || inputPw.equals("")) return "1";
+		if (inputPw.length() > 16) return "2";
+
+		try {
+			Pattern pAlphabetLow = null;
+			Pattern pAlphabetUp = null;
+			Pattern pNumber = null;
+			Pattern pSpecialChar = null;
+			Pattern pThreeChar = null;
+			Matcher match;
+			int nCharType = 0;
+
+			pAlphabetLow = Pattern.compile("[a-z]");		 	// 영소문자
+			pAlphabetUp = Pattern.compile("[A-Z]");				// 영대문자
+			pNumber = Pattern.compile("[0-9]");					// 숫자
+			pSpecialChar = Pattern.compile("\\p{Punct}");		// 특수문자 -_=+\\|()*&^%$#@!~`?></;,.:'
+			pThreeChar = Pattern.compile("(\\p{Alnum})\\1{2,}");// 3자리 이상 같은 문자 또는 숫자
+
+			// 영소문자가 포함되어 있는가?
+			match = pAlphabetLow.matcher(inputPw);
+			if(match.find()) nCharType++;
+			// 영대문자가 포함되어 있는가?
+			match = pAlphabetUp.matcher(inputPw);
+			if(match.find()) nCharType++;
+			// 숫자가 포함되어 있는가?
+			match = pNumber.matcher(inputPw);
+			if(match.find()) nCharType++;
+			// 특수문자가 포함되어 있는가?
+			match = pSpecialChar.matcher(inputPw);
+			if(match.find()) nCharType++;
+			
+			// 3자리 이상 같은 문자 또는 숫자가 포함되어 있는가?
+			match = pThreeChar.matcher(inputPw);
+			if(match.find()) return "8";
+			
+			// 3가지 이상 조합인가?
+			if (nCharType >= 3) {
+				if(inputPw.length() < 8) return "4";
+				else strResult = "0";
+			// 2가지 조합인가?
+			}else if(nCharType == 2) {
+				if(inputPw.length() < 10) return "3";
+				else strResult = "0";
+			// 1가지 조합인가?
+			} else {
+				return "5";
+			}
+
+			// 연속된 3자리 이상의 문자나 숫자가 포함되어 있는가?
+			String listThreeChar = "abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz|012|123|234|345|456|567|678|789|890";
+			String[] arrThreeChar = listThreeChar.split("\\|");
+			for (int i=0; i<arrThreeChar.length; i++) {
+				if(inputPw.toLowerCase().matches(".*" + arrThreeChar[i] + ".*")) {
+					return "6";
+				}
+			}
+
+			// 연속된 3자리 이상의 키보드 문자가 포함되어 있는가?
+			String listKeyboardThreeChar = "qwe|wer|ert|rty|tyu|yui|uio|iop|asd|sdf|dfg|fgh|ghj|hjk|jkl|zxc|xcv|cvb|vbn|bnm";
+			String[] arrKeyboardThreeChar = listKeyboardThreeChar.split("\\|");
+			for (int j=0; j<arrKeyboardThreeChar.length; j++) {
+				if(inputPw.toLowerCase().matches(".*" + arrKeyboardThreeChar[j] + ".*")) {
+					return "7";
+				}
+			}
+		} catch (Exception ex) {
+			strResult = "99";
+		}
+
+		return strResult;
+	}
+	
+	public static String getClientIP(HttpServletRequest request) {
+		String ip = request.getHeader("X-Forwarded-For");
+		logger.info("> X-FORWARDED-FOR : " + ip);
+
+		if (ip == null) {
+			ip = request.getHeader("Proxy-Client-IP");
+			logger.info("> Proxy-Client-IP : " + ip);
+		}
+		if (ip == null) {
+			ip = request.getHeader("WL-Proxy-Client-IP");
+			logger.info(">  WL-Proxy-Client-IP : " + ip);
+		}
+		if (ip == null) {
+			ip = request.getHeader("HTTP_CLIENT_IP");
+			logger.info("> HTTP_CLIENT_IP : " + ip);
+		}
+		if (ip == null) {
+			ip = request.getHeader("HTTP_X_FORWARDED_FOR");
+			logger.info("> HTTP_X_FORWARDED_FOR : " + ip);
+		}
+		if (ip == null) {
+			ip = request.getRemoteAddr();
+			logger.info("> getRemoteAddr : "+ip);
+		}
+		logger.info("> Result : IP Address : "+ip);
+
+		return ip;
+	}
+	
+	
+	/**
+	 * 문자열을 숫자로 넘겨준다 
+	 * 
+	 * @param input
+	 *	srcDate : 기준이 되는 날짜 tagDate : 계산 대상 날짜 
+	 * @return 일자 차이 
+	 */
+	public static int getStringToInt(String target) {
+		int result = 0; 
+		if ( target != null && target.matches("[0-9.]+")) {
+			try{
+				result = Integer.valueOf(target);
+			}
+			catch (NumberFormatException ex){
+				result = 0;
+			}
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * Null 문자열인 경우 ""을 반환한다. Null이 아닌 경우 문자열을 변환한다.
+	 * @param str
+	 * @return
+	 */
+	public static String setNullToString(String str) {
+		if(str != null && !"".equals(str)) {
+			return str;
+		} else {
+			return "";
+		} 
+	}
+	
+	/**
+	 * Null 문자열인 경우 defaultVal을 반환한다. Null이 아닌 경우 문자열을 변환한다.
+	 * @param str
+	 * @return
+	 */
+	public static String setNullToString(String str, String defaultVal) {
+		if(str != null && !"".equals(str)) {
+			return str;
+		} else {
+			return defaultVal;
+		} 
+	}
+	
+	/**
+	 * 문자열 자르기
+	 * @param str
+	 * @return
+	 */
+	public static String substr(String str,int i, int j) {
+		
+		if( str == null ||  str.length() < i || str.length() < j ) {
+			return "";
+		}
+		return str.substring(i,j); 
+	}
+	
+	/**
+	 * 문자열 DATA 포맷
+	 * @param str
+	 * @return
+	 */
+	public static String datefmt(String str,String seperator) {
+		
+		if(str == null  ) {
+			return "";
+		}
+		if( str.trim().length() < 8 ) {
+			return str.trim();
+		}
+		return str.substring(0,4)+ seperator + str.substring(4,6)+ seperator + str.substring(6,8);
+	}
+	
+	/**
+	 * 마스킹처리 - 글자수 
+	 * @param str
+	 * @return
+	 */
+	public static String strMask(String str,int count ) {
+		
+		if(str == null  ) {
+			return "";
+		}
+		if( str.length() < count ) {
+			return "************************************************".substring(0,count);
+		}
+		return str.substring(0, str.length()- count ) +  "************************************************".substring(0,count);
+	}
+	
+	/**
+	 * 마스킹 처리 - 구간 
+	 * @param str
+	 * @return
+	 */
+	public static String strMask(String str,int from ,int to) {
+		
+		if(str == null  ) {
+			return "";
+		}
+		int count = to - from;
+		
+		if( str.length() < count ) {
+			return "************************************************".substring(0,count);
+		}
+		return str.substring(0, from ) +  "************************************************".substring(0,count) + str.substring(to) ;
+	}
+	
+	/**
+	 * 마스킹 처리 - 카드 
+	 * @param str
+	 * @return
+	 */
+	public static String cardMask(String str) {
+		String retStr = "";
+		
+		if(str == null  ) {
+			return "";
+		}
+		retStr = str.substring(0, 6)+"-" + "***-****" + str.substring(13);   
+		
+		return retStr;
+	}
+	
+	/**
+	 * 문자 숫자 포맷 변환 
+	 * @param str
+	 * @return
+	 */
+	public static String numFmt(String str ) {
+		
+		if(str == null || "".equals(str) ) {
+			return "";
+		}
+		DecimalFormat df = new DecimalFormat( "#,###.###" );
+		double dval = Double.parseDouble( str.trim() );
+		return df.format(dval);
+	}
+	
+	/**
+	 * 문자 Double 숫자로 변환
+	 * @param str
+	 * @return
+	 */
+	public static double parseDouble(String str ) {
+		
+		if(str == null || "".equals(str) ) {
+			return 0;
+		}
+		double dval = Double.parseDouble( str.trim() );
+		return dval;
+	}
+	
+	public static String dateToString(Date date) {
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+		String retStr = formatter.format(date);
+		 
+		return retStr;
+	}
+	
+	/**
+	 * String값 비교 함수
+	 * 
+	 * @param target
+	 * @param checkData
+	 * @param splitValue
+	 * @return {boolean}
+	 * @example
+	 * 	false = StringUtil.compareString("exe;zip;ini;", "exe1", ";") </br>
+	 *  true = StringUtil.compareString("exe;zip;ini;", "zip", ";")
+	 */
+	 public static boolean compareString(String target, String checkData, String splitValue) {
+		 String[] parts = target.split(splitValue);
+		 for (String part : parts) {
+			 if (part.equals(checkData)) return true;
+		 }
+		 return false;
+	}
 	/**
 	 * "_"뒤의 단어 찾아서 삭제 하고 제공된 문자 합친다
 	 * 

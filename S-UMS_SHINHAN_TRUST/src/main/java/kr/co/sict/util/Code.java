@@ -308,5 +308,6 @@ public class Code {
 	public static final int RAND_TYPE_B = 2;
 	/** 숫자 + 문자 + 특수문자*/
 	public static final int RAND_TYPE_C = 3; 
-
+	/** 문자2 + 숫자6*/
+	public static final int RAND_TYPE_D = 4;
 }
