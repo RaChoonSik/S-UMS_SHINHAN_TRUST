@@ -66,6 +66,9 @@ public class SegmentVO extends CommonVO {
 	private String checkSearchReason;	// 조회사유등록여부
 	private String searchReasonCd;		// 조회사유코드
 	private String contentPath;			// 컨텐츠경로
+	
+	private int serviceGb;			//서비스구분			
+
 	public int getSegNo() {
 		return segNo;
 	}
@@ -390,4 +393,11 @@ public class SegmentVO extends CommonVO {
 	public void setContentPath(String contentPath) {
 		this.contentPath = contentPath;
 	}
+	public int getServiceGb() {
+		return serviceGb;
+	}
+	public void setServiceGb(int serviceGb) {
+		this.serviceGb = serviceGb;
+	}
+	
 }

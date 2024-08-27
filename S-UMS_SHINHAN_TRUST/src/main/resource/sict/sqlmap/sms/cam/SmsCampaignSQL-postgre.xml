@@ -24,7 +24,7 @@
 					 , E.CD_NM CAMP_TY_NM
 					 , F.CD_NM STATUS_NM
 					 , (SELECT COUNT(*) FROM NEO_SMS T1 WHERE T1.SMS_STATUS = '000' AND T1.GUBUN != '004' AND T1.CAMPUS_NO = A.CAMP_NO ) CAMP_SMS_CNT
-					 , ROW_NUMBER() OVER (ORDER BY NEO_SMS.KEYGEN DESC) SEQ
+					 , ROW_NUMBER() OVER (ORDER BY A.CAMP_NO) SEQ
 					 , COUNT(1) OVER() TOTAL_COUNT
 				  FROM NEO_CAMPAIGN A
 					 , NEO_USER B
@@ -61,7 +61,7 @@
 				   <if test="searchEndDt != null and searchEndDt != ''">
 				   AND A.REG_DT &lt; #{searchEndDt} || '240000'
 				   </if>
-				 ORDER BY NEO_SMS.KEYGEN
+				 ORDER BY A.CAMP_NO
 				)
 		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
 	</select>

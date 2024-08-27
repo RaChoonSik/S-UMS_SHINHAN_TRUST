@@ -29,6 +29,7 @@
 		<input type="hidden" id="headerInfo" name="headerInfo">
 		<input type="hidden" name="createTy" value="003">
 		<input type="hidden" name="smsuseYn" value="Y">
+		<input type="hidden" name="serviceGb" value="30">
 		<fieldset>
 			<legend>수신자그룹 선택</legend>
 			<h3 class="pop-title">수신자그룹 신규등록</h3>

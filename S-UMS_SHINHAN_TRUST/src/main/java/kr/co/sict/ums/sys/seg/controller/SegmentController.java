@@ -551,6 +551,7 @@ public class SegmentController {
 		logger.debug("insertSegmentInfo emsuseYn      = " + segmentVO.getEmsuseYn());
 		logger.debug("insertSegmentInfo pushuseYn     = " + segmentVO.getPushuseYn());
 		logger.debug("insertSegmentInfo smsuseYn      = " + segmentVO.getSmsuseYn());
+		logger.debug("insertSegmentInfo serviceGb      = " + segmentVO.getServiceGb());
 		
 		int result = 0;
 		
