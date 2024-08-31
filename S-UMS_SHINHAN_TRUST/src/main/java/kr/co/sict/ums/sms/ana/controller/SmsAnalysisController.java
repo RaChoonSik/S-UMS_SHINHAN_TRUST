@@ -2318,7 +2318,7 @@ public class SmsAnalysisController {
         }
         
         if(smsSendList != null && smsSendList.size() > 0) {
-            totalCount = smsSendList.get(0).getTotalCount();
+            totalCount = smsSendList.get(0).getTotalCnt();
         }
         
         PageUtil pageUtil = new PageUtil();
