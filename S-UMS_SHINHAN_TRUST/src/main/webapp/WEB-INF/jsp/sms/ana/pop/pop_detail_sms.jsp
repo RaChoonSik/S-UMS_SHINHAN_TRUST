@@ -10,13 +10,12 @@
 <div id="pop_detail_sms" class="poplayer poptestsendinfo">
 	<div class="inner medium">
 		<header>
-			<h2>SMS 상세 로그</h2>
+			<h2>SMS 상세 내용</h2>
 		</header>
 		<div class="popcont">
 			<div class="cont">
 				<form id="smsDetailForm" name="smsDetailForm" method="post">
 					<input type="hidden" id="popMsgid"          name="msgid" value=""/>
-					<input type="hidden" id="popKeygen"         name="keygen" value=""/>
 					<input type="hidden" id="popCmid"           name="cmid" value=""/>
 					<input type="hidden" id="popAttachFileList" name="attachPath" value=""/>
 					<fieldset>
@@ -26,7 +25,7 @@
 								<h3 class="h3-title">SMS상세 정보</h3>
 								<!-- btn-wrap// -->
 								<div class="btn-wrap">
-									<button type="button" class="btn" style="margin-left:10px;" id="btnSmsPreview" onclick="getSmsMsg(msgid,keygen);">미리보기</button>
+<!-- 									<button type="button" class="btn" style="margin-left:10px;" id="btnSmsPreview" onclick="getSmsMsg(msgid,keygen);">미리보기</button> -->
 								</div>
 								<!-- //btn-wrap -->
 							</div>
@@ -42,41 +41,43 @@
 									</colgroup>
 									<tbody>
 										<tr>
-											<th scope="row">발송일시</th>
-											<td id="popSendDate"></td>
+											<th scope="row">keygen</th>
+											<td id="popKeygen"></td>
 										</tr>
 										<tr>
-											<th scope="row">캠페인명</th>
-											<td id="popCampNm"></td>
+											<th scope="row">발송내용</th>
+											<td id="" style="height:130px">
+											<textarea id="popMsgBody" name="popMsgBody"></textarea>
+											</td>
 										</tr>
 										<tr>
-											<th scope="row">메세지유형</th>
-											<td id="popGubunNm"></td> 
+											<th scope="row">발송결과</th>
+											<td id="popCallStatusNm" style="height:80px"></td> 
 										</tr>
-										<tr>
-											<th scope="row">발송유형</th>
-											<td id="popSendGubunNm"></td> 
-										</tr>
-										<tr>
-											<th scope="row">메세지 제목</th>
-											<td id="popSmsTitle"></td>
-										</tr>
-										<tr>
-											<th scope="row">고객ID</th>
-											<td id="popCustId"></td>
-										</tr>
-										<tr>
-											<th scope="row">고객명</th>
-											<td id="popCustNm"></td>
-										</tr>
-										<tr>
-											<th scope="row" >고객 전화번호</th>
-											<td id="popCustPhone"></td>
-										</tr>
-										<tr>
-											<th scope="row" >발송결과</th>
-											<td id="popRsltCd"></td>
-										</tr>
+<!-- 										<tr> -->
+<!-- 											<th scope="row">발송유형</th> -->
+<!-- 											<td id="popSendGubunNm"></td>  -->
+<!-- 										</tr> -->
+<!-- 										<tr> -->
+<!-- 											<th scope="row">메세지 제목</th> -->
+<!-- 											<td id="popSmsTitle"></td> -->
+<!-- 										</tr> -->
+<!-- 										<tr> -->
+<!-- 											<th scope="row">고객ID</th> -->
+<!-- 											<td id="popCustId"></td> -->
+<!-- 										</tr> -->
+<!-- 										<tr> -->
+<!-- 											<th scope="row">고객명</th> -->
+<!-- 											<td id="popCustNm"></td> -->
+<!-- 										</tr> -->
+<!-- 										<tr> -->
+<!-- 											<th scope="row" >고객 전화번호</th> -->
+<!-- 											<td id="popCustPhone"></td> -->
+<!-- 										</tr> -->
+<!-- 										<tr> -->
+<!-- 											<th scope="row" >발송결과</th> -->
+<!-- 											<td id="popRsltCd"></td> -->
+<!-- 										</tr> -->
 									</tbody>
 								</table>
 							</div>

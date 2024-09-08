@@ -26,9 +26,9 @@ import kr.co.sict.ums.com.vo.CodeVO;
 import kr.co.sict.ums.sms.cam.service.SmsCampaignService;
 import kr.co.sict.ums.sms.cam.vo.SmsCampaignVO;
 import kr.co.sict.ums.sys.dbc.vo.DbConnVO;
-import kr.co.sict.ums.sys.seg.service.SegmentService;
+import kr.co.sict.ums.ems.seg.service.SegmentService;
 import kr.co.sict.ums.sys.seg.service.SmsTemplateService;
-import kr.co.sict.ums.sys.seg.vo.SegmentVO;
+import kr.co.sict.ums.ems.seg.vo.SegmentVO;
 import kr.co.sict.ums.sys.seg.vo.SmsTemplateVO;
 import kr.co.sict.util.Code;
 import kr.co.sict.util.PageUtil;
@@ -377,7 +377,8 @@ public class SmsTemplateController {
 		seg.setRows(10000);
 		//seg.setSearchDeptNo("Y".equals((String)session.getAttribute("NEO_ADMIN_YN"))?0:(int)session.getAttribute("NEO_DEPT_NO"));
 		//seg.setSearchDeptNo(0);
-		seg.setSearchSmsuseYn("Y");
+		//20240908 주석처리
+//		seg.setSearchSmsuseYn("Y");
 		List<SegmentVO> segList = null;
 		try {
 			segList = segmentService.getSegmentList(seg);
@@ -600,7 +601,8 @@ public class SmsTemplateController {
 		//searchVO.setSearchDeptNo(0);
 		
 		searchVO.setSearchStatus("000");
-		searchVO.setSearchSmsuseYn("Y");
+		//20240908 주석처리
+//		searchVO.setSearchSmsuseYn("Y");
 		
 		// 수신자그룹 생성 유형 코드 조회
 		CodeVO createTy = new CodeVO();

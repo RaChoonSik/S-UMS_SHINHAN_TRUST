@@ -51,4 +51,9 @@ public class SmsAnalysisServiceImpl implements SmsAnalysisService {
     public List<SmsSendLogVO> getSmsCampList(SmsSendLogVO smsSendLogVO) throws Exception {
         return smsAnalysisDAO.getSmsCampList(smsSendLogVO);
     }
+
+	@Override
+	public List<SmsSendLogVO> getInterfaceList(SmsSendLogVO smsSendLogVO) {
+		return smsAnalysisDAO.getInterfaceList(smsSendLogVO);
+	}
 }

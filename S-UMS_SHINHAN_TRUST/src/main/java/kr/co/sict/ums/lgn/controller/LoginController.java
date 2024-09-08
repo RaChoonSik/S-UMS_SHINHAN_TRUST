@@ -234,7 +234,8 @@ public class LoginController {
 			session.setAttribute("NEO_USER_TEL", userVO.getUserTel());			//연락처
 			session.setAttribute("NEO_USER_EM", userVO.getUserEm());			//이메일
 			session.setAttribute("NEO_REPLY_TO_EM", userVO.getReplyToEm());		//회신이메일
-			session.setAttribute("NEO_RETURN_EM", userVO.getReturnEm());		//return 이메일 
+			session.setAttribute("NEO_RETURN_EM", userVO.getReturnEm());		//return 이메일
+			session.setAttribute("NEO_PER_PAGE", StringUtil.setNullToInt(userVO.getPerPage(), Integer.parseInt(properties.getProperty("LIST.ROW_PER_PAGE")))); // 사용자별 목록 조회 페이지
 			
 			session.setAttribute("NEO_USE_EMS", "N");			// EMS 사용여부
 			session.setAttribute("NEO_USE_RNS", "N");			// RNS 사용여부
@@ -494,7 +495,8 @@ public class LoginController {
 			session.setAttribute("NEO_USER_TEL", userVO.getUserTel());			//연락처
 			session.setAttribute("NEO_USER_EM", userVO.getUserEm());			//이메일
 			session.setAttribute("NEO_REPLY_TO_EM", userVO.getReplyToEm());		//회신이메일
-			session.setAttribute("NEO_RETURN_EM", userVO.getReturnEm());		 //return 이메일 
+			session.setAttribute("NEO_RETURN_EM", userVO.getReturnEm());		 //return 이메일
+			session.setAttribute("NEO_PER_PAGE", StringUtil.setNullToInt(userVO.getPerPage(), Integer.parseInt(properties.getProperty("LIST.ROW_PER_PAGE")))); // 사용자별 목록 조회 페이지
 			
 			session.setAttribute("NEO_USE_EMS", "N");			// EMS 사용여부
 			session.setAttribute("NEO_USE_RNS", "N");			// RNS 사용여부

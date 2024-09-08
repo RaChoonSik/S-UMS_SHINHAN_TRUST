@@ -41,7 +41,7 @@ import kr.co.sict.ums.com.service.CodeService;
 import kr.co.sict.ums.com.service.CryptoService;
 import kr.co.sict.ums.sys.acc.service.AccountService;
 import kr.co.sict.ums.sys.seg.service.KakaoTemplateService;
-import kr.co.sict.ums.sys.seg.service.SegmentService;
+import kr.co.sict.ums.ems.seg.service.SegmentService;
 import kr.co.sict.ums.sys.seg.service.SmsTemplateService;
 import kr.co.sict.ums.sms.cam.service.SmsCampaignService;
 import kr.co.sict.ums.sms.cam.vo.SmsAttachVO;
@@ -55,7 +55,7 @@ import kr.co.sict.ums.sys.cod.service.UserCodeService;
 import kr.co.sict.ums.sys.dbc.service.DBConnService;
 import kr.co.sict.ums.sys.dbc.vo.DbConnVO;
 import kr.co.sict.ums.sys.seg.vo.KakaoTemplateVO;
-import kr.co.sict.ums.sys.seg.vo.SegmentVO;
+import kr.co.sict.ums.ems.seg.vo.SegmentVO;
 import kr.co.sict.ums.sys.seg.vo.SmsTemplateVO;
 import kr.co.sict.util.Code;
 import kr.co.sict.util.PageUtil;
@@ -1251,6 +1251,7 @@ public class SmsCampaignController {
 		seg.setRows(10000);
 		seg.setSearchDeptNo("Y".equals((String)session.getAttribute("NEO_ADMIN_YN"))?0:(int)session.getAttribute("NEO_DEPT_NO"));
 		seg.setSearchSmsuseYn("Y");
+		
 		List<SegmentVO> segList = null;
 		try {
 			segList = segmentService.getSegmentList(seg);

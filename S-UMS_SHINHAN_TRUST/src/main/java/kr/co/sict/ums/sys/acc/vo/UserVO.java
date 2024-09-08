@@ -43,6 +43,7 @@ public class UserVO extends CommonVO {
     private String jobNm;        // 직책명
     private String serviceGb;    // 사용가능서비스코드
     private String serviceNm;     // 사용가능서비스명
+    private int    perPage;		// 사용자별 페이지(기본값 12)
     private String pwInitYn;    // 사용자비밀번호 초기화 여부
     
     private String regId;        // 등록자
@@ -666,4 +667,13 @@ public class UserVO extends CommonVO {
     public void setRtnMsg(String rtnMsg) {
         this.rtnMsg = rtnMsg;
     }
+
+	public int getPerPage() {
+		return perPage;
+	}
+
+	public void setPerPage(int perPage) {
+		this.perPage = perPage;
+	}
+    
 }

@@ -191,6 +191,45 @@ public class EncryptUtil {
 	}
 	
 	/**
+	 * 문자열을 Jasypt library로 암호화한다.(고정)
+	 * @param algorithm
+	 * @param password
+	 * @param str
+	 * @return
+	 */
+	public static String getJasyptEncryptedFixString(String algorithm, String password, String str) {
+		try {
+			StandardPBEStringEncryptor encryptor = new StandardPBEStringEncryptor();
+			encryptor.setAlgorithm(algorithm);
+			encryptor.setPassword(password);
+			return encryptor.encrypt(str);
+		} catch(Exception e) {
+			logger.error("getJasyptEncryptedUnFixString error = " + e);
+			return str;
+		}
+	}
+	
+	/**
+	 * 문자열을 Jasypt library로 복호화한다.(고정)
+	 * @param algorithm
+	 * @param password
+	 * @param str
+	 * @return
+	 */
+	public static String getJasyptDecryptedFixString(String algorithm, String password, String str) {
+		try {
+			StandardPBEStringEncryptor encryptor = new StandardPBEStringEncryptor();
+			encryptor.setAlgorithm(algorithm);
+			encryptor.setPassword(password);
+			encryptor.setSaltGenerator(new StringFixedSaltGenerator(password));
+			return encryptor.decrypt(str);
+		} catch(Exception e) {
+			logger.error("getJasyptDecryptedUnFixString error = " + e);
+			return str;
+		}
+	}
+	
+	/**
 	 * 문자열을 Base64로 인코딩한다.
 	 * @param str
 	 * @return

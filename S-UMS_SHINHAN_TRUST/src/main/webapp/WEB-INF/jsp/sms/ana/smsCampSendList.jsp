@@ -56,7 +56,8 @@
 								<fmt:formatDate var="sendDt" value="${sendDate}" pattern="yyyy.MM.dd HH:mm"/>
 								<c:out value="${sendDt}"/>
 							</td>
- 							<td><a href="javascript:goSmsAnalList('<c:out value='${smsSend.msgid}'/>','<c:out value='${smsSend.keygen}'/>');" class="bold"><c:out value="${smsSend.taskNm}"/></a></td>
+<%--  							<td><a href="javascript:goSmsAnalList('<c:out value='${smsSend.msgid}'/>','<c:out value='${smsSend.keygen}'/>');" class="bold"><c:out value="${smsSend.taskNm}"/></a></td> --%>
+ 							<td><c:out value="${smsSend.taskNm}"/></td>
 							<td><c:out value='${smsSend.gubunNm}'/></td>
 							<td><c:out value='${smsSend.campNm}'/></td>
 							<td><c:out value='${smsSend.deptNm}'/></td>

@@ -11,7 +11,7 @@
 
     <appender name="rollingFile" class="org.apache.log4j.DailyRollingFileAppender">
     	<param name="Encoding" value="UTF-8" />
-		<param name="File" value="C:/sict/logs/ums_web_shinhan_fund.log"/>
+		<param name="File" value="d:/sict/logs/ums_web_shinhan_fund.log"/>
 		<param name="Append" value="true"/>
 		<param name="DatePattern" value=".yyyy-MM-dd" />
 		<param name="MaxFileSize" value="20MB"/>

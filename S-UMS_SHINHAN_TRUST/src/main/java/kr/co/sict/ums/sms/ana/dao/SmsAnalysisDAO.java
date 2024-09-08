@@ -49,6 +49,10 @@ public class SmsAnalysisDAO implements SmsAnalysisMapper {
     @Override
     public List<SmsSendLogVO> getSmsCampList(SmsSendLogVO smsSendLogVO) throws Exception {
         return sqlSessionAna.getMapper(SmsAnalysisMapper.class).getSmsCampList(smsSendLogVO);
-    } 
+    }
+
+	public List<SmsSendLogVO> getInterfaceList(SmsSendLogVO smsSendLogVO) {
+		return sqlSessionAna.getMapper(SmsAnalysisMapper.class).getInterfaceList(smsSendLogVO);
+	} 
     
 }

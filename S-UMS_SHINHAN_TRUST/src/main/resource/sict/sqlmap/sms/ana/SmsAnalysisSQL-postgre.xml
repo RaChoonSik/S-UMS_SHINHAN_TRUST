@@ -24,9 +24,9 @@
 					 , A.SMS_MESSAGE
 					 , A.GUBUN
 					 , D.CD_NM AS GUBUN_NM
-					 , (SELECT COUNT(*) FROM NEO_SMSLOG T1 WHERE T1.MSGID = A.MSGID AND T1.KEYGEN = A.KEYGEN) SEND_TOT_CNT
-					 , (SELECT COUNT(*) FROM NEO_SMSLOG T1 WHERE T1.MSGID = A.MSGID AND T1.KEYGEN = A.KEYGEN AND T1.RSLT_CD = '1' ) AS SUCC_CNT
-					 , (SELECT COUNT(*) FROM NEO_SMSLOG T1 WHERE T1.MSGID = A.MSGID AND T1.KEYGEN = A.KEYGEN AND T1.RSLT_CD = '0' ) AS FAIL_CNT
+					 , (SELECT COUNT(*) FROM ( SELECT * FROM BIZ_MSG BM UNION ALL SELECT * FROM BIZ_LOG ) T1 WHERE T1.KEYGEN = A.KEYGEN) SEND_TOT_CNT
+					 , (SELECT COUNT(*) FROM ( SELECT * FROM BIZ_MSG BM UNION ALL SELECT * FROM BIZ_LOG ) T1 WHERE T1.KEYGEN = A.KEYGEN AND T1.CALL_STATUS IN ('4100','6600')  ) AS SUCC_CNT
+					 , (SELECT COUNT(*) FROM ( SELECT * FROM BIZ_MSG BM UNION ALL SELECT * FROM BIZ_LOG ) T1 WHERE T1.KEYGEN = A.KEYGEN AND T1.CALL_STATUS NOT IN ('4100','6600') ) AS FAIL_CNT
 					 , 0 AS SUCC_SMS
 					 , 0 AS FAIL_SMS
 					 , ROW_NUMBER() OVER (ORDER BY A.SEND_DATE DESC) SEQ
@@ -62,6 +62,7 @@
 		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
 	</select>
 	
+	<!-- deprecated -->
 	<select id="getSmsInfo" parameterType="smsSendLogVO" resultType="smsSendLogVO">
 		SELECT A.MSGID
 			 , A.KEYGEN
@@ -109,6 +110,7 @@
 /*		 GROUP BY A.MSGID, A.KEYGEN*/
 	</select> 
 
+	<!-- deprecated -->
 	<select id="getPopSmsSendList" parameterType="smsSendLogVO" resultType="smsSendLogVO">
 		SELECT A.MSGID 
 			 , A.KEYGEN 
@@ -141,7 +143,7 @@
 		SELECT *
 		  FROM (
 				SELECT A.MSGID
-					, A.KEYGEN
+					 , A.KEYGEN
 					 , B.USER_ID AS EXE_USER_ID
 					 , B.USER_NM AS EXE_USER_NM
 					 , A.DEPT_NO
@@ -154,20 +156,29 @@
 					 , E.MSG_BODY 
 					 , A.GUBUN
 					 , D.CD_NM AS GUBUN_NM
-					 , E.ID 
-					 , E.NAME 
-					 , E.PHONE 
-					 , E.SEND_TELNO 
-					 , E.RSLT_CD 
-					 , E.RCODE
-					 , E.MSG_TYP SEND_GUBUN
-					 , (SELECT CD_NM FROM NEO_CD WHERE CD_GRP = 'C132' AND E.MSG_TYP = CD ) SEND_GUBUN_NM
-					 , (SELECT CD_DESC FROM NEO_SMS_RCODE WHERE RCODE = E.RCODE ) RNAME
+					 , '' AS ID 
+					 , E.DEST_NAME AS NAME 
+					 , E.DEST_PHONE
+					 , E.SEND_PHONE
+					 , (CASE WHEN E.CALL_STATUS = '4100' OR E.CALL_STATUS = '6600'
+					 		 THEN '1'
+					 		 ELSE E.CALL_STATUS
+				 		 END) AS RSLT_CD 
+				 	 , (SELECT CD_DTL FROM NEO_CD WHERE CD_GRP = 'C135' AND E.CALL_STATUS = CD_NM ) CALL_STATUS_NM
+					 , '' AS RCODE
+					 , '' AS SEND_GUBUN
+					 , '' AS SEND_GUBUN_NM
+					 , '' AS RNAME
+					 , ROW_NUMBER() OVER (ORDER BY A.REG_DT DESC) SEQ
+					 , COUNT(1) OVER() TOTAL_COUNT
 				  FROM NEO_SMS A
 					  LEFT OUTER JOIN NEO_USER B ON A.EXE_USER_ID = B.USER_ID 
-					  INNER JOIN NEO_CAMPAIGN C ON A.CAMPUS_NO = C.CAMP_NO
-					  INNER JOIN NEO_CD D ON D.CD_GRP = 'C115' AND A.GUBUN = D.CD
-					  left outer JOIN NEO_SMSLOG E ON A.MSGID  = E.MSGID  AND A.KEYGEN  = E.KEYGEN 
+					  JOIN NEO_CAMPAIGN C ON A.CAMPUS_NO = C.CAMP_NO
+					  JOIN NEO_CD D ON D.CD_GRP = 'C115' AND A.GUBUN = D.CD
+					  JOIN (SELECT * FROM BIZ_MSG 
+					  		UNION ALL 
+					  		SELECT * FROM BIZ_LOG
+					  		) E ON A.KEYGEN  = E.KEYGEN  
 				 WHERE A.SMS_STATUS = '000'
 				   AND D.CD IN
 				   <foreach collection="arrGubunNms" item="item" index="index" open="(" close=")" separator=",">
@@ -186,21 +197,27 @@
 				   AND E.ID LIKE CONCAT('%', #{searchCustId},'%')
 				   </if> 
 				   <if test="searchCustNm != null and searchCustNm != ''">
-				   AND E.NAME LIKE CONCAT('%', #{searchCustNm},'%')
+				   AND E.DEST_NAME LIKE CONCAT('%', #{searchCustNm},'%')
 				   </if> 
 				   <if test="searchCustPhone != null and searchCustPhone != ''">
-				   AND E.PHONE = #{searchCustPhone}
+				   AND E.DEST_PHONE LIKE CONCAT('%', #{searchCustPhone},'%') 
 				   </if> 
 				   <if test="searchStatus != null and searchStatus != ''">
-				   AND E.RSLT_CD = #{searchStatus}
-				   </if> 
+				   		<if test="searchStatus == 1">
+				   			AND E.CALL_STATUS IN ('4100','6600') 
+				   		</if>
+				   		<if test="searchStatus == 0">
+				   			AND E.CALL_STATUS NOT IN ('4100','6600')
+					   </if> 
+				   </if>
 				   <if test="searchExeUserNm != null and searchExeUserNm != ''">
-				   AND E.NAME LIKE CONCAT('%', #{searchExeUserNm},'%')
+				   AND E.DEST_NAME LIKE CONCAT('%', #{searchExeUserNm},'%')
 				   </if>
 				  )
-				  WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+			WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
 	</select>
 	
+	<!-- deprecated -->
 	<select id ="getSmsMessage" parameterType="smsSendLogVO" resultType="String" >
 		SELECT MSG_BODY 
 		  FROM NEO_SMSLOG A
@@ -320,5 +337,52 @@
 				  LEFT OUTER JOIN NEO_CD T6 ON T6.CD_GRP = 'C101' AND T2.STATUS = T6.CD AND T6.UILANG = #{uilang}
 			   ) SRC
 		 WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
+	</select>
+	
+	<select id="getInterfaceList" parameterType="smsSendLogVO" resultType="smsSendLogVO">
+		SELECT *
+		  FROM (
+				 SELECT MSGID
+					 	, KEYGEN
+					 	, DEST_PHONE		--수신자phone
+						, SEND_PHONE	--발신자phone
+						, TO_CHAR(REQUEST_TIME, 'YYYYMMDDHH24MISS') REQUEST_TIME  --등록시간
+						, TO_CHAR(SEND_TIME, 'YYYYMMDDHH24MISS') SEND_TIME		--발송기준시간
+						, TO_CHAR(REPORT_TIME, 'YYYYMMDDHH24MISS') REPORT_TIME	--단말기수신시간
+						, MSG_BODY		--내용
+						, STATUS		--데이터발송상태(대기0/발송중1/발송완료2)
+						, MSG_TYPE		--데이터타입(SMS:0/MMS:5)
+						, (CASE WHEN CALL_STATUS = '4100' OR CALL_STATUS = '6600' THEN '성공' ELSE '실패' END) AS STATUS_NM
+						, CALL_STATUS 
+						, (SELECT CD_DTL FROM NEO_CD WHERE CD_GRP = 'C135' AND CALL_STATUS = CD_NM ) CALL_STATUS_NM
+					    , ROW_NUMBER() OVER (ORDER BY REQUEST_TIME DESC) SEQ
+						, COUNT(1) OVER() TOTAL_COUNT
+				   FROM ( SELECT * FROM BIZ_MSG BM 
+				           UNION ALL 
+				          SELECT * FROM BIZ_LOG
+				        ) A
+				  WHERE NOT EXISTS (SELECT 1 FROM NEO_SMS X WHERE A.KEYGEN = X.KEYGEN)
+				   <if test="searchStartDt != null and searchStartDt != ''">
+				   AND SEND_TIME &gt;= TO_TIMESTAMP(CONCAT(#{searchStartDt},'000000'), 'YYYYMMDDHH24MISS')
+				   </if> 
+				   <if test="searchEndDt != null and searchEndDt != ''">
+				   AND SEND_TIME &lt; TO_TIMESTAMP(CONCAT(#{searchEndDt},'235959'), 'YYYYMMDDHH24MISS')
+				   </if>
+				   <if test="searchCustId != null and searchCustId != ''">
+				   AND ID LIKE CONCAT('%', #{searchCustId},'%')
+				   </if> 
+				   <if test="searchCustPhone != null and searchCustPhone != ''">
+				   AND DEST_PHONE LIKE CONCAT('%', #{searchCustPhone},'%')
+				   </if>
+				   <if test="searchStatus != null and searchStatus != ''">
+				   		<if test="searchStatus == 1">
+				   			AND CALL_STATUS IN ('4100','6600') 
+				   		</if>
+				   		<if test="searchStatus == 0">
+				   			AND CALL_STATUS NOT IN ('4100','6600')
+					   </if> 
+				   </if> 
+				  )
+				  WHERE SEQ BETWEEN (#{page}-1)*#{rows}+1 AND #{page}*#{rows}
 	</select>
 </mapper>

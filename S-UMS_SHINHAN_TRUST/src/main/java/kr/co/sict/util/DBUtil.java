@@ -21,8 +21,8 @@ import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 
-import kr.co.sict.ums.sys.seg.vo.SegmentMemberVO;
-import kr.co.sict.ums.sys.seg.vo.SegmentVO;
+import kr.co.sict.ums.ems.seg.vo.SegmentMemberVO;
+import kr.co.sict.ums.ems.seg.vo.SegmentVO;
 import kr.co.sict.ums.sys.dbc.vo.MetaColumnVO; 
 
 public class DBUtil {

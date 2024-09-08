@@ -486,9 +486,9 @@ function goPageNumSeg(pageNum) {
 	$("#popSegInfoForm input[name='page']").val(pageNum);
 	var getMemberUrl = "";
 	if($("#popSegInfoForm input[name='createTy']").val() == "003") {
-		getMemberUrl = umsContext + "/sys/seg/segFileMemberListP.ums";
+		getMemberUrl = umsContext + "/ems/seg/segFileMemberListP.ums";
 	} else {
-		getMemberUrl = umsContext + "/sys/seg/segDbMemberListP.ums";
+		getMemberUrl = umsContext + "/ems/seg/segDbMemberListP.ums";
 	}
 	var param = $("#popSegInfoForm").serialize();
 	$.ajax({

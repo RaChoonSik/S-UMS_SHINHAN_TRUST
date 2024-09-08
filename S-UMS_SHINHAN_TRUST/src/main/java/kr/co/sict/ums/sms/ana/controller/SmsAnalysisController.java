@@ -492,6 +492,7 @@ public class SmsAnalysisController {
 	 * @param response
 	 * @param session
 	 * @return
+	 * @deprecated
 	 */
 	@RequestMapping(value="/pop/popSmsSendResultList")
 	public String goPopSmsSendResultList(@ModelAttribute SmsSendLogVO searchVO, Model model, HttpServletRequest request, HttpServletResponse response, HttpSession session) {
@@ -534,12 +535,9 @@ public class SmsAnalysisController {
 	public String goDetailLogListP(@ModelAttribute SmsSendLogVO searchVO, Model model, HttpServletRequest request, HttpServletResponse response, HttpSession session) {
 		logger.debug("goDetailLogListP searchStartDt     = " + searchVO.getSearchStartDt());
 		logger.debug("goDetailLogListP searchEndtDt      = " + searchVO.getSearchEndDt());
-		logger.debug("goDetailLogListP searchGubunNm     = " + searchVO.getSearchGubunNm());
-		logger.debug("goDetailLogListP searchCampNm      = " + searchVO.getSearchCampNm());
-		logger.debug("goDetailLogListP searchCustId      = " + searchVO.getSearchCustId());
-		logger.debug("goDetailLogListP searchCustNm      = " + searchVO.getSearchCustNm());
+		logger.debug("goDetailLogListP searchIsInterface   = " + searchVO.getSearchIsInterface());
 		logger.debug("goDetailLogListP searchCustPhone   = " + searchVO.getSearchCustPhone());
-		logger.debug("goDetailLogListP searchExeUserNm   = " + searchVO.getSearchExeUserNm());
+		logger.debug("goDetailLogListP searchStatus     = " + searchVO.getSearchStatus());
 		
 		// 검색 기본값 설정
 		if(searchVO.getSearchStartDt() == null || "".equals(searchVO.getSearchStartDt())) {
@@ -561,6 +559,10 @@ public class SmsAnalysisController {
 		}
 		searchVO.setUilang((String)session.getAttribute("NEO_UILANG"));
 		
+		if(searchVO.getSearchIsInterface() == null) {
+			searchVO.setSearchIsInterface("N");
+		}
+		
 		
 		// 전송유형 목록
 		CodeVO gubun = new CodeVO();
@@ -576,22 +578,22 @@ public class SmsAnalysisController {
 		}
 		
 		// 캠페인 목록 조회
-		SmsCampaignVO camp = new SmsCampaignVO();
-		camp.setUilang((String)session.getAttribute("NEO_UILANG"));
-		camp.setSearchStatus("000");
-		camp.setPage(1);
-		camp.setRows(10000);
-		camp.setSearchDeptNo("Y".equals((String)session.getAttribute("NEO_ADMIN_YN"))?0:(int)session.getAttribute("NEO_DEPT_NO"));
-		List<SmsCampaignVO> smsCampList = null;
-		try {
-			smsCampList = smsCampaignService.getCampaignList(camp);
-		} catch(Exception e) {
-			logger.error("smsCampaignService.getCampaignList error = " + e);
-		}
+//		SmsCampaignVO camp = new SmsCampaignVO();
+//		camp.setUilang((String)session.getAttribute("NEO_UILANG"));
+//		camp.setSearchStatus("000");
+//		camp.setPage(1);
+//		camp.setRows(10000);
+//		camp.setSearchDeptNo("Y".equals((String)session.getAttribute("NEO_ADMIN_YN"))?0:(int)session.getAttribute("NEO_DEPT_NO"));
+//		List<SmsCampaignVO> smsCampList = null;
+//		try {
+//			smsCampList = smsCampaignService.getCampaignList(camp);
+//		} catch(Exception e) {
+//			logger.error("smsCampaignService.getCampaignList error = " + e);
+//		}
 		
 		model.addAttribute("searchVO", searchVO);		// 검색항목
 		model.addAttribute("gubunList", gubunList);		// 문자전송유형
-		model.addAttribute("smsCampList",smsCampList);	// 캠페인목록
+//		model.addAttribute("smsCampList",smsCampList);	// 캠페인목록
 		model.addAttribute("imgUploadPath", properties.getProperty("IMG.SMS_UPLOAD_PATH"));
 		
 		return "sms/ana/detailLogListP";
@@ -608,14 +610,11 @@ public class SmsAnalysisController {
 	 */
 	@RequestMapping(value="/detailLogList")
 	public String goDetailLogList(@ModelAttribute SmsSendLogVO searchVO, Model model, HttpServletRequest request, HttpServletResponse response, HttpSession session) {
-		logger.debug("goDetailLogListP searchStartDt     = " + searchVO.getSearchStartDt());
-		logger.debug("goDetailLogListP searchEndtDt      = " + searchVO.getSearchEndDt());
-		logger.debug("goDetailLogListP searchGubunNm     = " + searchVO.getSearchGubunNm());
-		logger.debug("goDetailLogListP searchCampNm      = " + searchVO.getSearchCampNm());
-		logger.debug("goDetailLogListP searchCustId      = " + searchVO.getSearchCustId());
-		logger.debug("goDetailLogListP searchCustNm      = " + searchVO.getSearchCustNm());
-		logger.debug("goDetailLogListP searchCustPhone   = " + searchVO.getSearchCustPhone());
-		logger.debug("goDetailLogListP searchExeUserNm   = " + searchVO.getSearchExeUserNm());
+		logger.debug("goDetailLogList searchStartDt     = " + searchVO.getSearchStartDt());
+		logger.debug("goDetailLogList searchEndtDt      = " + searchVO.getSearchEndDt());
+		logger.debug("goDetailLogList searchIsInterface   = " + searchVO.getSearchIsInterface());
+		logger.debug("goDetailLogList searchCustPhone   = " + searchVO.getSearchCustPhone());
+		logger.debug("goDetailLogList searchStatus     = " + searchVO.getSearchStatus());
 		
 		// 검색 기본값 설정
 		if(searchVO.getSearchStartDt() == null || "".equals(searchVO.getSearchStartDt())) {
@@ -641,11 +640,12 @@ public class SmsAnalysisController {
 		String gubunNms;
 		String[] arrGubunNms = null;
 		
-		if(searchVO.getSearchGubunNm().length() > 1) {
-			gubunNms = searchVO.getSearchGubunNm();
+//		if(searchVO.getSearchGubunNm().length() > 1) {
+//			gubunNms = searchVO.getSearchGubunNm();
+			gubunNms = "000,001,002";	//SMS,LMS,MMS
 			arrGubunNms = gubunNms.split(",");
 			searchVO.setArrGubunNms(arrGubunNms);
-		}
+//		}
 		
 		// 페이지 설정
 		int page = StringUtil.setNullToInt(searchVO.getPage(), 1);
@@ -669,28 +669,34 @@ public class SmsAnalysisController {
 		}
 		
 		// 캠페인 목록 조회
-		SmsCampaignVO camp = new SmsCampaignVO();
-		camp.setUilang((String)session.getAttribute("NEO_UILANG"));
-		camp.setSearchStatus("000");
-		camp.setPage(1);
-		camp.setRows(10000);
-		camp.setSearchDeptNo("Y".equals((String)session.getAttribute("NEO_ADMIN_YN"))?0:(int)session.getAttribute("NEO_DEPT_NO"));
-		List<SmsCampaignVO> smsCampList = null;
-		try {
-			smsCampList = smsCampaignService.getCampaignList(camp);
-		} catch(Exception e) {
-			logger.error("smsCampaignService.getCampaignList error = " + e);
+//		SmsCampaignVO camp = new SmsCampaignVO();
+//		camp.setUilang((String)session.getAttribute("NEO_UILANG"));
+//		camp.setSearchStatus("000");
+//		camp.setPage(1);
+//		camp.setRows(10000);
+//		camp.setSearchDeptNo("Y".equals((String)session.getAttribute("NEO_ADMIN_YN"))?0:(int)session.getAttribute("NEO_DEPT_NO"));
+//		List<SmsCampaignVO> smsCampList = null;
+//		try {
+//			smsCampList = smsCampaignService.getCampaignList(camp);
+//		} catch(Exception e) {
+//			logger.error("smsCampaignService.getCampaignList error = " + e);
+//		
+//		}
 		
-		}
-		
-		if(searchVO.getSearchCustPhone().length() > 0) {
+//		if(searchVO.getSearchCustPhone().length() > 0) {
+		if(searchVO.getSearchCustPhone() != null) {
 			searchVO.setSearchCustPhone(cryptoService.getEncrypt("PHONE",searchVO.getSearchCustPhone()));
 		}
 		
 		//상세로그 리스트 
 		List<SmsSendLogVO> sendLogList = null;
 		try {
-			sendLogList = smsAnalysisService.getSmsSendLogList(searchVO);
+			if ("N".equals(searchVO.getSearchIsInterface())) {
+				sendLogList = smsAnalysisService.getSmsSendLogList(searchVO);
+			} else {
+				// sms인터페이스목록 조회
+				sendLogList = smsAnalysisService.getInterfaceList(searchVO);
+			}
 		} catch (Exception e) {
 			logger.error("smsCampaignService.getSmsSendLogList error = " + e);
 		}
@@ -732,8 +738,7 @@ public class SmsAnalysisController {
 		
 		model.addAttribute("searchVO", searchVO);			// 검색항목
 		model.addAttribute("gubunList", gubunList);			// 문자전송유형
-		model.addAttribute("smsCampList",smsCampList);		// 캠페인목록
-		model.addAttribute("sendLogList", sendLogList);		// 상세로그 리스트 
+//		model.addAttribute("smsCampList",smsCampList);		// 캠페인목록
 		model.addAttribute("sendLogList", sendLogList);		// 상세로그 리스트 
 		model.addAttribute("pageUtil", pageUtil);			// 페이징 
 		

@@ -26,15 +26,17 @@
 			<colgroup>
 				<col style="width:5%;">
 				<col style="width:auto;">
+				<col style="width:20%;">
 				<col style="width:15%;">
 				<col style="width:15%;">
-				<col style="width:15%;">
+				<col style="width:10%;">
 				<col style="width:15%;">
 			</colgroup>
 			<thead>
 				<tr>
 					<th scope="col">NO</th>
 					<th scope="col">템플릿명</th>
+					<th scope="col">템플릿경로</th>
 					<th scope="col">사용자그룹</th>
 					<th scope="col">사용자명</th>
 					<th scope="col">상태</th>
@@ -50,6 +52,7 @@
 							<td>
 								<a href="javascript:goUpdate('<c:out value='${template.tempNo}'/>');" class="bold"><c:out value='${template.tempNm}'/></a>
 							</td>
+							<td><c:out value="${template.tempFlPath}"/></td>
 							<td><c:out value="${template.deptNm}"/></td>
 							<td><c:out value="${template.userNm}"/></td>
 							<td><c:out value="${template.statusNm}"/></td>
@@ -66,7 +69,7 @@
 				<c:if test="${empty templateList}">
 					<!-- 데이터가 없을 경우// -->
 					<tr>
-						<td colspan="6" class="no_data">등록된 내용이 없습니다.</td>
+						<td colspan="7" class="no_data">등록된 내용이 없습니다.</td>
 					</tr>
 					<!-- //데이터가 없을 경우 -->
 				</c:if>

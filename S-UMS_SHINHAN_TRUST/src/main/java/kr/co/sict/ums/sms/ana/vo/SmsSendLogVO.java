@@ -98,6 +98,8 @@ public class SmsSendLogVO extends CommonVO {
 	private String searchTempCd;	// 검색템플릿코드
 	private String searchCampNm;	// 검색캠페인명
 	private String searchExeUserNm;	// 검색발신자명명
+	private String searchIsInterface;// 화면등록/인터페이스등록 구분(Y/N)
+	
 	 
 	private String adminYn;			// 관리자여부
 	private String uilang;			// 언어권'
@@ -110,6 +112,16 @@ public class SmsSendLogVO extends CommonVO {
 
 	private String sendTyp;          //발송유형
 	private String sendTypNm;        //발송유형명
+	
+	private String destPhone;		//수신자phone
+	private String sendPhone;		//발신자phone
+	private String requestTime; 	//등록시간
+	private String sendTime;		//발송기준시간
+	private String reportTime;		//단말기수신시간
+	private String msgType;			//데이터타입(sms:0/mms:5)
+	private String callStatus; 
+	private String callStatusNm;
+    
 	
 	public String getMsgid() {
 		return msgid;
@@ -681,5 +693,59 @@ public class SmsSendLogVO extends CommonVO {
     public void setSendTypNm(String sendTypNm) {
         this.sendTypNm = sendTypNm;
     }
- 
+    public String getSearchIsInterface() {
+		return searchIsInterface;
+	}
+	public void setSearchIsInterface(String searchIsInterface) {
+		this.searchIsInterface = searchIsInterface;
+	}
+	public String getDestPhone() {
+		return destPhone;
+	}
+	public void setDestPhone(String destPhone) {
+		this.destPhone = destPhone;
+	}
+	public String getSendPhone() {
+		return sendPhone;
+	}
+	public void setSendPhone(String sendPhone) {
+		this.sendPhone = sendPhone;
+	}
+	public String getRequestTime() {
+		return requestTime;
+	}
+	public void setRequestTime(String requestTime) {
+		this.requestTime = requestTime;
+	}
+	public String getSendTime() {
+		return sendTime;
+	}
+	public void setSendTime(String sendTime) {
+		this.sendTime = sendTime;
+	}
+	public String getReportTime() {
+		return reportTime;
+	}
+	public void setReportTime(String reportTime) {
+		this.reportTime = reportTime;
+	}
+	public String getMsgType() {
+		return msgType;
+	}
+	public void setMsgType(String msgType) {
+		this.msgType = msgType;
+	}
+	public String getCallStatus() {
+		return callStatus;
+	}
+	public void setCallStatus(String callStatus) {
+		this.callStatus = callStatus;
+	}
+	public String getCallStatusNm() {
+		return callStatusNm;
+	}
+	public void setCallStatusNm(String callStatusNm) {
+		this.callStatusNm = callStatusNm;
+	}
+	
 }

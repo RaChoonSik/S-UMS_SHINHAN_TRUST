@@ -55,5 +55,12 @@ public interface SmsAnalysisMapper {
      * @return
      */
     public List<SmsSendLogVO> getSmsCampList(SmsSendLogVO smsSendLogVO) throws Exception;
+
+    /**
+     * 인터페이스로 등록한 sms목록 조회
+     * @param smsSendLogVO
+     * @return
+     */
+	public List<SmsSendLogVO> getInterfaceList(SmsSendLogVO smsSendLogVO);
     
 }

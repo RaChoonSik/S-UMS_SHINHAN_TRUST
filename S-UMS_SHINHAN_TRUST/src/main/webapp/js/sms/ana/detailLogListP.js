@@ -8,6 +8,12 @@ $(document).ready(function() {
 	// 화면 로딩시 검색 실행
 	goSearch("1");
 	
+	$(document).on("click", "input[name='isInterfaceRdo']", function(){
+		$("#searchIsInterface").val(this.value);
+	});
+	
+//	isInterfaceRdo
+	
 });
 
 // 검색 버튼 클릭
@@ -29,13 +35,13 @@ function goSearch(pageNo) {
 		return;
 	}
 	
-	var checked = $("#searchForm input[name='searchGubunNm']:checked").length > 0;
-	if(!checked){
-		alert("메세지 구분을 하나 이상 선택하세요.");
-		return;
-	}else{
-		goSmsTypeList();
-	}
+//	var checked = $("#searchForm input[name='searchGubunNm']:checked").length > 0;
+//	if(!checked){
+//		alert("메세지 구분을 하나 이상 선택하세요.");
+//		return;
+//	}else{
+//		goSmsTypeList();
+//	}
 
 	$("#searchForm input[name='page']").val(pageNo);
 	var param = $("#searchForm").serialize();
@@ -110,14 +116,20 @@ function goSmsDetail(msgid, keygen, campNm, attatchFileList, cmid, obj){
 	fn.popupOpen('#pop_detail_sms');
 }
 
-function goPopRcodeDesc(rcodeName){
-	if (rcodeName == "") {
-		alert("실패 상세코드 정보 없음");
-	} else {
-		alert(rcodeName);	
-	}
+function goPopRcodeDesc(idx){
 	
-
+	if (idx == -1) return false;
+	console.log(idx);
+	var keygen = $("input[name='keygenHddn']").eq(idx).val();
+	var callStatusNm = $("input[name='callStatusNmHddn']").eq(idx).val();
+	var msgBody = $("input[name='msgBodyHddn']").eq(idx).val();
+	
+	$("#popKeygen").text(keygen);
+	$("#popMsgBody").text(msgBody);
+	$("#popCallStatusNm").text(callStatusNm);
+	
+	fn.popupOpen('#pop_detail_sms');
+	
 }
 // 초기화 버튼 클릭
 function goInit() {

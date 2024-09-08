@@ -33,15 +33,16 @@
 			<!-- //cont-head -->
 			<!-- cont-body// -->
 			<section class="cont-body">
-			<form id="searchForm" name="searchForm" method="post">
-					<input type="hidden" id="page" name="page"       value="<c:out value='${searchVO.page}'/>">
-					<input type="hidden" id="rows" name="rows"       value="<c:out value='${searchVO.rows}'/>">
-					<input type="hidden" id="msgid" name="msgid"     value="">
-					<input type="hidden" id="keygen" name="keygen"   value="">
-					<input type="hidden" id="searchCampNm"  name="searchCampNm"         value="">
-					<input type="hidden" id="imgUploadPath"          value="<c:out value='${imgUploadPath}'/>">
-					<fieldset>
-						<legend>조회 및 목록</legend>
+				<fieldset>
+					<legend>조회 및 목록</legend>
+					<form id="searchForm" name="searchForm" method="post">
+						<input type="hidden" id="page" name="page"       value="<c:out value='${searchVO.page}'/>">
+						<input type="hidden" id="rows" name="rows"       value="<c:out value='${searchVO.rows}'/>">
+						<input type="hidden" id="msgid" name="msgid"     value="">
+						<input type="hidden" id="keygen" name="keygen"   value="">
+						<input type="hidden" id="searchCampNm"  name="searchCampNm"         value="">
+						<input type="hidden" id="imgUploadPath"          value="<c:out value='${imgUploadPath}'/>">
+						<input type="hidden" id="searchIsInterface"   name="searchIsInterface"    value="<c:out value='${searchVO.searchIsInterface}'/>">
 						<!-- 조회// -->
 						<div class="graybox">
 							<div class="title-area">
@@ -72,6 +73,14 @@
 										</div>
 									</li>
 									<li>
+										<label>메세지구분</label>
+										<div class="list-item">
+											<label for="rdo_01" name="rdo_01"><input type="radio" id="rdo_01" value="N" name="isInterfaceRdo" <c:if test="${'N' eq searchVO.searchIsInterface}"> checked</c:if>><span>대량</span></label>
+											<label for="rdo_02" name="rdo_02"><input type="radio" id="rdo_02" value="Y" name="isInterfaceRdo" <c:if test="${'Y' eq searchVO.searchIsInterface}"> checked</c:if>><span>실시간</span></label>
+										</div>
+									</li>
+									<!-- 
+									<li>
 										<label>메세지 구분</label>
 										<div class="list-item">
 											<label><input type="checkbox" name= "searchGubunNm" value="000" checked ><span>SMS</span></label>
@@ -88,10 +97,12 @@
 									<label>고객명</label>
 										<input type="text" id="searchCustNm" name="searchCustNm" placeholder="고객명을 입력하세요">
 									</li>
+									 -->
 									<li>
 									<label>고객 전화번호</label>
 										<input type="text" id="searchCustPhone" name="searchCustPhone" placeholder="전화번호를 입력하세요" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
 									</li>
+									<!-- 
 									<li>
 										<label>캠페인명</label>
 										<div class="list-item">
@@ -101,6 +112,7 @@
 											</div>
 										</div>
 									</li>
+									 -->
 									<li>
 										<label>발송상태</label>
 										<div class="list-item">
@@ -113,15 +125,18 @@
 											</div>
 										</div>
 									</li>
+									<!-- 
 									<li>
 									<label>발송자명</label>
 										<input type="text" id="searchExeUserNm" name="searchExeUserNm" placeholder="발송자명을 입력하세요">
 									</li>
+									 -->
 
 								</ul>
 							</div>
 						</div>
 						<!-- //조회 -->
+				</form>
 
 						<!-- btn-wrap// -->
 						<div class="btn-wrap">
@@ -133,7 +148,6 @@
 						<div id="divDetailLogList" style="margin-top:50px;"></div>
 						<!-- //목록&페이징 -->
 					</fieldset>
-				</form>
 			</section>
 			<!-- //cont-body -->
 			

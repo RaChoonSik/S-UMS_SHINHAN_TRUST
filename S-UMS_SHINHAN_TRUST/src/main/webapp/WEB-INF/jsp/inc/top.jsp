@@ -79,68 +79,68 @@ function goUserInfo(userId){
 	<!-- //전체서비스 툴팁 -->
 	<%-- <c:if test="${'M9901000' ne NEO_P_MENU_ID}"> --%>
 	<c:if test="${fn:contains(NEO_P_MENU_ID, 'M99')}">
-	<a href="javascript:goMailApprLine('<c:out value='${NEO_USER_ID}'/>');" class="btn-util item02<c:if test='${apprMailCnt > 0}'> active</c:if>">발송결재
-		<c:choose>
-			<c:when test="${apprMailCnt > 99}">
-				<span class="alertnum">99+</span>
-			</c:when>
-			<c:when test="${apprMailCnt > 0}">
-				<span class="alertnum"><c:out value="${apprMailCnt}"/></span>
-			</c:when>
-		</c:choose>
-	</a>
+<%-- 	<a href="javascript:goMailApprLine('<c:out value='${NEO_USER_ID}'/>');" class="btn-util item02<c:if test='${apprMailCnt > 0}'> active</c:if>">발송결재 --%>
+<%-- 		<c:choose> --%>
+<%-- 			<c:when test="${apprMailCnt > 99}"> --%>
+<!-- 				<span class="alertnum">99+</span> -->
+<%-- 			</c:when> --%>
+<%-- 			<c:when test="${apprMailCnt > 0}"> --%>
+<%-- 				<span class="alertnum"><c:out value="${apprMailCnt}"/></span> --%>
+<%-- 			</c:when> --%>
+<%-- 		</c:choose> --%>
+<!-- 	</a> -->
 	</c:if>
 	<c:if test="${fn:contains(NEO_P_MENU_ID, 'M10')}">
 	<a href="javascript:goSys('${NEO_USE_SYS}');" class="btn-util item02">공통 설정</a>
-	<a href="javascript:goMailApprLine('<c:out value='${NEO_USER_ID}'/>');" class="btn-util item03<c:if test='${apprMailCnt > 0}'> active</c:if>">발송결재
-		<c:choose>
-			<c:when test="${apprMailCnt > 99}">
-				<span class="alertnum">99+</span>
-			</c:when>
-			<c:when test="${apprMailCnt > 0}">
-				<span class="alertnum"><c:out value="${apprMailCnt}"/></span>
-			</c:when>
-		</c:choose>
-	</a>
+<%-- 	<a href="javascript:goMailApprLine('<c:out value='${NEO_USER_ID}'/>');" class="btn-util item03<c:if test='${apprMailCnt > 0}'> active</c:if>">발송결재 --%>
+<%-- 		<c:choose> --%>
+<%-- 			<c:when test="${apprMailCnt > 99}"> --%>
+<!-- 				<span class="alertnum">99+</span> -->
+<%-- 			</c:when> --%>
+<%-- 			<c:when test="${apprMailCnt > 0}"> --%>
+<%-- 				<span class="alertnum"><c:out value="${apprMailCnt}"/></span> --%>
+<%-- 			</c:when> --%>
+<%-- 		</c:choose> --%>
+<!-- 	</a> -->
 	</c:if>
 	<c:if test="${fn:contains(NEO_P_MENU_ID, 'M20')}">
 	<a href="javascript:goSys('${NEO_USE_SYS}');" class="btn-util item02">공통 설정</a>
-	<a href="javascript:goMailApprLine('<c:out value='${NEO_USER_ID}'/>');" class="btn-util item03<c:if test='${apprMailCnt > 0}'> active</c:if>">발송결재
-		<c:choose>
-			<c:when test="${apprMailCnt > 99}">
-				<span class="alertnum">99+</span>
-			</c:when>
-			<c:when test="${apprMailCnt > 0}">
-				<span class="alertnum"><c:out value="${apprMailCnt}"/></span>
-			</c:when>
-		</c:choose>
-	</a>
+<%-- 	<a href="javascript:goMailApprLine('<c:out value='${NEO_USER_ID}'/>');" class="btn-util item03<c:if test='${apprMailCnt > 0}'> active</c:if>">발송결재 --%>
+<%-- 		<c:choose> --%>
+<%-- 			<c:when test="${apprMailCnt > 99}"> --%>
+<!-- 				<span class="alertnum">99+</span> -->
+<%-- 			</c:when> --%>
+<%-- 			<c:when test="${apprMailCnt > 0}"> --%>
+<%-- 				<span class="alertnum"><c:out value="${apprMailCnt}"/></span> --%>
+<%-- 			</c:when> --%>
+<%-- 		</c:choose> --%>
+<!-- 	</a> -->
 	</c:if>
 	<c:if test="${fn:contains(NEO_P_MENU_ID, 'M30')}">
 	<a href="javascript:goSys('${NEO_USE_SYS}');" class="btn-util item02">공통 설정</a>
-	<a href="javascript:goMailApprLine('<c:out value='${NEO_USER_ID}'/>');" class="btn-util item03<c:if test='${apprMailCnt > 0}'> active</c:if>">발송결재
-		<c:choose>
-			<c:when test="${apprMailCnt > 99}">
-				<span class="alertnum">99+</span>
-			</c:when>
-			<c:when test="${apprMailCnt > 0}">
-				<span class="alertnum"><c:out value="${apprMailCnt}"/></span>
-			</c:when>
-		</c:choose>
-	</a>	
+<%-- 	<a href="javascript:goMailApprLine('<c:out value='${NEO_USER_ID}'/>');" class="btn-util item03<c:if test='${apprMailCnt > 0}'> active</c:if>">발송결재 --%>
+<%-- 		<c:choose> --%>
+<%-- 			<c:when test="${apprMailCnt > 99}"> --%>
+<!-- 				<span class="alertnum">99+</span> -->
+<%-- 			</c:when> --%>
+<%-- 			<c:when test="${apprMailCnt > 0}"> --%>
+<%-- 				<span class="alertnum"><c:out value="${apprMailCnt}"/></span> --%>
+<%-- 			</c:when> --%>
+<%-- 		</c:choose> --%>
+<!-- 	</a>	 -->
 	</c:if>
 	<c:if test="${fn:contains(NEO_P_MENU_ID, 'M40')}">
 	<a href="javascript:goSys('${NEO_USE_SYS}');" class="btn-util item02">공통 설정</a>
-	<a href="javascript:goMailApprLine('<c:out value='${NEO_USER_ID}'/>');" class="btn-util item03<c:if test='${apprMailCnt > 0}'> active</c:if>">발송결재
-		<c:choose>
-			<c:when test="${apprMailCnt > 99}">
-				<span class="alertnum">99+</span>
-			</c:when>
-			<c:when test="${apprMailCnt > 0}">
-				<span class="alertnum"><c:out value="${apprMailCnt}"/></span>
-			</c:when>
-		</c:choose>
-	</a>
+<%-- 	<a href="javascript:goMailApprLine('<c:out value='${NEO_USER_ID}'/>');" class="btn-util item03<c:if test='${apprMailCnt > 0}'> active</c:if>">발송결재 --%>
+<%-- 		<c:choose> --%>
+<%-- 			<c:when test="${apprMailCnt > 99}"> --%>
+<!-- 				<span class="alertnum">99+</span> -->
+<%-- 			</c:when> --%>
+<%-- 			<c:when test="${apprMailCnt > 0}"> --%>
+<%-- 				<span class="alertnum"><c:out value="${apprMailCnt}"/></span> --%>
+<%-- 			</c:when> --%>
+<%-- 		</c:choose> --%>
+<!-- 	</a> -->
 	</c:if>
 	<div class="user">
 		<div class="info">

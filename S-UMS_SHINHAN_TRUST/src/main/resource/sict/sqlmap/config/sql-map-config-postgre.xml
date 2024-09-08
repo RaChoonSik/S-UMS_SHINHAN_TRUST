@@ -61,12 +61,14 @@
 		<!-- ems 메인-->
 		<typeAlias alias="emsMainVO"		type="kr.co.sict.ums.main.vo.EmsMainVO" /> 
 		<!-- 발송관리 -->
-		<typeAlias alias="segmentVO"		type="kr.co.sict.ums.sys.seg.vo.SegmentVO" />
 		<typeAlias alias="KakaoTemplateVO"	type="kr.co.sict.ums.sys.seg.vo.KakaoTemplateVO" />
 		<typeAlias alias="smsTemplateVO"	type="kr.co.sict.ums.sys.seg.vo.SmsTemplateVO" />
 		
 		<!-- 발송현황 -->
 		<typeAlias alias="scheduleVO"		type="kr.co.sict.ums.ems.sch.vo.ScheduleVO" />
+		
+        <!-- 발송관리 -->
+        <typeAlias alias="segmentVO"        type="kr.co.sict.ums.ems.seg.vo.SegmentVO" />
 		
 		<!-- 캠페인/메일관리 -->
 		<typeAlias alias="campaignVO"		type="kr.co.sict.ums.ems.cam.vo.CampaignVO" />
@@ -133,7 +135,7 @@
 		<mapper resource="sict/sqlmap/com/CodeSQL-postgre.xml"></mapper>
 		<mapper resource="sict/sqlmap/lgn/LoginSQL-postgre.xml"></mapper>
 		<mapper resource="sict/sqlmap/main/MainSQL-postgre.xml"></mapper>
-		
+		<mapper resource="sict/sqlmap/ems/seg/SegmentSQL-ems-postgre.xml"></mapper>
 		<mapper resource="sict/sqlmap/ems/ana/AnalysisSQL-postgre.xml"></mapper>
 		<mapper resource="sict/sqlmap/ems/apr/ApprovalLineSQL-postgre.xml"></mapper>
 		<mapper resource="sict/sqlmap/ems/cam/CampaignSQL-postgre.xml"></mapper>

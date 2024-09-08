@@ -127,7 +127,7 @@ function makeLink(serviceGb){
 						</li>
 	
 						<%-- <li <c:if test="${userServiceList[1].useYn eq 0}"> class="disabled" </c:if> > --%>
-						<li <c:if test="${NEO_USE_RNS eq 'N'}"> class="disabled" </c:if> >
+						<li <c:if test="${NEO_USE_RNS eq 'N'}"> style="display:none;" </c:if> >
 							<a href="javascript:goRNS('<c:out value='${userServiceList[1].payYn}'/>');">
 								<strong>S-RNS</strong>
 								<p>
