@@ -61,7 +61,7 @@
 
 					<!-- calendar state// -->
 					<ul class="calendar-state">
-						<li class="payment">결재</li>
+<!-- 						<li class="payment">결재</li> -->
 						<li class="wait">예약</li>
 						<li class="ing">진행</li>
 						<li class="end">완료</li>

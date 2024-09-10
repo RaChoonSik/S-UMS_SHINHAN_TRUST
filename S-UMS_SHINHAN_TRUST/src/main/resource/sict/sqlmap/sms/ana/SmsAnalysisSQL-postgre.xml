@@ -36,7 +36,7 @@
 					  INNER JOIN NEO_CAMPAIGN C ON A.CAMPUS_NO = C.CAMP_NO
 					  INNER JOIN NEO_CD D ON D.CD_GRP = 'C115' AND A.GUBUN = D.CD
 				 WHERE A.SMS_STATUS = '000'
-				   AND A.STATUS IN ('003','004')
+				   AND A.STATUS IN ('002')
 				   <if test="searchGubun != null and searchGubun != ''">
 				   AND A.GUBUN = #{searchGubun}
 				   </if>
@@ -102,7 +102,7 @@
 			   JOIN NEO_DEPT B ON A.DEPT_NO = B.DEPT_NO
 			   JOIN NEO_CAMPAIGN C ON A.CAMPUS_NO = C.CAMP_NO
 			   JOIN NEO_CD D ON D.CD_GRP = 'C115' AND A.GUBUN = D.CD   
-		 WHERE A.STATUS IN ('003','004')
+		 WHERE A.STATUS IN ('002')
 		   AND A.SMS_STATUS = '000'
 		   AND A.GUBUN != '004'
 		   AND A.MSGID = #{msgid}
@@ -251,7 +251,7 @@
 						        JOIN (SELECT A.CAMPUS_NO, MAX(A.KEYGEN) AS KEYGEN, count(*) CNT
 						                FROM NEO_SMS A
 						               WHERE A.SMS_STATUS = '000'
-							             AND A.STATUS IN ('003', '004')
+							             AND A.STATUS IN ('002')
 									     AND A.GUBUN != '004' 
 				                          GROUP BY CAMPUS_NO
 						        ) T2
@@ -309,7 +309,7 @@
 							  INNER JOIN NEO_DEPT T02 ON (T01.DEPT_NO = T02.DEPT_NO)
 							  INNER JOIN NEO_CD T03 ON (T03.CD_GRP = 'C115' AND T01.GUBUN = T03.CD AND T03.UILANG = #{uilang})
 							 WHERE T01.SMS_STATUS = '000'
-							   AND T01.STATUS IN ('003','004')
+							   AND T01.STATUS IN ('002')
 							   <if test="searchGubun != null and searchGubun != ''">
 							   AND T01.GUBUN = #{searchGubun}
 							   </if>

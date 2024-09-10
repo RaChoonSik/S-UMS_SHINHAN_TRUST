@@ -94,8 +94,10 @@
 												<select id="searchGubun" name="searchGubun" title="전송유형 선택">
 													<option value="">선택</option>
 													<c:if test="${fn:length(gubunList) > 0}">
-														<c:forEach items="${gubunList}" var="gubun">
-															<option value="<c:out value='${gubun.cd}'/>"<c:if test="${gubun.cd eq searchVO.searchGubun}"> selected</c:if>><c:out value='${gubun.cdNm}'/></option>
+														<c:forEach items="${gubunList}" var="gubun" varStatus="varStatus">
+															<c:if test="${varStatus.index < 2}">
+																<option value="<c:out value='${gubun.cd}'/>"<c:if test="${gubun.cd eq searchVO.searchGubun}"> selected</c:if>><c:out value='${gubun.cdNm}'/></option>
+															</c:if>
 														</c:forEach>
 													</c:if>
 												</select>
@@ -150,6 +152,12 @@
 										<label>사용자명</label>
 										<div class="list-item">
 											<div class="select">
+											<c:if test="${'Y' eq NEO_ADMIN_YN}">
+												<select id="searchUserId" name="searchUserId" title="사용자명 선택">
+													<option value="">선택</option>
+												</select>
+											</c:if>
+											<c:if test="${'N' eq NEO_ADMIN_YN}">
 												<select id="searchUserId" name="searchUserId" title="사용자명 선택">
 													<option value="">선택</option>
 													<c:if test="${fn:length(userList) > 0}">
@@ -158,6 +166,7 @@
 														</c:forEach>
 													</c:if>
 												</select>
+											</c:if>
 											</div>
 										</div>
 									</li>
@@ -168,8 +177,10 @@
 												<select id="searchStatus" name="searchStatus" title="발송상태 선택">
 													<option value="">선택</option>
 													<c:if test="${fn:length(statusList) > 0}">
-														<c:forEach items="${statusList}" var="status">
-															<option value="<c:out value='${status.cd}'/>"<c:if test="${status.cd eq searchVO.searchStatus}"> selected</c:if>><c:out value='${status.cdNm}'/></option>
+														<c:forEach items="${statusList}" var="status" varStatus="varStatus">
+															<c:if test="${varStatus.index < 3}">
+																<option value="<c:out value='${status.cd}'/>"<c:if test="${status.cd eq searchVO.searchStatus}"> selected</c:if>><c:out value='${status.cdNm}'/></option>
+															</c:if>
 														</c:forEach>
 													</c:if>
 												</select>

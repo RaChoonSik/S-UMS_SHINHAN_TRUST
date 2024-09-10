@@ -26,7 +26,7 @@
 									<li class="wait"id="schDesc"></li>
 									<li class="ing" id="ingDesc"></li>
 									<li class="end" id="endDesc"></li>
-									<li class="payment" id="approvalDesc"></li> 
+<!-- 									<li class="payment" id="approvalDesc"></li>  -->
 								</ul>
 								<!-- //calendar state -->
 								<input type="hidden" id="sendDt" name="sendDt" value="">

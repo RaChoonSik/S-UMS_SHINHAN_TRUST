@@ -140,7 +140,7 @@
 										<div class="list-item">
 											<label><input type="checkbox" id="emsuseYn" name="emsuseYn" value="Y"<c:if test="${'Y' eq segmentInfo.emsuseYn}"> checked</c:if>><span>EMS</span></label>
 											<label><input type="checkbox" id="smsuseYn" name="smsuseYn" value="Y"<c:if test="${'Y' eq segmentInfo.smsuseYn}"> checked</c:if>><span>SMS</span></label>
-											<label><input type="checkbox" id="pushuseYn" name="pushuseYn" value="Y"<c:if test="${'Y' eq segmentInfo.pushuseYn}"> checked</c:if>><span>PUSH</span></label>
+<%-- 											<label><input type="checkbox" id="pushuseYn" name="pushuseYn" value="Y"<c:if test="${'Y' eq segmentInfo.pushuseYn}"> checked</c:if>><span>PUSH</span></label> --%>
 										</div>
 									</li>
 									<li class="col-full">

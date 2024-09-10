@@ -3862,7 +3862,11 @@ public class CampaignController {
 		StringBuffer sb = new StringBuffer();
 		try {
 			String basePath = properties.getProperty("FILE.UPLOAD_PATH");
-			String contPath = basePath + "/" + taskVO.getContFlPath();
+			String contFlPath = taskVO.getContFlPath();
+			if(contFlPath !=null && ! "".equals(contFlPath)) {
+				contFlPath = contFlPath.replace("..", "");
+			}
+			String contPath = basePath + "/" + contFlPath;
 			
 			//file = new File(contentsPath);
 			//fileReader = new FileReader(file);

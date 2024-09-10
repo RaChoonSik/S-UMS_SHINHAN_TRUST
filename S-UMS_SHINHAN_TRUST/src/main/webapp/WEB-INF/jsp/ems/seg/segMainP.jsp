@@ -149,7 +149,7 @@
 										<div class="list-item">
 											<label><input type="checkbox" id="searchEmsuseYn" name="searchEmsuseYn" value="Y"<c:if test="${'Y' eq searchVO.searchEmsuseYn}"> checked</c:if>><span>EMS</span></label>
 											<label><input type="checkbox" id="searchSmsuseYn" name="searchSmsuseYn" value="Y"<c:if test="${'Y' eq searchVO.searchSmsuseYn}"> checked</c:if>><span>SMS</span></label>
-											<label><input type="checkbox" id="searchPushuseYn" name="searchPushuseYn" value="Y"<c:if test="${'Y' eq searchVO.searchPushuseYn}"> checked</c:if>><span>PUSH</span></label>
+<%-- 											<label><input type="checkbox" id="searchPushuseYn" name="searchPushuseYn" value="Y"<c:if test="${'Y' eq searchVO.searchPushuseYn}"> checked</c:if>><span>PUSH</span></label> --%>
 										</div>
 									</li>
 								</ul>

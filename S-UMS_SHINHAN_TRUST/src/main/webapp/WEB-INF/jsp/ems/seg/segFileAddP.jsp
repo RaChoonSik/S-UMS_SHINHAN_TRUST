@@ -121,7 +121,7 @@
 													<div class="list-item">
 														<label><input type="checkbox" id="emsuseYn" name="emsuseYn" value="Y" onclick="getTargetService();"><span>EMS</span></label>
 														<label><input type="checkbox" id="smsuseYn" name="smsuseYn" value="Y" onclick="getTargetService();"><span>SMS</span></label>
-														<label><input type="checkbox" id="pushuseYn" name="pushuseYn" value="Y" onclick="getTargetService();"><span>PUSH</span></label>
+<!-- 														<label><input type="checkbox" id="pushuseYn" name="pushuseYn" value="Y" onclick="getTargetService();"><span>PUSH</span></label> -->
 													</div>
 												</li>
 												<li class="col-full">

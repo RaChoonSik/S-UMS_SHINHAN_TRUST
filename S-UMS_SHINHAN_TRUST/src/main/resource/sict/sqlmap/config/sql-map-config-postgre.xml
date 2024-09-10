@@ -152,7 +152,6 @@
 		<mapper resource="sict/sqlmap/sys/dbc/DBConnSQL-postgre.xml"></mapper>
 		<mapper resource="sict/sqlmap/sys/log/SystemLogSQL-postgre.xml"></mapper>
 		<mapper resource="sict/sqlmap/sys/rns/RnsStandardSQL-postgre.xml"></mapper>
-		<mapper resource="sict/sqlmap/sys/seg/SegmentSQL-postgre.xml"></mapper>
 		<mapper resource="sict/sqlmap/sys/seg/KakaoTemplateSQL-postgre.xml"></mapper>
 		<mapper resource="sict/sqlmap/sys/seg/SmsTemplateSQL-postgre.xml"></mapper>
 

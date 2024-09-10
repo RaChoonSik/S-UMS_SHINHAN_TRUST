@@ -61,9 +61,9 @@
 
 					<!-- calendar state// -->
 					<ul class="calendar-state">
-						<li class="wait">예약</li>
+						<li class="wait">대기</li>
 						<li class="ing">진행</li>
-						<li class="end">완료</li>
+						<li class="end">발송요청</li>
 					</ul>
 					<!-- //calendar state -->
 

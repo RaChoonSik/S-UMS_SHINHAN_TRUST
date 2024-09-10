@@ -17,7 +17,7 @@
 
 		<!-- btn-wrap// -->
 		<div class="btn-wrap">
-			<button type="button" class="btn big fullblue" onclick="excelDownload();">엑셀다운로드</button>
+<!-- 			<button type="button" class="btn big fullblue" onclick="excelDownload();">엑셀다운로드</button> -->
 		</div>
 		<!-- //btn-wrap -->
 	</div>

@@ -252,6 +252,7 @@ $(document).ready(function() {
 											</div>
 										</div>
 									</li>  --%>
+									<%--
 									<li>
 										<label>발송결재라인</label>
 										<div class="list-item">
@@ -277,7 +278,7 @@ $(document).ready(function() {
 												</a>
 											</c:if>
 										</div>
-									</li>
+									</li>--%>
 									<li class="col-full">
 										<label>메일명</label>
 										<div class="list-item">

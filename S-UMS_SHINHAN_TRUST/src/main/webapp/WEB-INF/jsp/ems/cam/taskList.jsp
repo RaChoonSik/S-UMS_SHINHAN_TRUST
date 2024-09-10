@@ -17,7 +17,7 @@
 		<!-- 버튼// -->
 		<div class="btn-wrap">
 			<button type="button" class="btn fullblue plus" onclick="goMailAdd();">신규등록</button>
-			<button type="button" class="btn" onclick="goApprCancel();">결재취소</button>
+<!-- 			<button type="button" class="btn" onclick="goApprCancel();">결재취소</button> -->
 			<button type="button" class="btn" onclick="popTestSend();">테스트발송</button>
 			<button type="button" class="btn" onclick="goCopy();">복사</button>
 			<button type="button" class="btn" onclick="goDisable();">사용중지</button>

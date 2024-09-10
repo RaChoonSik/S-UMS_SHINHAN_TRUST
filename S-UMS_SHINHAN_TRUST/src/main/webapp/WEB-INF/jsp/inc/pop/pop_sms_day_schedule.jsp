@@ -31,6 +31,7 @@
 								<input type="hidden" id="sendDate" name="sendDate" value="">
 								<!-- date-list// -->
 								<div class="date-list" id="popSmsDayList">
+								<!-- 
 									<div class="wait">
 										<span class="time">10:00</span>
 										<p>
@@ -59,6 +60,7 @@
 											<span>이벤트혜택  [수신자그룹] (발송자명) <em>발송대기</em></span>
 										</p>
 									</div>
+								 -->
 								</div>
 								<!-- //date-list -->
 							</div> 

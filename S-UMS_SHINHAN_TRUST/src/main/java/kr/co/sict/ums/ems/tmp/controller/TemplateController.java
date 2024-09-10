@@ -209,6 +209,11 @@ public class TemplateController {
 		StringBuffer sb = new StringBuffer();
 		try {
 			String basePath = properties.getProperty("FILE.UPLOAD_PATH");
+			String tempFlPath = templateVO.getTempFlPath();
+						
+			if(tempFlPath !=null && ! "".equals(tempFlPath)) {
+				tempFlPath = tempFlPath.replace("..", "");
+			}
 			String tempPath = basePath + "/" + templateVO.getTempFlPath();
 			
 			input = new FileInputStream(tempPath);
@@ -314,7 +319,7 @@ public class TemplateController {
 		templateVO.setRegDt(StringUtil.getDate(Code.TM_YMDHMS));
 		
 		//XSS 필터
-		/*
+		//*
 		if (CrossScriptingFilter.existScript(request, templateVO.getTempVal())) {
 			// jsonView 생성
 			HashMap<String, Object> map = new HashMap<String, Object>();
@@ -324,7 +329,7 @@ public class TemplateController {
 			
 			return modelAndView;
 		}
-		*/
+		//*/
 		
 		// 템플릿 파일 생성
 		String basePath = properties.getProperty("FILE.UPLOAD_PATH") + "/template";
@@ -475,7 +480,7 @@ public class TemplateController {
 		templateVO.setUpDt(StringUtil.getDate(Code.TM_YMDHMS));
 		
 		//XSS 필터
-		/*
+		//*
 		if (CrossScriptingFilter.existScript(request, templateVO.getTempVal())) {
 			// jsonView 생성
 			HashMap<String, Object> map = new HashMap<String, Object>();
@@ -485,7 +490,7 @@ public class TemplateController {
 			
 			return modelAndView;
 		}
-		*/
+		//*/
 		
 		//existScript
 		// 기존 템플릿 파일 삭제

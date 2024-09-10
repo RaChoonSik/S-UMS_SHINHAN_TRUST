@@ -247,6 +247,7 @@
 											</div>
 										</div>
 									</li>
+									<!-- 
 									<li>
 										<label>발송결재라인</label>
 										<div class="list-item">
@@ -256,6 +257,7 @@
 											</div>
 										</div>
 									</li> 
+									 -->
 									<li>
 										<label>웹에이전트</label>
 										<div class="list-item">

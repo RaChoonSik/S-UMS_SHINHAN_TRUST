@@ -93,8 +93,10 @@
                                                 <select id="searchGubun" name="searchGubun" title="전송유형 선택">
                                                     <option value="">선택</option>
                                                     <c:if test="${fn:length(gubunList) > 0}">
-                                                        <c:forEach items="${gubunList}" var="gubun">
-                                                            <option value="<c:out value='${gubun.cd}'/>"<c:if test="${gubun.cd eq searchVO.searchGubun}"> selected</c:if>><c:out value='${gubun.cdNm}'/></option>
+                                                        <c:forEach items="${gubunList}" var="gubun" varStatus="varStatus">
+	                                                        <c:if test="${varStatus.index < 2}">
+																<option value="<c:out value='${gubun.cd}'/>"<c:if test="${gubun.cd eq searchVO.searchGubun}"> selected</c:if>><c:out value='${gubun.cdNm}'/></option>
+															</c:if>
                                                         </c:forEach>
                                                     </c:if>
                                                 </select>
@@ -134,14 +136,21 @@
                                         <label>사용자명</label>
                                         <div class="list-item">
                                             <div class="select">
-                                                <select id="searchUserId" name="searchUserId" title="사용자명 선택">
-                                                    <option value="">선택</option>
-                                                    <c:if test="${fn:length(userList) > 0}">
-                                                        <c:forEach items="${userList}" var="user">
-                                                            <option value="<c:out value='${user.userId}'/>"<c:if test="${user.userId eq searchVO.searchUserId}"> selected</c:if>><c:out value='${user.userNm}'/></option>
-                                                        </c:forEach>
-                                                    </c:if>
-                                                </select>
+	                                            <c:if test="${'Y' eq NEO_ADMIN_YN}">
+													<select id="searchUserId" name="searchUserId" title="사용자명 선택">
+														<option value="">선택</option>
+													</select>
+												</c:if>
+												<c:if test="${'N' eq NEO_ADMIN_YN}">
+													<select id="searchUserId" name="searchUserId" title="사용자명 선택">
+														<option value="">선택</option>
+														<c:if test="${fn:length(userList) > 0}">
+															<c:forEach items="${userList}" var="user">
+																<option value="<c:out value='${user.userId}'/>"<c:if test="${user.userId eq searchVO.searchUserId}"> selected</c:if>><c:out value='${user.userNm}'/></option>
+															</c:forEach>
+														</c:if>
+													</select>
+												</c:if>
                                             </div>
                                         </div>
                                     </li>

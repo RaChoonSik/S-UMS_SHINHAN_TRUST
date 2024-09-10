@@ -1184,7 +1184,7 @@ function fncSep(userId) {
 	var param = $("#popSegInfoFormMail").serialize();
 	$.ajax({
 		type : "POST",
-		url : "/sys/seg/segFileMemberListP.ums?" + param,
+		url : "/ems/seg/segFileMemberListP.ums?" + param,
 		dataType : "html",
 		success : function(pageHtml){
 			$("#iFrmMail").contents().find("body").html(pageHtml);
@@ -1253,7 +1253,7 @@ function goPopSegInfoAddFile(userId) {
 	$("#segFlPath").val("addressfile/" + userId + "/" + tmp);
 	
 	var param = $("#popSegInfoFormMail").serialize();
-	$.getJSON("/sys/seg/segAdd.json?" + param, function(data) {
+	$.getJSON("/ems/seg/segAdd.json?" + param, function(data) {
 		if(data.result == "Success") {
 			alert("등록되었습니다.");
 			goPopSegList();
@@ -1275,7 +1275,7 @@ function goPopSegQueryTest(type) {
 	}
 	
 	var param = $("#popSegInfoFormMail").serialize();
-	$.getJSON("/sys/seg/segDirectSQLTest.json?" + param, function(data) {
+	$.getJSON("/ems/seg/segDirectSQLTest.json?" + param, function(data) {
 		if(data.result == 'Success') {
 			$("#mergeKey").val(data.mergeKey);
 			$("#mergeCol").val(data.mergeKey);
@@ -1321,7 +1321,7 @@ function invalidQuery(){
 // 대상수 구하기
 function goSegCnt() {
 	var param = $("#popSegInfoFormMail").serialize();
-	$.getJSON("/sys/seg/segCount.json?" + param, function(data) {
+	$.getJSON("/ems/seg/segCount.json?" + param, function(data) {
 		$("#txtTotCnt").html(data.totCnt + "명");
 		$("#totCnt").val(data.totCnt);
 	});
@@ -1378,7 +1378,7 @@ function goPopSegInfoAddSql() {
 	
 	// 등록 처리
 	var param = $("#popSegInfoFormMail").serialize();
-	$.getJSON("/sys/seg/segAdd.json?" + param, function(data) {
+	$.getJSON("/ems/seg/segAdd.json?" + param, function(data) {
 		if(data.result == "Success") {
 			alert("등록되었습니다.");
 			goPopSegList();
@@ -1467,7 +1467,7 @@ function goPopSegInfoUpdateFile(userId) {
 	$("#segFlPath").val("addressfile/" + userId + "/" + tmp);
 	
 	var param = $("#popSegInfoFormMail").serialize();
-	$.getJSON("/sys/seg/segUpdate.json?" + param, function(data) {
+	$.getJSON("/ems/seg/segUpdate.json?" + param, function(data) {
 		if(data.result == "Success") {
 			alert("수정되었습니다.");
 			goPopSegList();
@@ -1528,7 +1528,7 @@ function goPopSegInfoUpdateSql() {
 	
 	// 수정 처리
 	var param = $("#popSegInfoFormMail").serialize();
-	$.getJSON("/sys/seg/segUpdate.json?" + param, function(data) {
+	$.getJSON("/ems/seg/segUpdate.json?" + param, function(data) {
 		if(data.result == "Success") {
 			alert("수정되었습니다.");
 			goPopSegList();

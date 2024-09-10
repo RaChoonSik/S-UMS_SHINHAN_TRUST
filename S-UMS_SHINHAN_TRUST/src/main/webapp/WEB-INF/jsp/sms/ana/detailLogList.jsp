@@ -56,8 +56,8 @@
 										<fmt:formatDate var="sendDate" value="${sendDt}" pattern="yyyy-MM-dd HH:mm"/>
 										<c:out value='${sendDate}'/>
 									</td>
-									<td><crypto:decrypt colNm= "PHONE" data="${sendLog.destPhone}"/></td>
-									<td><crypto:decrypt colNm= "PHONE" data="${sendLog.sendPhone}"/></td>
+									<td><c:out value="${sendLog.destPhone}"/></td>
+									<td><c:out value="${sendLog.sendPhone}"/></td>
 <%-- 									<td><a href="javascript:;" onclick="goSmsDetail('<c:out value="${sendLog.msgid}"/>', '<c:out value="${sendLog.keygen}"/>', '<c:out value="${sendLog.campNm}"/>', '<c:out value="${sendLog.attachFileList}"/>', '<c:out value="${sendLog.cmid}"/>', this);" class="bold"><c:out value="${sendLog.subject}"/></a></td> --%>
 									<td>
 										<a href="javascript:;" onclick="goPopRcodeDesc('<c:out value="${logStatus.index}"/>');" >
@@ -91,8 +91,9 @@
 										<fmt:formatDate var="sendDate" value="${sendDt}" pattern="yyyy-MM-dd HH:mm"/>
 										<c:out value='${sendDate}'/>
 									</td>
-									<td><crypto:decrypt colNm= "PHONE" data="${sendLog.destPhone}"/></td>
-									<td><crypto:decrypt colNm= "PHONE" data="${sendLog.sendPhone}"/></td>
+<%-- 									<td><crypto:decrypt colNm= "PHONE" data="${sendLog.destPhone}"/></td> --%>
+									<td><c:out value="${sendLog.destPhone}"/></td>
+									<td><c:out value="${sendLog.sendPhone}"/></td>
 									<td>
 										<a href="javascript:;" onclick="goPopRcodeDesc('<c:out value="${logStatus.index}"/>');" >
 											<c:out value="${sendLog.statusNm}"/>

@@ -143,13 +143,13 @@ function goView(sendDate) {
 					scheInfo += '<span>' + item.scheduleDesc + '<em>' + item.statusNm  + '</em></span></p></div>';
 				}
 			} else {
-				if (item.status  == "000" || item.status  == "001") {
+				if (item.status  == "000" ) {
 					scheInfo += '<div class="wait"><span class="time">[문자]</span><p><a href="javascript:goSmsUpdate(\'' + item.msgid + '\',\'' + item.keygen +  '\');">' + item.taskNm + '</a>';
 					scheInfo += '<span>' + item.scheduleDesc + '<em>' + item.statusNm + '</em></span></p></div>';
-				} else if (item.workStatus  == "002") {
+				} else if (item.status  == "001") {
 					scheInfo += '<div class="ing"><span class="time">[문자]</span><p><a href="javascript:goSmsUpdate(\'' + item.msgid + '\',\'' + item.keygen +  '\');">' + item.taskNm + '</a>';
 					scheInfo += '<span>' + item.scheduleDesc + '<em>' + item.statusNm  + '</em></span></p></div>';
-				} else if (item.workStatus  == "003") {
+				} else if (item.status  == "002") {
 					scheInfo += '<div class="end"><span class="time">[문자]</span><p><a href="javascript:goSmsUpdate(\'' + item.msgid + '\',\'' + item.keygen +  '\');">' + item.taskNm + '</a>';
 					scheInfo += '<span>' + item.scheduleDesc + '<em>' + item.statusNm  + '</em></span></p></div>';
 				}
