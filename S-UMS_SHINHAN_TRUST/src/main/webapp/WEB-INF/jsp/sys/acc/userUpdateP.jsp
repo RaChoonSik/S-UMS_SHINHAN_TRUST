@@ -192,18 +192,18 @@
 													<input type="checkbox" name="service" value="10" <c:if test="${userInfo.useEMS eq 'Y'}"> checked</c:if>>
 													<span>EMS</span>
 												</label>
-												<label>
-													<input type="checkbox" name="service" value="20" <c:if test="${userInfo.useRNS eq 'Y'}"> checked</c:if>>
-													<span>RNS</span>
-												</label>
+<!-- 												<label> -->
+<%-- 													<input type="checkbox" name="service" value="20" <c:if test="${userInfo.useRNS eq 'Y'}"> checked</c:if>> --%>
+<!-- 													<span>RNS</span> -->
+<!-- 												</label> -->
 												<label>
 													<input type="checkbox" name="service" value="30" <c:if test="${userInfo.useSMS eq 'Y'}"> checked</c:if>>
 													<span>SMS</span>
 												</label>
-												<label>
-													<input type="checkbox" name="service" value="40" <c:if test="${userInfo.usePUSH eq 'Y'}"> checked</c:if>>
-													<span>PUSH</span>
-												</label>
+<!-- 												<label> -->
+<%-- 													<input type="checkbox" name="service" value="40" <c:if test="${userInfo.usePUSH eq 'Y'}"> checked</c:if>> --%>
+<!-- 													<span>PUSH</span> -->
+<!-- 												</label> -->
 												<label>
 													<input type="checkbox" name="service" id="chkUseSys" value="99" <c:if test="${userInfo.useSYS eq 'Y'}"> checked</c:if> onclick="setSysUse();">
 													<span>공통설정</span>

@@ -111,7 +111,7 @@ public class SendLogVO extends CommonVO {
 	private String workStatusDtl;
 	private String sendTermStartDt; 
 	private String sendTermEndDt;
-	private int sendTermLoop;
+	private String sendTermLoop;
 	private String sendTermLoopTy;
 	private String sendTermLoopTyNm;
 	private int segRetry;
@@ -675,10 +675,10 @@ public class SendLogVO extends CommonVO {
 	public void setSendTermEndDt(String sendTermEndDt) {
 		this.sendTermEndDt = sendTermEndDt;
 	}
-	public int getSendTermLoop() {
+	public String getSendTermLoop() {
 		return sendTermLoop;
 	}
-	public void setSendTermLoop(int sendTermLoop) {
+	public void setSendTermLoop(String sendTermLoop) {
 		this.sendTermLoop = sendTermLoop;
 	}
 	public String getSendTermLoopTy() {

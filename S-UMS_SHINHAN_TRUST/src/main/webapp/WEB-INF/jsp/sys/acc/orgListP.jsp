@@ -58,7 +58,7 @@
 										<li>
 											<label>부서코드</label>
 											<div class="list-item">
-												<input type="text" id="searchOrgCd" name="searchOrgCd" placeholder="부서코드을 입력해주세요.">
+												<input type="text" id="searchOrgCd" name="searchOrgCd" placeholder="부서코드를 입력해주세요.">
 											</div>
 										</li>
 										<li>

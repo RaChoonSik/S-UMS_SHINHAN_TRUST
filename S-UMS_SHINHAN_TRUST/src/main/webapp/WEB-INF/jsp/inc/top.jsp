@@ -142,7 +142,7 @@ function goUserInfo(userId){
 <%-- 		</c:choose> --%>
 <!-- 	</a> -->
 	</c:if>
-	<div class="user">
+	<div class="user" style="margin-top:0px">
 		<div class="info">
 			<em><c:out value='${NEO_USER_NM}'/></em>
 			<span><c:out value='${NEO_DEPT_NM}'/></span>

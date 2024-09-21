@@ -206,9 +206,9 @@
 											<label>서비스권한</label>
 											<div class="list-item">
 												<label><input type="checkbox" name="service" value="10"><span>EMS</span></label>
-												<label><input type="checkbox" name="service" value="20"><span>RNS</span></label>
+<!-- 												<label><input type="checkbox" name="service" value="20"><span>RNS</span></label> -->
 												<label><input type="checkbox" name="service" value="30"><span>SMS</span></label>
-												<label><input type="checkbox" name="service" value="40"><span>PUSH</span></label>
+<!-- 												<label><input type="checkbox" name="service" value="40"><span>PUSH</span></label> -->
 												<label><input type="checkbox" name="service" id="chkUseSys" value="99" onclick="setSysUse();"><span>공통설정</span></label>
 											</div>
 										</li>
