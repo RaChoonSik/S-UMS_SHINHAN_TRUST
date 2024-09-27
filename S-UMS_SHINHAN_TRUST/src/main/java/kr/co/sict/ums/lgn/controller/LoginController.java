@@ -70,10 +70,24 @@ public class LoginController {
 	 */
 	@RequestMapping(value="/lgnP")
 	public String goLogin(Model model, HttpServletRequest request, HttpServletResponse response) {
-		
+		model.addAttribute("KEYSTRING", properties.getProperty("ACCOUNT.KEYSTRING"));
 		logger.debug("## goLogin Form Start");
 		
 		return "lgn/lgnP";
+	}
+	/**
+	 * 로그인 화면을 출력한다.
+	 * @param model
+	 * @param request
+	 * @param response
+	 * @return
+	 */
+	@RequestMapping(value="/lgnAdmP")
+	public String goLogin2(Model model, HttpServletRequest request, HttpServletResponse response) {
+		
+		logger.debug("## goLogin Form Start");
+		
+		return "lgn/lgnP_old";
 	}
 	
 	/**
@@ -139,6 +153,23 @@ public class LoginController {
 			userId = loginVO.getpUserId();
 			
 			if (authUse == null || !"Y".equals(authUse)) {
+				
+				if( !"admin".equals(userId.toLowerCase())) {
+					
+					int checkVal = loginService.checkAuthUser(loginVO);
+					if (checkVal == 0) {
+						model.addAttribute("result","E");
+						
+						ActionLogVO logVO = new ActionLogVO();
+						logVO.setStatusGb("Failure");
+						logVO.setContent("Login");
+						logVO.setContentPath("/lgn/lgn.ums");
+						logVO.setMessage("인증정보 불일치(sms인증)");
+						insertLoginActionLog(request, session, logVO);
+						return "lgn/lgnP";
+					}
+				}
+				
 				String encPasswd = EncryptUtil.getEncryptedSHA256(loginVO.getpUserPwd());
 				loginVO.setpUserPwd(encPasswd); 
 				userVO = loginService.isValidUser(loginVO);
@@ -401,7 +432,16 @@ public class LoginController {
 				if ("Y".equals(userVO.getPwInitYn())) {
 					map.put("needChange", "Y");
 				} else {
+					
+					//2단계인증 번호 생성 및 SMS발송
+					try {
+						loginService.sendSms(userVO);
+					} catch (Exception e) {
+						logger.error("loginService.sendSms Error = " + e);
+					}
+					
 					map.put("needChange", "N");
+					map.put("userTel", userVO.getUserTel());
 				}
 			} else {
 				ActionLogVO logVO = new ActionLogVO();
@@ -784,5 +824,107 @@ public class LoginController {
 		}
 		logger.debug( "## callRestApiPost End" );
 		return rtnVal;
+	}
+	
+	/**
+	 * 2단계 인증 확인
+	 * 
+	 * @param userVO
+	 * @param model
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/checkTwoFactor")
+	public ModelAndView userCheckTwoFactor(@ModelAttribute LoginVO loginVO, Model model, HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+		logger.debug("userCheckTwoFactor userId = " + loginVO.getpUserId()); // 초기화된 비밀번호 변경할 사용자 ID 암호화 된것 
+		logger.debug("userCheckTwoFactor TwoFactorCode = " + loginVO.getTwoFactorCode()); // 인증번호 
+ 
+		int result = 0;
+		
+		String cipherUserId = loginVO.getpUserId();
+ 
+		try {
+			loginVO.setpUserId(EncryptAccUtil.getEncryptedSHA256(cipherUserId, properties.getProperty("ACCOUNT.KEYSTRING")));
+		} catch (Exception e) {
+			result = -9;
+			logger.error("userCheckTwoFactor EncryptAccUtil Error = " + e);
+		} 
+		
+		logger.debug("userUpdateInitPassword userId = " + loginVO.getpUserId()); // 사용자ID
+
+		if ("".equals(loginVO.getTwoFactorCode())) {
+			result = -9;
+		} else {
+			
+			// 사용자 정보를 수정한다.
+			try {
+				result = loginService.isValidTwoFactor(loginVO);
+			} catch (Exception e) {
+				logger.error("loginService.isValidTwoFactor error = " + e);
+			}
+		}
+
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		if (result > 0) {
+			map.put("result", "Success");	
+			map.put("message", "인증되었습니다.");
+		} else {
+			map.put("result", "Fail");
+			if(result == -9) {
+				map.put("message", "인증번호를 다시 확인하시기 바랍니다.");
+			} else if(result == -8) {
+				map.put("message", "인증번호가 만료되었습니다. 재발송 후 인증번호를 다시 입력하시기 바랍니다.");
+			} else {
+				map.put("message", "2차인증을 실패하였습니다. 다시 시도하여주세요. ");
+			} 
+		}
+		ModelAndView modelAndView = new ModelAndView("jsonView", map);
+		return modelAndView;
+	}
+	
+	/**
+	 * 2단계인증번호 재발송
+	 * 
+	 * @param userVO
+	 * @param model
+	 * @param request
+	 * @param response
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/reSendTwofactor")
+	public ModelAndView reSendTwofactor(@ModelAttribute LoginVO loginVO, Model model, HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+		logger.debug("reSendTwofactor pUserId = " + loginVO.getpUserId());
+		
+		//암호화된 내용 복호화  
+		String cipherUserId = loginVO.getpUserId();
+		try {
+			loginVO.setpUserId(EncryptAccUtil.getEncryptedSHA256(cipherUserId, properties.getProperty("ACCOUNT.KEYSTRING")));
+		} catch(Exception e) { 
+			logger.error("reSendTwofactor EncryptAccUtil Error = " + e);
+		}
+		
+		String userId = loginVO.getpUserId();
+		UserVO userVO = new UserVO();
+		userVO.setUserId(userId);
+		//
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		//2단계인증 번호 생성 및 SMS발송
+		int result = 0;
+		try {
+			result = loginService.sendSms(userVO);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		if (result > 0) {
+			map.put("result", "Success");
+		}else {
+			map.put("result", "Fail");
+		}
+		
+		ModelAndView modelAndView = new ModelAndView("jsonView", map);
+		return modelAndView;
 	}
 }

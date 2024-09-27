@@ -143,5 +143,48 @@
 		  FROM	NEO_USER A	
 		 WHERE A.USER_ID  = #{pUserId} 
 	</select> 
+	
+	<select id="isValidTwoFactor" parameterType="loginVO" resultType="int">
+		SELECT (CASE WHEN MAX(TWO_FACTOR_CODE) IS NOT NULL
+					THEN (CASE WHEN CURRENT_TIMESTAMP >= MAX(EXPIRATION_TIME) THEN -8 ELSE 1 END)
+					ELSE -9
+				END) AS CHECK
+		  FROM AUTH_USERS
+		 WHERE USER_ID = #{pUserId}
+		   AND TWO_FACTOR_CODE = #{twoFactorCode}
+	</select>
+	
+	<update id="updateTwoFactor" parameterType="loginVO" >
+		INSERT INTO AUTH_USERS (USER_ID, TWO_FACTOR_CODE, EXPIRATION_TIME, AUTH_METHOD)
+		VALUES (#{pUserId}, #{twoFactorCode}, CURRENT_TIMESTAMP + INTERVAL '5 minutes', 'sms')
+		ON CONFLICT (USER_ID) 
+		DO UPDATE SET 
+		    TWO_FACTOR_CODE = #{twoFactorCode},
+		    EXPIRATION_TIME = CURRENT_TIMESTAMP + INTERVAL '5 minutes'
+	</update>
+
+	<insert id="insertSmsSend" parameterType="smsVO">
+		INSERT INTO BIZ_MSG (
+		MSG_TYPE, CMID, REQUEST_TIME, SEND_TIME, DEST_PHONE, SEND_PHONE, MSG_BODY)
+		VALUES (
+		#{msgType}, #{cmid}, NOW(), NOW(), #{destPhone}, #{sendPhone}, #{msgBody})
+	</insert>
+	
+	<update id="updateNeoUserTwoFactorCode" parameterType="loginVO" >
+		UPDATE NEO_USER
+		   SET TWO_FACTOR_CODE = #{twoFactorCode}
+		 WHERE USER_ID = #{pUserId}
+	</update>
+	
+	<select id="checkAuthUser" parameterType="loginVO" resultType="int">
+		SELECT CASE WHEN A.TWO_FACTOR_CODE = B.TWO_FACTOR_CODE
+					THEN 1
+					ELSE 0
+			   END
+		  FROM NEO_USER A
+			   JOIN AUTH_USERS B
+				 ON A.USER_ID = B.USER_ID
+		 WHERE A.USER_ID = #{pUserId}
+	</select>
 
 </mapper>

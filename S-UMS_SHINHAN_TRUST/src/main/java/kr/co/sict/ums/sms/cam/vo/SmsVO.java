@@ -80,6 +80,14 @@ public class SmsVO extends CommonVO {
 	private String attachPath;	// 파일경로
 	private String orgTempCd;	// 저장되어있는 TempCd
 	private int orgSegNo;	// 저장되어있는 SegNo
+	
+	//비즈뿌리오 sms전송 컬럼(BIZ_MSG)
+	private int msgType; //SMS:0, LMS:5
+	private String cmid; // 키값
+	private String destPhone; // 수신전화번호
+	private String sendPhone; // 발신전화번호
+	private String msgBody; // 메세지내용
+	
 	public String getMsgid() {
 		return msgid;
 	}
@@ -470,4 +478,36 @@ public class SmsVO extends CommonVO {
 	public void setOrgSegNo(int orgSegNo) {
 		this.orgSegNo = orgSegNo;
 	}
+	public int getMsgType() {
+		return msgType;
+	}
+	public void setMsgType(int msgType) {
+		this.msgType = msgType;
+	}
+	public String getCmid() {
+		return cmid;
+	}
+	public void setCmid(String cmid) {
+		this.cmid = cmid;
+	}
+	public String getDestPhone() {
+		return destPhone;
+	}
+	public void setDestPhone(String destPhone) {
+		this.destPhone = destPhone;
+	}
+	public String getSendPhone() {
+		return sendPhone;
+	}
+	public void setSendPhone(String sendPhone) {
+		this.sendPhone = sendPhone;
+	}
+	public String getMsgBody() {
+		return msgBody;
+	}
+	public void setMsgBody(String msgBody) {
+		this.msgBody = msgBody;
+	}
+	
+	
 }

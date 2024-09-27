@@ -901,3 +901,13 @@ tbody.sortable td {background-color:transparent;}
 .popreviewresult .graybox-wrap .graybox .grid-area{height:250px;padding:0;overflow-y:auto;}
 .popreviewresult .grid td{padding-left:20px;padding-right:20px;text-align:left;}
 .popreviewresult .caution{margin-top:20px;color:#888;font-size:12px;}
+
+/* popup : 로그인 2차인증 */
+.popTwoFactor ul li:first-child{margin-bottom:15px;}
+.popTwoFactor ul li label{margin-bottom:10px;font-size: 13px}
+.popTwoFactor ul li label#popTwoFactorTime{margin-left:25px;}
+.popTwoFactor ul li label span#popTwoFactorTimerDisplay{margin-right:5px;}
+.popTwoFactor ul li label a{text-decoration: underline;}
+.popTwoFactor .pw-area2{position:relative;}
+.popTwoFactor .pw-area2 input[type="text"]{width:100%;}
+.popTwoFactor p{margin-top:5px;font-size:11px;}

@@ -65,8 +65,8 @@ function goLogin() {
     const target = document.getElementById('btnLogin');
     target.disabled = true; 
     
-    var encUserId = CryptoJS.AES.encrypt($("#pUserId").val(), $("#_keyString_").val());
-    var encUserPwd = CryptoJS.AES.encrypt($("#pUserPwd").val(), $("#_keyString_").val());
+    var encUserId = CryptoJS.AES.encrypt($("#pUserId").val(), "!END#ERSUMS");
+    var encUserPwd = CryptoJS.AES.encrypt($("#pUserPwd").val(), "!END#ERSUMS");
 
     $("#eUserId").val(encUserId);
     $("#eUserPwd").val(encUserPwd);
@@ -85,28 +85,7 @@ function goLogin() {
                     fn.popupOpen("#popup_user_editpassword");
                     target.disabled = false;
                 } else {
-                	
-                	//인증번호 전송되며 팝업이 뜸
-                	
-                	if ("ADMIN" == $("#pUserId").val()) {
-                		$("#loginForm").submit();
-                		return false;
-                	}
-                	
-                	//2차인증 팝업
-                	fn.popupOpen("#popup_user_two_factor");
-                	
-                	if (data.userTel != '') {
-                		$("#popUserTelTxt").parent().removeClass("hidden");
-	                	$("#popUserTelTxt").text(data.userTel);
-	                	
-                		$("#popTwoFactorTime").removeClass("hidden");
-	                	updateTimer();
-                	}else {
-                		alert("회원정보에 전화번호가 등록되지 않았습니다. 관리자에게 문의하시기 바랍니다.");
-                	}
-                	//sms 체크
-//                     $("#loginForm").submit();
+                    $("#loginForm").submit();
                 }
             } else {
                 alert("아이디와 비밀번호를 확인해주세요");
@@ -123,8 +102,8 @@ function goLogin() {
 function popSaveInitPasswordChange(){
     
     if( popCheckInitPasswordChange()) {  
-        var encUserId = CryptoJS.AES.encrypt($("#needUserId").val(), $("#_keyString_").val());
-        var encUserPwd = CryptoJS.AES.encrypt($("#popUserEditPwd").val(), $("#_keyString_").val());
+        var encUserId = CryptoJS.AES.encrypt($("#needUserId").val(), "!END#ERSUMS");
+        var encUserPwd = CryptoJS.AES.encrypt($("#popUserEditPwd").val(), "!END#ERSUMS");
         var pwInitYn = $("#needChange").val();
         
         $("#popUserEditPwdUserId").val(encUserId);
@@ -156,100 +135,6 @@ function popSaveInitPasswordChange(){
         });
     }
 }
-function popCloseUserTwoFactor(){
-	$("#twoFactorCode").val("");
-	$("#twoFactorCodeTxt").val("");
-	fn.popupClose('#popup_user_two_factor');
-	stopTimer();
-}
-
-//2차인증
-function popUserTwoFactorConfirm() {
-	
-	var code = $("#twoFactorCodeTxt").val();
-	
-	if (code == "") {
-		alert("인증번호를 입력해주세요");
-		return false;
-	}
-	
-	$("#twoFactorCode").val(code);
-	var param = $("#loginForm").serialize();
-	
-	$.ajax({
-        type : "POST",
-        url : "/lgn/checkTwoFactor.json?" + param,
-        dataType : "json",
-        success : function(data){
-            if(data.result == "Success") {
-               	//sms 체크
-                $("#loginForm").submit();
-            } else {
-//                 alert("인증번호를 다시 확인하시기 바랍니다.");
-                alert(data.message);
-            }
-        },
-        error: function (e) {
-            alert("로그인 처리에 오류가 발생했습니다");
-        }
-    });
-	
-}
-
-//인증번호 재전송
-function popUserTwoFactorReSend() {
-	stopTimer();
-	
-	var param = $("#loginForm").serialize();
-	  
-	  $.ajax({
-	      type : "POST",
-	      url : "/lgn/reSendTwofactor.json?" + param,
-	      dataType : "json",
-	      success : function(data){
-	          if(data.result == "Success") {
-	        	  alert("인증번호가 재발송 되었습니다.");
-	        	  updateTimer();
-	          }
-	      },
-	      error: function (e) {
-	          alert("로그인 처리에 오류가 발생했습니다");
-	          target.disabled = false;
-	      }
-	  });
-	
-	
-}
-
-const totalTime = 5 * 60; // 5분(300초)
-let remainingTime = totalTime;
-let timerId = null; // setTimeout의 ID 저장
-function updateTimer() {
-	//
-	const minutes = Math.floor(remainingTime / 60);
-	const seconds = remainingTime % 60;
-
-	// 2자리 숫자 형식으로 초 출력
-	const timeDisplay = minutes+":"+(seconds < 10 ? '0' + seconds : seconds);
-  
-	$("#popTwoFactorTimerDisplay").text(timeDisplay);
-
-	remainingTime--;
-
-	// 남은 시간이 0보다 크면 1초 후에 updateTimer를 다시 호출
-	if (remainingTime >= 0) {
-		timerId = setTimeout(updateTimer, 1000); // 1초 후에 다시 실행
-	} else {
-		console.log('타이머 종료!');
-	}
-}
-
-function stopTimer() {
-	  if (timerId !== null) {
-	    clearTimeout(timerId); // setTimeout 중지
-	    remainingTime = totalTime;
-	  }
-	}
 
 </script>
 
@@ -258,7 +143,6 @@ function stopTimer() {
 
         <!-- login// -->
         <div id="login">
-        	<input type="hidden" id="_keyString_" value="!END#ERSUMS">
             <form id="loginForm" name="loginForm" action="<c:url value='/lgn/lgn.ums'/>" method="post">
                 <fieldset>
                     <legend>로그인</legend>
@@ -269,7 +153,6 @@ function stopTimer() {
                             <input type="password" id="pUserPwd" placeholder="비밀번호">
                             <input type="hidden" id="eUserId" name="pUserId" placeholder="아이디">
                             <input type="hidden" id="eUserPwd" name="pUserPwd" placeholder="비밀번호">
-                            <input type="hidden" id="twoFactorCode" name="twoFactorCode" placeholder="비밀번호">
                             <i class="fa fa-eye fa-lg"></i>
                             <div class="error">                             
     <c:if test="${'N' eq result}">
@@ -300,6 +183,5 @@ function stopTimer() {
 
     </div>
     <%@ include file="/WEB-INF/jsp/inc/pop/pop_user_password.jsp" %>
-    <%@ include file="/WEB-INF/jsp/inc/pop/pop_user_two_factor.jsp" %>
 </body>
 </html>

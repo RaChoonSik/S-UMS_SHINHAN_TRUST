@@ -9,6 +9,7 @@ public class LoginVO {
 	private String pUserId;
 	private String pUserPwd;
 	private String pPwInitYn; 
+	private String twoFactorCode;
 	
 	public String getpUserId() {
 		return pUserId;
@@ -28,4 +29,11 @@ public class LoginVO {
 	public void setpPwInitYn(String pPwInitYn) {
 		this.pPwInitYn = pPwInitYn;
 	}
+	public String getTwoFactorCode() {
+		return twoFactorCode;
+	}
+	public void setTwoFactorCode(String twoFactorCode) {
+		this.twoFactorCode = twoFactorCode;
+	}
+	
 }

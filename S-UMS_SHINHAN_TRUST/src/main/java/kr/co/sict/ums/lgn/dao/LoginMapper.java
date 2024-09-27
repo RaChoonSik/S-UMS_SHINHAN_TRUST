@@ -9,6 +9,7 @@ import java.util.List;
 
 import kr.co.sict.ums.lgn.vo.LoginHistVO;
 import kr.co.sict.ums.lgn.vo.LoginVO;
+import kr.co.sict.ums.sms.cam.vo.SmsVO;
 import kr.co.sict.ums.sys.acc.vo.SysMenuVO;
 import kr.co.sict.ums.sys.acc.vo.UserProgVO;
 import kr.co.sict.ums.sys.acc.vo.UserVO;
@@ -60,5 +61,38 @@ public interface LoginMapper {
      * @throws Exception
      */
     public UserVO procRimanUserInsert(UserVO userVO) throws Exception;
+
+    /**
+     * 2차인증 확인
+     * @param loginVO
+     * @return
+     */
+	public int isValidTwoFactor(LoginVO loginVO) throws Exception;
+
+	/**
+	 * 2차인증번호 저장
+	 * @param userVO
+	 * @return
+	 */
+	public void updateTwoFactor(LoginVO loginVO) throws Exception;
+
+	/**
+	 * 인증번호 발송
+	 * @param smsVO
+	 */
+	public int insertSmsSend(SmsVO smsVO) throws Exception;
+
+	/**
+	 * neo_user테이블에 인증코드 업데이트
+	 * @param loginVO
+	 */
+	public void updateNeoUserTwoFactorCode(LoginVO loginVO);
+
+	/**
+	 * 2차인증여부 확인
+	 * @param loginVO
+	 * @return
+	 */
+	public int checkAuthUser(LoginVO loginVO);
     
 }

@@ -32,17 +32,28 @@ public class MaskingUtil {
 					//String midNm = "";
 					String maskNm = "*"; 
 					String lastNm = "";
+					
 					if(colData.length() > 0) {
 						frsNm = colData.substring(0,1);
-						if( colData.length() > 2) {
+						if (colData.length() > 2) {
 							lastNm = colData.substring(2, colData.length());
+							
+							if (colData.length() > 3) {
+								lastNm = colData.substring(colData.length()-1, colData.length());
+								StringBuilder middle = new StringBuilder();
+								for(int i=0; i<colData.length()-2; i++) {
+									middle.append("*");
+								}
+								maskNm = middle.toString();
+							}
 						}
 						result = frsNm + maskNm + lastNm;
 						break;
-					} else {
+					}else {
 						result = colData;
 						break;
 					}
+					
 				// 고객 이메일
 				} else if ("CUST_EM".equals(colNm) || "EMAIL".equals(colNm)) {
 					//이메일 형식 검사
@@ -60,8 +71,14 @@ public class MaskingUtil {
 					}
 				//고객 전화번호
 				} else if ("PHONE".equals(colNm)) {
-					String[] phoneArr = colData.split("-");
-					result = phoneArr[0] + "-" + phoneArr[1].substring(0, 2) + "**-" + phoneArr[2].substring(0, 2) + "**";
+					if (colData.indexOf("-") == -1) {
+						result = colData.substring(0,3) + "-****-" + colData.substring(7,11);
+//						result = colData.substring(0,3) + "-"+ colData.substring(3,5) +"**-" + colData.substring(7,9)+"**";
+					}else {
+						String[] phoneArr = colData.split("-");
+						result = phoneArr[0] + "-****-" + phoneArr[2].substring(0, 4);
+//						result = phoneArr[0] + "-" + phoneArr[1].substring(0, 2) + "**-" + phoneArr[2].substring(0, 2) + "**";
+					}
 					break;
 				} else {
 					result = colData;

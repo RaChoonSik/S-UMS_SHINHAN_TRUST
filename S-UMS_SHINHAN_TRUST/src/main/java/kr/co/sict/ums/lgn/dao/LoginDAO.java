@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 
 import kr.co.sict.ums.lgn.vo.LoginHistVO;
 import kr.co.sict.ums.lgn.vo.LoginVO;
+import kr.co.sict.ums.sms.cam.vo.SmsVO;
 import kr.co.sict.ums.sys.acc.vo.SysMenuVO;
 import kr.co.sict.ums.sys.acc.vo.UserProgVO;
 import kr.co.sict.ums.sys.acc.vo.UserVO;
@@ -51,4 +52,25 @@ public class LoginDAO implements LoginMapper {
     public UserVO procRimanUserInsert(UserVO userVO) throws Exception {
         return sqlSessionEms.getMapper(LoginMapper.class).procRimanUserInsert(userVO);
     }
+
+	public int isValidTwoFactor(LoginVO loginVO) throws Exception {
+		return sqlSessionEms.getMapper(LoginMapper.class).isValidTwoFactor(loginVO);
+	}
+
+	public void updateTwoFactor(LoginVO loginVO) throws Exception {
+		sqlSessionEms.getMapper(LoginMapper.class).updateTwoFactor(loginVO);
+		
+	}
+
+	public int insertSmsSend(SmsVO smsVO) throws Exception {
+		return sqlSessionEms.getMapper(LoginMapper.class).insertSmsSend(smsVO);
+	}
+
+	public void updateNeoUserTwoFactorCode(LoginVO loginVO) {
+		sqlSessionEms.getMapper(LoginMapper.class).updateNeoUserTwoFactorCode(loginVO);
+	}
+
+	public int checkAuthUser(LoginVO loginVO) {
+		return sqlSessionEms.getMapper(LoginMapper.class).checkAuthUser(loginVO);
+	}
 }

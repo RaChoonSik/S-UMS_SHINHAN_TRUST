@@ -56,5 +56,24 @@ public interface LoginService {
      * @throws Exception
      */
     public UserVO procRimanUserInsert(UserVO userVO) throws Exception;
+
+    /**
+     * 2차인증체크
+     * @param loginVO
+     * @return
+     */
+	public int isValidTwoFactor(LoginVO loginVO) throws Exception;
+
+	/**
+	 * 2단계 인증 sms발송
+	 * @param loginVO
+	 */
+	public int sendSms(UserVO userVO) throws Exception;
+
+	/**
+	 * 2단계 인증 여부 확인
+	 * @param loginVO
+	 */
+	public int checkAuthUser(LoginVO loginVO);
     
 }
